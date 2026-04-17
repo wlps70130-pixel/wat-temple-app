@@ -1,310 +1,226 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const BUILDINGS = [
-  { id: 'virtual', name: 'มิเตอร์จำลอง (Virtual - สำหรับทดสอบ)', deviceId: 'vdevo177642115457797' },
   { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a326a888ee9e0e5c67pwni' },
-  { id: 'multipurpose', name: 'ศาลาเอนกประสงค์', deviceId: 'a3736b081370896dbadmiu' },
+  { id: 'multipurpose', name: 'ศาลาพระประจำวัน', deviceId: '3a95d6030b8bc9a02idhq' },
   { id: 'kuti1', name: 'กุฏิ 1 (เจ้าอาวาส)', deviceId: '' },
   { id: 'kuti2', name: 'กุฏิ 2', deviceId: '' },
   { id: 'dining', name: 'หอฉัน', deviceId: '' },
   { id: 'temple', name: 'พระอุโบสถ', deviceId: '' }
-  // เพิ่มอาคารเรื่อยๆ แค่ระบุชื่อ และตั้ง deviceId ให้ตรงตัวเครื่อง
 ];
-
-// Mock data generator (Simulating Tuya 3-Phase Meter + Huawei Solar)
-const generateMockData = () => {
-  // Simulate active solar generation (Reverse Energy)
-  const isSunny = new Date().getHours() > 7 && new Date().getHours() < 17;
-  const solarGenKw = isSunny ? (Math.random() * 8 + 2).toFixed(2) : 0.00;
-  
-  return {
-    timestamp: new Date().toLocaleTimeString('th-TH'),
-    overall: {
-      forwardKwh: (Math.random() * 50000 + 10000).toFixed(1),  // พลังงานที่ซื้อจากการไฟฟ้า
-      reverseKwh: (Math.random() * 15000 + 5000).toFixed(1),   // พลังงานที่โซลาร์ผลิตย้อนแสง
-      totalKw: (Math.random() * 15 + 5 - solarGenKw).toFixed(2)  // กำลังไฟสุทธิ (การใช้ - โซลาร์)
-    },
-    phases: [
-      {
-        id: 'A',
-        label: 'Phase A (L1)',
-        color: '#b45309', // Brown standard L1
-        voltage: (220 + Math.random() * 5).toFixed(1),
-        current: (Math.random() * 30 + 10).toFixed(1),
-        activePower: (Math.random() * 5 + 2).toFixed(2),
-        reactivePower: (Math.random() * 1).toFixed(2),
-        pf: (Math.random() * 0.1 + 0.9).toFixed(2),
-        freq: (49.9 + Math.random() * 0.2).toFixed(2)
-      },
-      {
-        id: 'B',
-        label: 'Phase B (L2)',
-        color: '#1f2937', // Black standard L2
-        voltage: (220 + Math.random() * 5).toFixed(1),
-        current: (Math.random() * 30 + 10).toFixed(1),
-        activePower: (Math.random() * 5 + 2).toFixed(2),
-        reactivePower: (Math.random() * 1).toFixed(2),
-        pf: (Math.random() * 0.1 + 0.9).toFixed(2),
-        freq: (49.9 + Math.random() * 0.2).toFixed(2)
-      },
-      {
-        id: 'C',
-        label: 'Phase C (L3)',
-        color: '#4b5563', // Grey standard L3
-        voltage: (220 + Math.random() * 5).toFixed(1),
-        current: (Math.random() * 30 + 10).toFixed(1),
-        activePower: (Math.random() * 5 + 2).toFixed(2),
-        reactivePower: (Math.random() * 1).toFixed(2),
-        pf: (Math.random() * 0.1 + 0.9).toFixed(2),
-        freq: (49.9 + Math.random() * 0.2).toFixed(2)
-      }
-    ]
-  };
-};
 
 export default function EnergyDashboard() {
   const [selectedBuilding, setSelectedBuilding] = useState(BUILDINGS[0].id);
-  const [data, setData] = useState(generateMockData());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isApiMode, setIsApiMode] = useState(false);
-  const [rawApiData, setRawApiData] = useState(null);
   const [apiError, setApiError] = useState(null);
+  const [rawApiData, setRawApiData] = useState(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   const fetchRealData = async (deviceId) => {
+    if (!deviceId) {
+      setApiError("ไม่พบรหัสอุปกรณ์ (Device ID)");
+      setRawApiData(null);
+      return;
+    }
+    
     try {
       const response = await fetch(`/api/tuya?deviceId=${deviceId}`);
       const apiData = await response.json();
       
       if (apiData.success) {
-        console.log("Tuya Real Data Received:", apiData.result);
-        setIsApiMode(true);
         setRawApiData(apiData.result);
         setApiError(null);
       } else {
-        console.warn("Failed or Local Mode:", apiData);
-        setIsApiMode(false);
         setRawApiData(null);
         setApiError(apiData.error || "Unknown API Error");
-        setData(generateMockData());
       }
     } catch (error) {
-      console.error("Vercel Serverless Error:", error);
-      setIsApiMode(false);
+      setRawApiData(null);
       setApiError(error.message);
-      setData(generateMockData()); // Fallback to mock
     }
   };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     const activeBldg = BUILDINGS.find(b => b.id === selectedBuilding);
-    
-    if (activeBldg && activeBldg.deviceId) {
-      await fetchRealData(activeBldg.deviceId);
-    } else {
-      setIsApiMode(false);
-      setRawApiData(null);
-      setData(generateMockData());
-    }
-    
-    // Fake mini-delay for smooth animation
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 500);
+    await fetchRealData(activeBldg?.deviceId);
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  // ดึงข้อมูลใหม่ทุกครั้งที่เปลี่ยนตึก
-  React.useEffect(() => {
+  useEffect(() => {
     handleRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBuilding]);
 
+  // Parsing Logic (Very Defensive)
+  const parseData = (raw) => {
+    // Default Empty State
+    const defaultPhase = { v: '0.0', a: '0.0', kw: '0.00' };
+    const parsed = {
+      isOnline: false,
+      totalKw: '0.00',
+      forwardKwh: '0.0',
+      reverseKwh: '0.0',
+      phases: {
+        A: { ...defaultPhase },
+        B: { ...defaultPhase },
+        C: { ...defaultPhase }
+      }
+    };
+
+    if (!raw) return parsed;
+    
+    parsed.isOnline = true; // We successfully hit the Tuya API and got a result object
+
+    const statusArray = raw.status || [];
+    if (statusArray.length === 0) {
+      parsed.isOnline = false;
+      return parsed;
+    }
+
+    // Try to extract values by common Tuya codes (va, ia, pa)
+    const findCode = (prefix) => {
+       const item = statusArray.find(s => String(s.code).toLowerCase() === prefix);
+       if (item && item.value !== undefined) {
+         // Tuya usually sends values scaled by 10 or 1000
+         const val = Number(item.value);
+         return isNaN(val) ? 0 : val;
+       }
+       return 0;
+    };
+
+    // Very naive decoding attempt. Real logic will be updated once debug data is seen.
+    parsed.phases.A.v = (findCode('va') / 10).toFixed(1);
+    parsed.phases.A.a = (findCode('ia') / 1000).toFixed(1);
+    parsed.phases.A.kw = (findCode('pa') / 1000).toFixed(2);
+    
+    parsed.phases.B.v = (findCode('vb') / 10).toFixed(1);
+    parsed.phases.B.a = (findCode('ib') / 1000).toFixed(1);
+    parsed.phases.B.kw = (findCode('pb') / 1000).toFixed(2);
+    
+    parsed.phases.C.v = (findCode('vc') / 10).toFixed(1);
+    parsed.phases.C.a = (findCode('ic') / 1000).toFixed(1);
+    parsed.phases.C.kw = (findCode('pc') / 1000).toFixed(2);
+
+    parsed.totalKw = (findCode('pt') / 1000).toFixed(2);
+    parsed.forwardKwh = (findCode('forward_energy_total') / 100).toFixed(1);
+    
+    return parsed;
+  };
+
+  const parsedData = parseData(rawApiData);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '0.5rem', paddingBottom: '2rem' }}>
-      
-      <h2 className="section-title" style={{ paddingLeft: '0.5rem', justifyContent: 'center', marginBottom: '-0.5rem' }}>
-        <span style={{ fontSize: '1.5rem' }}>⚡</span>
-        Tuya Energy Pro
-      </h2>
-      <p style={{ textAlign: 'center', color: isApiMode ? '#10b981' : 'var(--text-muted)', fontSize: '0.85rem', marginTop: '-1rem' }}>
-        {isApiMode ? "เชื่อมต่อ API ของจริงสำเร็จ 🟢" : "ระบบติดตามพลังงานไฟฟ้า 3 เฟส & Solar Cell"}
-      </p>
-
-      {/* Temporary Raw Data Display */}
-      {isApiMode && rawApiData && (
-        <div style={{ background: '#1e293b', color: '#10b981', padding: '1rem', borderRadius: '8px', overflowX: 'auto', fontSize: '0.75rem', marginTop: '1rem' }}>
-          <p style={{ color: '#fff', marginBottom: '0.5rem', fontWeight: 'bold' }}>⚠️ ส่งรูปหรือก็อปปี้ข้อความด้านล่างนี้ให้ผมทีครับ:</p>
-          <pre>{JSON.stringify(rawApiData, null, 2)}</pre>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', background: '#020617', minHeight: '100vh', color: '#f8fafc', margin: '-1rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '1rem' }}>
+        <div>
+          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem', fontWeight: 'bold' }}>
+            📡 Energy Monitor
+          </h2>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Real-time SCADA Dashboard</p>
         </div>
-      )}
-
-      {/* API Error Display */}
-      {apiError && (
-        <div style={{ background: '#7f1d1d', color: '#fca5a5', padding: '1rem', borderRadius: '8px', overflowX: 'auto', fontSize: '0.75rem', marginTop: '0.5rem' }}>
-          <p style={{ color: '#fff', marginBottom: '0.5rem', fontWeight: 'bold' }}>❌ เชื่อมต่อ Tuya ไม่สำเร็จ (เกิดข้อผิดพลาด):</p>
-          <pre>{JSON.stringify(apiError, null, 2)}</pre>
-          <p style={{ marginTop: '0.5rem', color: '#fef08a' }}>* หากขึ้น error code: 1106 (permission deny) แปลว่ายังไม่ได้เอาแอปมือถือสแกนเข้าโปรเจกต์ครับ หรือเลือก Data Center ผิดโซน</p>
-        </div>
-      )}
-
-      {/* Building Selector (Dropdown for 20+ buildings) */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        background: 'rgba(255,255,255,0.8)', 
-        padding: '0.5rem 1rem', 
-        borderRadius: '12px', 
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-        border: '1px solid rgba(0,0,0,0.05)',
-        gap: '0.5rem'
-      }}>
-        <span style={{ fontSize: '1.2rem' }}>🏢</span>
-        <select 
-          value={selectedBuilding}
-          onChange={(e) => {
-            setSelectedBuilding(e.target.value);
-            handleRefresh();
-          }}
-          style={{
-            flex: 1,
-            padding: '0.5rem',
-            border: 'none',
-            background: 'transparent',
-            fontSize: '1rem',
-            fontWeight: '600',
-            color: 'var(--primary-dark)',
-            outline: 'none',
-            appearance: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          {BUILDINGS.map(bldg => (
-            <option key={bldg.id} value={bldg.id}>{bldg.name}</option>
-          ))}
-        </select>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', pointerEvents: 'none' }}>▼</span>
+        <button onClick={handleRefresh} disabled={isRefreshing} style={{ background: '#1e293b', border: '1px solid #334155', color: 'white', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <span style={{ display: 'inline-block', transition: 'transform 0.5s', transform: isRefreshing ? 'rotate(180deg)' : 'none' }}>🔄</span>
+        </button>
       </div>
 
-      {/* Total Overview Cards (Grid) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+      {/* Selector & Status */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', background: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', padding: '0.5rem', alignItems: 'center' }}>
+           <select 
+              value={selectedBuilding}
+              onChange={(e) => setSelectedBuilding(e.target.value)}
+              style={{ flex: 1, background: 'transparent', border: 'none', color: '#e2e8f0', fontSize: '1rem', outline: 'none' }}
+            >
+              {BUILDINGS.map(b => <option key={b.id} value={b.id} style={{color: '#000'}}>{b.name}</option>)}
+            </select>
+        </div>
         
-        {/* Card 1: Forward & Reverse Energy */}
-        <div className="glass glass-card" style={{ 
-          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-          color: 'white', border: 'none', padding: '1.5rem'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.2rem' }}>📈</span>
-              <span style={{ fontSize: '1rem', color: '#cbd5e1' }}>สรุปพลังงาน (หน่วยเทียบตั๋ว)</span>
-            </div>
-            <button onClick={handleRefresh} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', padding: '0.5rem', borderRadius: '50%', color: 'white', cursor: 'pointer' }}>
-              <span style={{ display: 'inline-block', transition: 'transform 0.5s', transform: isRefreshing ? 'rotate(180deg)' : 'none' }}>🔄</span>
-            </button>
+        {/* Status Badge */}
+        {apiError ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(153, 27, 27, 0.2)', color: '#fca5a5', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid rgba(153, 27, 27, 0.5)', fontSize: '0.85rem' }}>
+            ⚠️ Offline (API Error หรือ สัญญาณขาดหาย)
           </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div>
-               <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.2rem' }}>การไฟฟ้า (Forward kWh)</p>
-               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                 <span style={{ fontSize: '1.8rem', fontWeight: '700', color: '#f87171' }}>{data.overall.forwardKwh}</span>
-               </div>
-            </div>
-            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '1rem' }}>
-               <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.2rem' }}>โซลาร์ผลิต (Reverse kWh)</p>
-               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                 <span style={{ fontSize: '1.8rem', fontWeight: '700', color: '#34d399' }}>{data.overall.reverseKwh}</span>
-               </div>
-            </div>
+        ) : !parsedData.isOnline && rawApiData ? (
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(153, 27, 27, 0.2)', color: '#fca5a5', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid rgba(153, 27, 27, 0.5)', fontSize: '0.85rem' }}>
+            🔌 อุปกรณ์ Offline (ตรวจสอบปลั๊กไฟหรืออินเทอร์เน็ต)
           </div>
-          
-          <div style={{ marginTop: '1.2rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>รวมกำลังไฟสุทธิ ณ ปัจจุบัน (Total Active Power)</p>
-                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                   <span style={{ fontSize: '1.5rem', fontWeight: '700', color: '#facc15' }}>{data.overall.totalKw}</span>
-                   <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>kW</span>
+        ) : rawApiData ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(6, 95, 70, 0.2)', color: '#6ee7b7', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid rgba(6, 95, 70, 0.5)', fontSize: '0.85rem' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }}></div>
+            Online & Receiving Data
+          </div>
+        ) : (
+          <div style={{ fontSize: '0.85rem', color: '#64748b' }}>⏳ กำลังเชื่อมต่อระบบ...</div>
+        )}
+      </div>
+
+      {/* Main Stats (Only show if no error) */}
+      {!apiError && parsedData.isOnline && (
+        <>
+          <div style={{ background: 'linear-gradient(145deg, #1e293b, #0f172a)', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
+             <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Active Power (กำลังไฟฟ้ารวม)</p>
+             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+               <span style={{ fontSize: '3.5rem', fontWeight: '800', color: '#e2e8f0', lineHeight: 1 }}>{parsedData.totalKw}</span>
+               <span style={{ color: '#64748b', fontWeight: 'bold' }}>kW</span>
+             </div>
+             
+             <div style={{ display: 'flex', gap: '2rem', borderTop: '1px solid #334155', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                <div>
+                  <p style={{ margin: 0, color: '#64748b', fontSize: '0.75rem' }}>Forward Energy (หน่วยไฟที่ใช้)</p>
+                  <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: '#38bdf8' }}>{parsedData.forwardKwh} <span style={{fontSize:'0.75rem', color:'#64748b'}}>kWh</span></p>
+                </div>
+             </div>
+          </div>
+
+          {/* 3 Phase Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+            {[
+              { id: 'A', name: 'Phase L1', color: '#ef4444', data: parsedData.phases.A },
+              { id: 'B', name: 'Phase L2', color: '#f59e0b', data: parsedData.phases.B },
+              { id: 'C', name: 'Phase L3', color: '#3b82f6', data: parsedData.phases.C }
+            ].map(phase => (
+              <div key={phase.id} style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', overflow: 'hidden' }}>
+                 <div style={{ background: `rgba(${phase.id==='A'?'239,68,68':phase.id==='B'?'245,158,11':'59,130,246'}, 0.1)`, borderBottom: '1px solid #1e293b', padding: '0.5rem 1rem', color: phase.color, fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                   ⚡ {phase.name}
                  </div>
-               </div>
+                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', padding: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderRight: '1px solid #1e293b' }}>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.25rem' }}>Voltage</span>
+                      <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f8fafc' }}>{phase.data.v}</span>
+                      <span style={{ fontSize: '0.65rem', color: '#475569' }}>V</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderRight: '1px solid #1e293b' }}>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.25rem' }}>Current</span>
+                      <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f8fafc' }}>{phase.data.a}</span>
+                      <span style={{ fontSize: '0.65rem', color: '#475569' }}>A</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.25rem' }}>Power</span>
+                      <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f8fafc' }}>{phase.data.kw}</span>
+                      <span style={{ fontSize: '0.65rem', color: '#475569' }}>kW</span>
+                    </div>
+                 </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
-      {/* 3-Phase Details */}
-      <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', paddingLeft: '0.5rem', marginBottom: '-0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span style={{ fontSize: '1.2rem' }}>📊</span> 
-        เจาะลึก 3 เฟส (Tuya Parameters)
-      </h3>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {data.phases.map((phase) => (
-          <div key={phase.id} className="glass glass-card" style={{ padding: '0', overflow: 'hidden' }}>
-            {/* Phase Header */}
-            <div style={{ background: phase.color, padding: '0.5rem 1rem', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: '600', letterSpacing: '1px' }}>{phase.label}</span>
-              <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>🟢 Online</span>
-            </div>
-            
-            {/* Extended Multi-parameter Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', padding: '1rem', gap: '1rem 0.5rem' }}>
-              
-              {/* Row 1 */}
-              <div style={{ textAlign: 'center', paddingRight: '0.5rem', borderRight: '1px dashed rgba(0,0,0,0.1)' }}>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>แรงดัน (Voltage)</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '0.2rem' }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#2563eb' }}>{phase.voltage}</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>V</span>
-                </div>
-              </div>
-              
-              <div style={{ textAlign: 'center', paddingRight: '0.5rem', borderRight: '1px dashed rgba(0,0,0,0.1)' }}>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>กระแส (Current)</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '0.2rem' }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#d97706' }}>{phase.current}</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>A</span>
-                </div>
-              </div>
-              
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>กำลังจริง (Active P)</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '0.2rem' }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#059669' }}>{phase.activePower}</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>kW</span>
-                </div>
-              </div>
-
-              {/* Row 2 */}
-              <div style={{ textAlign: 'center', paddingRight: '0.5rem', borderRight: '1px dashed rgba(0,0,0,0.1)' }}>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>กำลังแฝง (Reactive)</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '0.2rem' }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#dc2626' }}>{phase.reactivePower}</span>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>kVAR</span>
-                </div>
-              </div>
-
-              <div style={{ textAlign: 'center', paddingRight: '0.5rem', borderRight: '1px dashed rgba(0,0,0,0.1)' }}>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ค่า PF</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '0.2rem' }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#6366f1' }}>{phase.pf}</span>
-                </div>
-              </div>
-
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ความถี่ (Freq)</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '0.2rem' }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#8b5cf6' }}>{phase.freq}</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Hz</span>
-                </div>
-              </div>
-
-            </div>
+      {/* Debug Tools */}
+      <div style={{ marginTop: '2rem', borderTop: '1px dashed #334155', paddingTop: '1rem' }}>
+        <button onClick={() => setShowDebug(!showDebug)} style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'center', cursor: 'pointer' }}>
+          🛠️ {showDebug ? 'ซ่อนข้อมูลดิบ' : 'แสดงข้อมูลดิบจาก Tuya (สำหรับตั้งค่า)'}
+        </button>
+        {showDebug && (
+          <div style={{ background: '#000', padding: '1rem', borderRadius: '8px', marginTop: '1rem', overflowX: 'auto', border: '1px solid #1e293b' }}>
+            <p style={{ color: '#ef4444', fontSize: '0.75rem', margin: '0 0 1rem 0' }}>{apiError && JSON.stringify(apiError)}</p>
+            <pre style={{ margin: 0, color: '#34d399', fontSize: '0.65rem' }}>{JSON.stringify(rawApiData, null, 2)}</pre>
           </div>
-        ))}
+        )}
       </div>
-      
-      <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)', opacity: 0.8 }}>
-        อัปเดตข้อมูลล่าสุด: {data.timestamp}
-      </div>
+
     </div>
   );
 }
