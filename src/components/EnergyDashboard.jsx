@@ -216,7 +216,7 @@ export default function EnergyDashboard() {
         {showDebug && (
           <div style={{ background: '#000', padding: '1rem', borderRadius: '8px', marginTop: '1rem', overflowX: 'auto', border: '1px solid #1e293b' }}>
             <p style={{ color: '#ef4444', fontSize: '0.75rem', margin: '0 0 1rem 0' }}>{apiError && JSON.stringify(apiError)}</p>
-            <pre style={{ margin: 0, color: '#34d399', fontSize: '0.65rem' }}>{JSON.stringify(rawApiData, null, 2)}</pre>
+            <pre style={{ margin: 0, color: '#34d399', fontSize: '0.65rem', userSelect: 'text', WebkitUserSelect: 'text' }}>{JSON.stringify(rawApiData, null, 2)}</pre>
           </div>
         )}
       </div>

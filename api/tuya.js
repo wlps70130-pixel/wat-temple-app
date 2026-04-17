@@ -16,9 +16,9 @@ export default async function handler(req, res) {
   });
 
   try {
-    // ดึงค่าสถานะ Real-time ล่าสุดทั้งหมดจากมิเตอร์ (V, A, kW, kWh)
+    // ดึงข้อมูลอุปกรณ์และสถานะทั้งหมด (ใช้ endpoint หลักเพื่อเลี่ยง error 2003 function not support)
     const response = await tuya.request({
-      path: `/v1.0/devices/${deviceId}/status`,
+      path: `/v1.0/devices/${deviceId}`,
       method: 'GET',
     });
 
