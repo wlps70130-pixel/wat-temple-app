@@ -67,6 +67,7 @@ export default function EnergyDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isApiMode, setIsApiMode] = useState(false);
   const [rawApiData, setRawApiData] = useState(null);
+  const [apiError, setApiError] = useState(null);
 
   const fetchRealData = async (deviceId) => {
     try {
@@ -77,18 +78,18 @@ export default function EnergyDashboard() {
         console.log("Tuya Real Data Received:", apiData.result);
         setIsApiMode(true);
         setRawApiData(apiData.result);
-        // เดี๋ยวเราจะเขียนระบบแปลผลข้อมูล (Parse) ในสเตปถัดไป 
-        // เมื่อเห็นหน้าตาข้อมูลดิบ (Raw JSON) ว่ารุ่นที่คุณใช้ส่งค่าออกมาชื่ออะไรบ้าง
-        // ชั่วคราวตอนนี้ให้โชว์ Mock ไปก่อน
+        setApiError(null);
       } else {
         console.warn("Failed or Local Mode:", apiData);
         setIsApiMode(false);
         setRawApiData(null);
+        setApiError(apiData.error || "Unknown API Error");
         setData(generateMockData());
       }
     } catch (error) {
-      console.error("Vercel Serverless Error (running local vite):", error);
+      console.error("Vercel Serverless Error:", error);
       setIsApiMode(false);
+      setApiError(error.message);
       setData(generateMockData()); // Fallback to mock
     }
   };
@@ -131,8 +132,17 @@ export default function EnergyDashboard() {
       {/* Temporary Raw Data Display */}
       {isApiMode && rawApiData && (
         <div style={{ background: '#1e293b', color: '#10b981', padding: '1rem', borderRadius: '8px', overflowX: 'auto', fontSize: '0.75rem', marginTop: '1rem' }}>
-          <p style={{ color: '#fff', marginBottom: '0.5rem', fontWeight: 'bold' }}>⚠️ ถ่ายรูปหรือคัดลอกข้อมูลด้านล่างนี้ส่งให้ผม เพื่อให้ผมเขียนโค้ดแสดงผลได้ถูกต้องครับ:</p>
+          <p style={{ color: '#fff', marginBottom: '0.5rem', fontWeight: 'bold' }}>⚠️ ส่งรูปหรือก็อปปี้ข้อความด้านล่างนี้ให้ผมทีครับ:</p>
           <pre>{JSON.stringify(rawApiData, null, 2)}</pre>
+        </div>
+      )}
+
+      {/* API Error Display */}
+      {apiError && (
+        <div style={{ background: '#7f1d1d', color: '#fca5a5', padding: '1rem', borderRadius: '8px', overflowX: 'auto', fontSize: '0.75rem', marginTop: '0.5rem' }}>
+          <p style={{ color: '#fff', marginBottom: '0.5rem', fontWeight: 'bold' }}>❌ เชื่อมต่อ Tuya ไม่สำเร็จ (เกิดข้อผิดพลาด):</p>
+          <pre>{JSON.stringify(apiError, null, 2)}</pre>
+          <p style={{ marginTop: '0.5rem', color: '#fef08a' }}>* หากขึ้น error code: 1106 (permission deny) แปลว่ายังไม่ได้เอาแอปมือถือสแกนเข้าโปรเจกต์ครับ หรือเลือก Data Center ผิดโซน</p>
         </div>
       )}
 
