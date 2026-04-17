@@ -129,11 +129,12 @@ export default function EnergyDashboard() {
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
       minHeight: '100vh',
       margin: '-1rem',
-      padding: '1rem',
+      padding: '1rem 1rem 4rem 1rem', // Added bottom padding for mobile scroll
       fontFamily: "'Inter', 'Prompt', sans-serif",
       color: '#0f172a',
       position: 'relative',
-      overflow: 'hidden'
+      overflowX: 'hidden', // Allowed vertical scroll, hide horizontal
+      overflowY: 'auto'
     },
     blob1: { position: 'absolute', top: '-10%', left: '-10%', width: '300px', height: '300px', background: 'rgba(56, 189, 248, 0.2)', filter: 'blur(60px)', borderRadius: '50%', zIndex: 0 },
     blob2: { position: 'absolute', bottom: '-10%', right: '-10%', width: '400px', height: '400px', background: 'rgba(52, 211, 153, 0.15)', filter: 'blur(80px)', borderRadius: '50%', zIndex: 0 },
