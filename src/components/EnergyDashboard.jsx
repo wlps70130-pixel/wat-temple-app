@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 
 const BUILDINGS = [
-  { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'ใส่_VIRTUAL_ID_ที่นี่_เช่น_vff123xx' },
-  { id: 'multipurpose', name: 'ศาลาเอนกประสงค์', deviceId: '' },
+  { id: 'virtual', name: 'มิเตอร์จำลอง (Virtual - สำหรับทดสอบ)', deviceId: 'vdevo177642115457797' },
+  { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a326a888ee9e0e5c67pwni' },
+  { id: 'multipurpose', name: 'ศาลาเอนกประสงค์', deviceId: 'a3736b081370896dbadmiu' },
   { id: 'kuti1', name: 'กุฏิ 1 (เจ้าอาวาส)', deviceId: '' },
   { id: 'kuti2', name: 'กุฏิ 2', deviceId: '' },
   { id: 'dining', name: 'หอฉัน', deviceId: '' },
