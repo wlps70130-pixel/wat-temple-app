@@ -140,56 +140,12 @@ export default function EnergyDashboard() {
   };
 
   const MockGraph = ({ filter }) => {
-    const dataMap = {
-      'day': [10, 15, 8, 20, 25, 12, 18],
-      'week': [40, 50, 45, 60],
-      'month': [200, 250, 220, 300, 280, 350, 310, 290, 400, 380, 420, 450],
-      'year': [3000, 3500, 4000, 4500, 4200]
-    };
-    const labelsMap = {
-      'day': ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'],
-      'week': ['W1', 'W2', 'W3', 'W4'],
-      'month': ['ม.ค', 'ก.พ', 'มี.ค', 'เม.ย', 'พ.ค', 'มิ.ย', 'ก.ค', 'ส.ค', 'ก.ย', 'ต.ค', 'พ.ย', 'ธ.ค'],
-      'year': ['20', '21', '22', '23', '24']
-    };
-
-    const data = dataMap[filter];
-    const labels = labelsMap[filter];
-    const max = Math.max(...data) * 1.2;
-
     return (
-      <div style={{ width: '100%', height: '180px', marginTop: '1rem', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '0.8rem', color: theme.textSub }}>(ข้อมูลจำลองรอเชื่อมต่อสถิติ)</span>
-          <span style={{ fontSize: '0.8rem', color: theme.primary, fontWeight: 'bold' }}>kWh</span>
-        </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: '4px', position: 'relative' }}>
-          {/* Grid lines */}
-          <div style={{ position: 'absolute', top: '0', left: 0, width: '100%', borderTop: `1px dashed ${theme.border}` }}></div>
-          <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', borderTop: `1px dashed ${theme.border}` }}></div>
-          <div style={{ position: 'absolute', bottom: '0', left: 0, width: '100%', borderTop: `1px solid ${theme.border}` }}></div>
-          
-          {/* Bars */}
-          {data.map((val, i) => (
-            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
-              <div style={{ 
-                width: '100%', 
-                maxWidth: '30px', 
-                height: `${(val / max) * 100}%`, 
-                background: theme.primary, 
-                borderRadius: '4px 4px 0 0',
-                transition: 'height 0.3s ease'
-              }}></div>
-            </div>
-          ))}
-        </div>
-        {/* Labels */}
-        <div style={{ display: 'flex', marginTop: '0.5rem', gap: '4px' }}>
-          {labels.map((label, i) => (
-            <div key={i} style={{ flex: 1, textAlign: 'center', fontSize: '0.7rem', color: theme.textSub }}>
-              {label}
-            </div>
-          ))}
+      <div style={{ width: '100%', height: '180px', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '12px', border: `1px dashed ${theme.border}` }}>
+        <div style={{ textAlign: 'center', color: theme.textSub }}>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.5 }}>📊</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>รออัปเดตข้อมูล</div>
+          <div style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>ระบบกราฟสถิติอยู่ระหว่างการเชื่อมต่อฐานข้อมูลย้อนหลัง</div>
         </div>
       </div>
     );
