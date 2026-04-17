@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const BUILDINGS = [
   { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a326a888ee9e0e5c67pwni' },
-  { id: 'multipurpose', name: 'ศาลาพระประจำวัน', deviceId: '3a95d6030b8bc9a02idhq' },
+  { id: 'multipurpose', name: 'ศาลาพระประจำวัน', deviceId: 'a3a95d6030b8bc9a02idhq' },
   { id: 'kuti1', name: 'กุฏิ 1 (เจ้าอาวาส)', deviceId: '' },
   { id: 'kuti2', name: 'กุฏิ 2', deviceId: '' },
   { id: 'dining', name: 'หอฉัน', deviceId: '' },
