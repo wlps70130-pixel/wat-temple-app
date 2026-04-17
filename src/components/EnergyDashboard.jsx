@@ -90,20 +90,20 @@ export default function EnergyDashboard() {
     };
 
     // Very naive decoding attempt. Real logic will be updated once debug data is seen.
-    parsed.phases.A.v = (findCode('va') / 10).toFixed(1);
-    parsed.phases.A.a = (findCode('ia') / 1000).toFixed(1);
-    parsed.phases.A.kw = (findCode('pa') / 1000).toFixed(2);
+    parsed.phases.A.v = (findCode('voltagea') / 10).toFixed(1);
+    parsed.phases.A.a = (findCode('currenta') / 1000).toFixed(2);
+    parsed.phases.A.kw = (findCode('activepowera') / 1000).toFixed(3);
     
-    parsed.phases.B.v = (findCode('vb') / 10).toFixed(1);
-    parsed.phases.B.a = (findCode('ib') / 1000).toFixed(1);
-    parsed.phases.B.kw = (findCode('pb') / 1000).toFixed(2);
+    parsed.phases.B.v = (findCode('voltageb') / 10).toFixed(1);
+    parsed.phases.B.a = (findCode('currentb') / 1000).toFixed(2);
+    parsed.phases.B.kw = (findCode('activepowerb') / 1000).toFixed(3);
     
-    parsed.phases.C.v = (findCode('vc') / 10).toFixed(1);
-    parsed.phases.C.a = (findCode('ic') / 1000).toFixed(1);
-    parsed.phases.C.kw = (findCode('pc') / 1000).toFixed(2);
+    parsed.phases.C.v = (findCode('voltagec') / 10).toFixed(1);
+    parsed.phases.C.a = (findCode('currentc') / 1000).toFixed(2);
+    parsed.phases.C.kw = (findCode('activepowerc') / 1000).toFixed(3);
 
-    parsed.totalKw = (findCode('pt') / 1000).toFixed(2);
-    parsed.forwardKwh = (findCode('forward_energy_total') / 100).toFixed(1);
+    parsed.totalKw = (findCode('activepower') / 1000).toFixed(3);
+    parsed.forwardKwh = (findCode('totalenergyconsumed') / 100).toFixed(2);
     
     return parsed;
   };
