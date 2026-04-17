@@ -221,20 +221,7 @@ body {
   stroke: white;
 }
 
-.menu-item:nth-child(n+9) {
-  /* Center the last two items in the 3rd row gracefully */
-}
 
-/* Force specific grid placement if there are exactly 10 items (4, 4, 2) */
-.menu-grid {
-  justify-content: center;
-}
-.menu-item:nth-child(9) {
-  grid-column: 2 / 3;
-}
-.menu-item:nth-child(10) {
-  grid-column: 3 / 4;
-}
 
 
 .menu-text {
