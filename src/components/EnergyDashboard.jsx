@@ -28,6 +28,7 @@ export default function EnergyDashboard() {
   const [buildingData, setBuildingData] = useState({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false); // Dark mode state
 
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -122,80 +123,82 @@ export default function EnergyDashboard() {
     return parsed;
   };
 
-  // Modern Mobile App Styling
+  // Theme definitions based on user's reference images
+  const theme = isDarkMode ? {
+    bg: '#141824',
+    card: '#1e2532',
+    textMain: '#ffffff',
+    textSub: '#9ca3af',
+    border: '#2e3846',
+    primary: '#3b82f6',
+    iconBg: '#2a3441',
+    shadow: 'none'
+  } : {
+    bg: '#f3f6f9',
+    card: '#ffffff',
+    textMain: '#1e293b',
+    textSub: '#64748b',
+    border: '#e2e8f0',
+    primary: '#3b82f6',
+    iconBg: '#f1f5f9',
+    shadow: '0 4px 15px rgba(0,0,0,0.03)'
+  };
+
   const styles = {
     container: {
-      background: 'linear-gradient(160deg, #3b82f6 0%, #10b981 100%)',
+      background: theme.bg,
       minHeight: '100vh',
       margin: '-1rem',
       padding: '1.5rem 1rem 4rem 1rem',
       fontFamily: "'Inter', 'Prompt', sans-serif",
-      color: '#fff',
+      color: theme.textMain,
       overflowX: 'hidden',
-      overflowY: 'auto'
+      overflowY: 'auto',
+      transition: 'all 0.3s ease'
     },
     card: {
-      background: '#ffffff',
-      color: '#1e293b',
-      borderRadius: '24px',
-      padding: '1.5rem',
-      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
-      position: 'relative',
-      overflow: 'hidden',
-      marginBottom: '1rem'
-    },
-    miniCard: {
-      background: '#f8fafc',
+      background: theme.card,
       borderRadius: '16px',
-      padding: '1rem',
-      border: '1px solid #e2e8f0'
+      padding: '1.25rem',
+      boxShadow: theme.shadow,
+      border: `1px solid ${theme.border}`,
+      marginBottom: '1rem',
+      transition: 'all 0.3s ease'
     },
     button: {
-      background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '12px', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', backdropFilter: 'blur(5px)'
-    },
-    pill: {
-      background: '#fff', color: '#3b82f6', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', display: 'inline-block'
+      background: theme.iconBg, border: `1px solid ${theme.border}`, color: theme.textMain, borderRadius: '8px', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
     }
   };
 
   const Donut = ({ value, label, subLabel, color }) => {
-    // Determine gradient stop (dummy value around 65% for visual effect)
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', margin: '1.5rem 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
         <div style={{
-          width: '180px', height: '180px', borderRadius: '50%',
-          background: `conic-gradient(${color} 0%, ${color} 65%, #e2e8f0 65%, #e2e8f0 100%)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+          width: '160px', height: '160px', borderRadius: '50%',
+          background: `conic-gradient(${color} 0%, ${color} 75%, ${theme.border} 75%, ${theme.border} 100%)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <div style={{
-            width: '140px', height: '140px', borderRadius: '50%', background: '#fff',
+            width: '130px', height: '130px', borderRadius: '50%', background: theme.card,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
           }}>
-             <span style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', lineHeight: 1 }}>{value}</span>
-             <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#64748b', marginTop: '0.25rem' }}>{label}</span>
-             {subLabel && <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{subLabel}</span>}
+             <span style={{ fontSize: '1.8rem', fontWeight: '800', color: theme.textMain, lineHeight: 1 }}>{value}</span>
+             <span style={{ fontSize: '0.8rem', fontWeight: '700', color: theme.textSub, marginTop: '0.25rem' }}>{label}</span>
+             {subLabel && <span style={{ fontSize: '0.65rem', color: theme.primary }}>{subLabel}</span>}
           </div>
         </div>
       </div>
     );
   };
 
-  const Sparkline = () => (
-    <svg viewBox="0 0 100 30" style={{ width: '100%', height: '50px', overflow: 'visible', marginTop: '1rem' }}>
-      <path d="M0,25 Q10,15 20,20 T40,10 T60,15 T80,5 T100,10" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M0,25 Q10,15 20,20 T40,10 T60,15 T80,5 T100,10 L100,30 L0,30 Z" fill="rgba(16, 185, 129, 0.1)" />
-      <circle cx="80" cy="5" r="3" fill="#1e293b" />
-      <text x="80" y="-2" fontSize="6" fill="#1e293b" textAnchor="middle" fontWeight="bold">Peak</text>
-    </svg>
-  );
-
   const renderEnergyOverview = () => {
     let globalKw = 0;
     let globalKwh = 0;
     let onlineCount = 0;
+    let installedCount = 0;
     
     BUILDINGS.forEach(b => {
+      if (b.deviceId) installedCount++;
       if (buildingData[b.id]?.raw) {
         const pd = parseData(buildingData[b.id].raw);
         if (pd.isOnline) {
@@ -206,76 +209,87 @@ export default function EnergyDashboard() {
       }
     });
 
-    const AVG_RATE = 4.20; // Blended rate to prevent bouncing totals
+    const AVG_RATE = 4.20; 
     const estCost = (globalKwh * AVG_RATE).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-          <span style={styles.pill}>Active 2027 System</span>
-        </div>
         
-        {/* Main Donut Card */}
-        <div style={styles.card}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>ปริมาณใช้ไฟรวม</h3>
-            <span style={{ background: '#dcfce7', color: '#166534', padding: '0.2rem 0.5rem', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 'bold' }}>
-              ออนไลน์ {onlineCount}/{BUILDINGS.length}
-            </span>
-          </div>
-          
-          <Donut value={globalKwh.toLocaleString()} label="kWh" subLabel="สะสมทั้งหมด" color="#3b82f6" />
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
-             <div style={{ textAlign: 'center' }}>
-               <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>กำลังไฟฟ้า</p>
-               <p style={{ margin: '0.25rem 0 0 0', fontSize: '1.25rem', fontWeight: '800', color: '#3b82f6' }}>{globalKw.toFixed(2)} <span style={{fontSize:'0.75rem'}}>kW</span></p>
-             </div>
-             <div style={{ textAlign: 'center', borderLeft: '1px solid #f1f5f9' }}>
-               <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>ค่าไฟเฉลี่ย (4.20฿/u)</p>
-               <p style={{ margin: '0.25rem 0 0 0', fontSize: '1.25rem', fontWeight: '800', color: '#f59e0b' }}>{estCost} <span style={{fontSize:'0.75rem'}}>฿</span></p>
-             </div>
-          </div>
-        </div>
-
-        {/* TOU Info Card */}
-        <div style={styles.card}>
-           <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>เรทราคา TOU (Time of Use)</h4>
-           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-             <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><span style={{color:'#f59e0b'}}>☀</span> On-Peak (09:00 - 22:00)</span>
-             <span style={{ fontWeight: 'bold', color: '#0f172a' }}>5.7982 ฿</span>
+        {/* Top Section matching the reference layout */}
+        <div style={{ ...styles.card, display: 'flex', gap: '1rem', alignItems: 'center' }}>
+           <div style={{ flex: 1 }}>
+              <Donut value={globalKwh.toLocaleString()} label="kWh" subLabel="Total Yield" color="#3b82f6" />
            </div>
-           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '1rem' }}>
-             <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><span style={{color:'#3b82f6'}}>🌙</span> Off-Peak (22:00 - 09:00)</span>
-             <span style={{ fontWeight: 'bold', color: '#0f172a' }}>2.6369 ฿</span>
-           </div>
-           <div style={{ background: isPeak ? '#fef3c7' : '#e0f2fe', color: isPeak ? '#92400e' : '#075985', padding: '0.75rem', borderRadius: '12px', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', border: `1px solid ${isPeak ? '#fde68a' : '#bae6fd'}` }}>
-              📌 ขณะนี้ใช้เรท: {isPeak ? 'On-Peak (5.79 ฿)' : 'Off-Peak (2.63 ฿)'}
+           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ background: theme.primary, width: 36, height: 36, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem' }}>💰</div>
+                <div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: theme.textMain }}>{estCost} <span style={{fontSize:'0.7rem', color:theme.textSub}}>THB</span></div>
+                  <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Est. Total Cost</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ background: '#10b981', width: 36, height: 36, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem' }}>⚡</div>
+                <div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: theme.textMain }}>{globalKw.toFixed(2)} <span style={{fontSize:'0.7rem', color:theme.textSub}}>kW</span></div>
+                  <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Current Power</div>
+                </div>
+              </div>
            </div>
         </div>
 
-        <h4 style={{ margin: '0.5rem 0', color: '#fff', fontSize: '1.1rem' }}>ข้อมูลรายอาคาร</h4>
+        {/* 3 Square Cards matching reference */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
+           <div style={{ ...styles.card, marginBottom: 0, padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+             <span style={{ fontSize: '1.5rem' }}>🏢</span>
+             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{BUILDINGS.length}</span>
+             <span style={{ fontSize: '0.7rem', color: theme.textSub }}>Site(s)</span>
+           </div>
+           <div style={{ ...styles.card, marginBottom: 0, padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+             <span style={{ fontSize: '1.5rem' }}>🟢</span>
+             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{onlineCount}</span>
+             <span style={{ fontSize: '0.7rem', color: theme.textSub }}>Device online</span>
+           </div>
+           <div style={{ ...styles.card, marginBottom: 0, padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+             <span style={{ fontSize: '1.5rem' }}>⚪</span>
+             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{installedCount - onlineCount}</span>
+             <span style={{ fontSize: '0.7rem', color: theme.textSub }}>Device offline</span>
+           </div>
+        </div>
+
+        {/* TOU Info Card as a horizontal bar like "Coal Saved" in reference */}
+        <div style={{ ...styles.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+             <div style={{ background: isPeak ? '#f59e0b' : '#3b82f6', width: 32, height: 32, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1rem' }}>
+               {isPeak ? '☀' : '🌙'}
+             </div>
+             <span style={{ color: theme.textMain, fontWeight: '600', fontSize: '0.9rem' }}>TOU Rate ({isPeak ? 'On-Peak' : 'Off-Peak'})</span>
+           </div>
+           <span style={{ fontWeight: 'bold', color: theme.textMain, fontSize: '1.1rem' }}>{isPeak ? '5.7982' : '2.6369'} <span style={{fontSize:'0.7rem', color:theme.textSub, fontWeight:'normal'}}>THB</span></span>
+        </div>
+
+        <h4 style={{ margin: '1rem 0 0.5rem 0', color: theme.textMain, fontSize: '1rem' }}>Device List</h4>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {BUILDINGS.map(b => {
             const hasDevice = !!b.deviceId;
             const data = buildingData[b.id];
             const parsed = parseData(data?.raw);
             
             return (
-              <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: '#fff', borderRadius: '20px', padding: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+              <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ ...styles.card, marginBottom: 0, padding: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: 45, height: 45, borderRadius: '12px', background: hasDevice && parsed.isOnline ? '#e0f2fe' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: hasDevice && parsed.isOnline ? '#0ea5e9' : '#94a3b8', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '8px', background: theme.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: hasDevice && parsed.isOnline ? '#10b981' : theme.textSub, fontWeight: 'bold', fontSize: '1.2rem' }}>
                      {hasDevice && parsed.isOnline ? '⚡' : '🏢'}
                   </div>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '1rem', color: '#1e293b' }}>{b.name}</h4>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', marginTop: '0.1rem' }}>
-                      {hasDevice ? (parsed.isOnline ? `${parsed.totalKwh} kWh / ${parsed.totalKw} kW` : 'Offline') : 'รอติดตั้ง'}
+                    <h4 style={{ margin: 0, fontSize: '0.9rem', color: theme.textMain }}>{b.name}</h4>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: theme.textSub, marginTop: '0.1rem' }}>
+                      {hasDevice ? (parsed.isOnline ? `${parsed.totalKwh} kWh / ${parsed.totalKw} kW` : 'Offline') : 'รอติดตั้งอุปกรณ์'}
                     </p>
                   </div>
                 </div>
-                <div style={{ color: '#cbd5e1' }}>➔</div>
+                <div style={{ color: theme.border }}>➔</div>
               </div>
             );
           })}
@@ -289,73 +303,60 @@ export default function EnergyDashboard() {
     const data = buildingData[bldg.id];
     const parsed = parseData(data?.raw);
     const hasDevice = !!bldg.deviceId;
-    
-    const AVG_RATE = 4.20;
-    const estCost = (parsed.totalKwh * AVG_RATE).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <button onClick={() => setActiveTab('overview')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '1rem', fontWeight: 'bold', padding: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-          ← กลับไปหน้าหลัก
+        <button onClick={() => setActiveTab('overview')} style={{ background: 'transparent', border: 'none', color: theme.primary, fontSize: '1rem', fontWeight: 'bold', padding: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+          ← Back to Overview
         </button>
         
         <div style={styles.card}>
            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
              <div>
-               <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.4rem' }}>{bldg.name}</h2>
-               <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.85rem' }}>มิเตอร์หลัก 3 เฟส</p>
+               <h2 style={{ margin: 0, color: theme.textMain, fontSize: '1.4rem' }}>{bldg.name}</h2>
+               <p style={{ margin: '0.25rem 0 0 0', color: theme.textSub, fontSize: '0.85rem' }}>3-Phase Smart Meter</p>
              </div>
              {hasDevice && parsed.isOnline ? (
-               <span style={{ background: '#dcfce7', color: '#166534', padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>Online</span>
+               <span style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>Online</span>
              ) : (
-               <span style={{ background: '#f1f5f9', color: '#64748b', padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>Offline</span>
+               <span style={{ background: theme.iconBg, color: theme.textSub, padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>Offline</span>
              )}
            </div>
 
            {!hasDevice ? (
-             <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#94a3b8' }}>
+             <div style={{ textAlign: 'center', padding: '3rem 1rem', color: theme.textSub }}>
                <p style={{ fontSize: '3rem', margin: '0 0 1rem 0' }}>🚧</p>
-               <p style={{ margin: 0 }}>จุดนี้อยู่ระหว่างรอติดตั้งอุปกรณ์</p>
+               <p style={{ margin: 0 }}>อยู่ระหว่างรอติดตั้งอุปกรณ์</p>
              </div>
            ) : (
              <>
-               <Donut value={parsed.totalKwh} label="kWh" subLabel="หน่วยไฟสะสม" color="#10b981" />
-               
-               <div style={{ background: '#f8fafc', borderRadius: '16px', padding: '1rem', marginBottom: '1.5rem', border: '1px solid #f1f5f9' }}>
-                 <p style={{ margin: 0, color: '#64748b', fontSize: '0.75rem', textAlign: 'center' }}>ค่าไฟประมาณการ (เรทเฉลี่ย 4.20 ฿)</p>
-                 <h3 style={{ margin: '0.25rem 0 0 0', fontSize: '1.8rem', color: '#f59e0b', textAlign: 'center' }}>
-                   {estCost} <span style={{ fontSize: '1rem', color: '#94a3b8' }}>฿</span>
-                 </h3>
+               <div style={{ marginTop: '1.5rem' }}>
+                 <Donut value={parsed.totalKwh} label="kWh" subLabel="Total Yield" color="#10b981" />
                </div>
 
-               <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b', fontSize: '1rem' }}>แนวโน้มการใช้ไฟ (Usage History)</h4>
-               <div style={styles.miniCard}>
-                  <Sparkline />
-               </div>
-
-               <h4 style={{ margin: '1.5rem 0 1rem 0', color: '#1e293b', fontSize: '1rem' }}>ข้อมูล 3 เฟส (Real-time)</h4>
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+               <h4 style={{ margin: '1.5rem 0 1rem 0', color: theme.textMain, fontSize: '1rem' }}>Real-time 3 Phase</h4>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                  {[
                    { id: 'A', name: 'Phase L1', data: parsed.phases.A, color: '#ef4444' },
                    { id: 'B', name: 'Phase L2', data: parsed.phases.B, color: '#f59e0b' },
                    { id: 'C', name: 'Phase L3', data: parsed.phases.C, color: '#3b82f6' }
                  ].map(p => (
-                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid #f1f5f9' }}>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: theme.iconBg, borderRadius: '12px', border: `1px solid ${theme.border}` }}>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                        <div style={{ width: 12, height: 12, borderRadius: '50%', background: p.color }}></div>
-                       <span style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '0.85rem' }}>{p.name}</span>
+                       <span style={{ fontWeight: 'bold', color: theme.textMain, fontSize: '0.85rem' }}>{p.name}</span>
                      </div>
                      <div style={{ display: 'flex', gap: '1rem', textAlign: 'right' }}>
-                       <div><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#0f172a' }}>{p.data.v}</span> <span style={{ fontSize:'0.7rem', color:'#64748b'}}>V</span></div>
-                       <div><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#0f172a' }}>{p.data.a}</span> <span style={{ fontSize:'0.7rem', color:'#64748b'}}>A</span></div>
-                       <div style={{ width: '60px' }}><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#10b981' }}>{p.data.kw}</span> <span style={{ fontSize:'0.7rem', color:'#64748b'}}>kW</span></div>
+                       <div style={{ width: '45px' }}><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: theme.textMain }}>{p.data.v}</span> <span style={{ fontSize:'0.65rem', color:theme.textSub}}>V</span></div>
+                       <div style={{ width: '45px' }}><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: theme.textMain }}>{p.data.a}</span> <span style={{ fontSize:'0.65rem', color:theme.textSub}}>A</span></div>
+                       <div style={{ width: '60px' }}><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#10b981' }}>{p.data.kw}</span> <span style={{ fontSize:'0.65rem', color:theme.textSub}}>kW</span></div>
                      </div>
                    </div>
                  ))}
                </div>
 
-               <button onClick={() => setShowDebug(!showDebug)} style={{ background: '#f1f5f9', border: 'none', color: '#64748b', padding: '0.75rem', borderRadius: '12px', fontSize: '0.75rem', width: '100%', marginTop: '1.5rem', fontWeight: 'bold', cursor: 'pointer' }}>
-                 {showDebug ? 'ซ่อนข้อมูล JSON' : 'ดูข้อมูลดิบจาก API'}
+               <button onClick={() => setShowDebug(!showDebug)} style={{ background: theme.iconBg, border: 'none', color: theme.textSub, padding: '0.75rem', borderRadius: '12px', fontSize: '0.75rem', width: '100%', marginTop: '1.5rem', fontWeight: 'bold', cursor: 'pointer' }}>
+                 {showDebug ? 'Hide API Data' : 'View Raw API Data'}
                </button>
                {showDebug && (
                  <pre style={{ background: '#0f172a', color: '#34d399', padding: '1rem', borderRadius: '12px', fontSize: '0.65rem', overflowX: 'auto', marginTop: '0.5rem', userSelect: 'text' }}>
@@ -371,33 +372,39 @@ export default function EnergyDashboard() {
 
   return (
     <div style={styles.container}>
-      {/* Module Switcher (Root Navigation) */}
-      <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.2)', padding: '0.35rem', borderRadius: '20px', marginBottom: '1.5rem', backdropFilter: 'blur(10px)' }}>
-        <div onClick={() => setAppModule('energy')} style={{ background: appModule === 'energy' ? '#fff' : 'transparent', color: appModule === 'energy' ? '#3b82f6' : '#fff', padding: '0.5rem 1rem', borderRadius: '16px', fontWeight: 'bold', cursor: 'pointer', flex: 1, textAlign: 'center', transition: 'all 0.3s' }}>
-          มอนิเตอร์ไฟ
-        </div>
-        <div onClick={() => setAppModule('lighting')} style={{ background: appModule === 'lighting' ? '#fff' : 'transparent', color: appModule === 'lighting' ? '#10b981' : '#fff', padding: '0.5rem 1rem', borderRadius: '16px', fontWeight: 'bold', cursor: 'pointer', flex: 1, textAlign: 'center', transition: 'all 0.3s' }}>
-          ควบคุมสวิตช์
+      {/* Top Navigation Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {appModule === 'energy' ? '📊 Energy' : '💡 Control'}
+        </h1>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={() => setIsDarkMode(!isDarkMode)} style={styles.button}>
+            {isDarkMode ? '☀' : '🌙'}
+          </button>
+          <button onClick={handleRefresh} disabled={isRefreshing} style={styles.button}>
+            <span style={{ display: 'inline-block', transition: 'transform 0.5s', transform: isRefreshing ? 'rotate(180deg)' : 'none' }}>↻</span>
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800' }}>
-          {appModule === 'energy' ? 'Dashboard' : 'Smart Control'}
-        </h1>
-        <button onClick={handleRefresh} disabled={isRefreshing} style={styles.button}>
-          <span style={{ display: 'inline-block', transition: 'transform 0.5s', transform: isRefreshing ? 'rotate(180deg)' : 'none' }}>↻</span>
-        </button>
+      {/* Module Switcher Tabs */}
+      <div style={{ display: 'flex', gap: '0.5rem', background: theme.iconBg, padding: '0.35rem', borderRadius: '12px', marginBottom: '1.5rem', border: `1px solid ${theme.border}` }}>
+        <div onClick={() => setAppModule('energy')} style={{ background: appModule === 'energy' ? theme.card : 'transparent', color: appModule === 'energy' ? theme.primary : theme.textSub, boxShadow: appModule === 'energy' ? theme.shadow : 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: 1, textAlign: 'center', transition: 'all 0.3s', fontSize: '0.85rem' }}>
+          Monitor
+        </div>
+        <div onClick={() => setAppModule('lighting')} style={{ background: appModule === 'lighting' ? theme.card : 'transparent', color: appModule === 'lighting' ? theme.primary : theme.textSub, boxShadow: appModule === 'lighting' ? theme.shadow : 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: 1, textAlign: 'center', transition: 'all 0.3s', fontSize: '0.85rem' }}>
+          Control
+        </div>
       </div>
 
       {appModule === 'energy' ? (
          activeTab === 'overview' ? renderEnergyOverview() : renderEnergyDetail()
       ) : (
          <div style={styles.card}>
-           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#94a3b8' }}>
+           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: theme.textSub }}>
              <p style={{ fontSize: '3rem', margin: '0 0 1rem 0' }}>🔌</p>
-             <h3 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>หมวดควบคุมแสงสว่าง</h3>
-             <p style={{ margin: 0, fontSize: '0.85rem' }}>อยู่ระหว่างเตรียมการเชื่อมต่อ API สวิตช์ Tuya</p>
+             <h3 style={{ margin: '0 0 0.5rem 0', color: theme.textMain }}>Smart Control</h3>
+             <p style={{ margin: 0, fontSize: '0.85rem' }}>เตรียมเชื่อมต่อระบบสวิตช์ Tuya เร็วๆ นี้</p>
            </div>
          </div>
       )}
