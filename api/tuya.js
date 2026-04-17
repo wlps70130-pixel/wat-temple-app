@@ -8,9 +8,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing deviceId parameter" });
   }
 
-  // เซ็ตอัพการเชื่อมต่อกับ Tuya Central Europe Data Center
+  // เซ็ตอัพการเชื่อมต่อกับ Tuya Western America Data Center (สำหรับผู้ใช้โซนไทย/เอเชียส่วนใหญ่)
   const tuya = new TuyaContext({
-    baseUrl: 'https://openapi.tuyaeu.com',
+    baseUrl: 'https://openapi.tuyaus.com',
     accessKey: process.env.TUYA_CLIENT_ID,
     secretKey: process.env.TUYA_CLIENT_SECRET,
   });
