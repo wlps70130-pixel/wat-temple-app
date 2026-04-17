@@ -3,7 +3,7 @@ import { Play, Pause, Disc3, Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
 
 // เมื่อได้ลิงก์ Publish to web (CSV) จาก Google Sheet แล้ว ให้นำมาแปะทับที่นี่ได้เลยครับ
-const SHEET_URL = '/dhamma_tracks.csv';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=29969163&single=true&output=csv';
 
 export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPlayTrack }) {
   const [tracks, setTracks] = useState([]);
@@ -19,10 +19,10 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
       complete: (results) => {
         // Filter rows that match the current category and have a valid URL
         const filteredTracks = results.data
-          .filter(row => row.categoryId === category.id && row.url && row.title)
+          .filter(row => row.categoryId === category.id && row.url)
           .map((row, index) => ({
             id: `${category.id}-${index}`, // Generate a safe ID
-            title: row.title,
+            title: row.title || `ไฟล์เสียงธรรม ${index + 1}`,
             subtitle: row.subtitle || '',
             duration: row.duration || '-:--',
             url: row.url
