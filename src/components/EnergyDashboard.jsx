@@ -23,26 +23,9 @@ const BUILDINGS = [
 ];
 
 export default function EnergyDashboard() {
-  const [appModule, setAppModule] = useState('energy'); 
   const [activeTab, setActiveTab] = useState('overview'); 
   const [buildingData, setBuildingData] = useState({});
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false); // Dark mode state
-
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const checkIsPeak = (date) => {
-    const day = date.getDay();
-    const hour = date.getHours();
-    return (day >= 1 && day <= 5) && (hour >= 9 && hour < 22);
-  };
-  const isPeak = checkIsPeak(currentTime);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const fetchRealData = async (bldgId, deviceId) => {
     if (!deviceId) return;
@@ -64,19 +47,10 @@ export default function EnergyDashboard() {
     }
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    if (appModule === 'energy') {
-      const promises = BUILDINGS.filter(b => b.deviceId).map(b => fetchRealData(b.id, b.deviceId));
-      await Promise.all(promises);
-    }
-    setTimeout(() => setIsRefreshing(false), 500);
-  };
-
   useEffect(() => {
-    handleRefresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appModule]);
+    const promises = BUILDINGS.filter(b => b.deviceId).map(b => fetchRealData(b.id, b.deviceId));
+    Promise.all(promises);
+  }, []);
 
   const parseData = (raw) => {
     const defaultPhase = { v: '0.0', a: '0.0', kw: '0.00' };
@@ -123,75 +97,100 @@ export default function EnergyDashboard() {
     return parsed;
   };
 
-  // Theme definitions based on user's reference images
+  // Exact theme from reference
   const theme = isDarkMode ? {
-    bg: '#141824',
-    card: '#1e2532',
+    bg: '#181b26',
+    cardBg: '#212635',
     textMain: '#ffffff',
-    textSub: '#9ca3af',
-    border: '#2e3846',
-    primary: '#3b82f6',
-    iconBg: '#2a3441',
-    shadow: 'none'
+    textSub: '#8a94a6',
+    border: 'none',
+    shadow: '0 4px 20px rgba(0,0,0,0.2)',
+    chartBg: '#2a3143',
+    pillBg: '#2a3143',
+    blueText: '#4ea8ff'
   } : {
-    bg: '#f3f6f9',
-    card: '#ffffff',
-    textMain: '#1e293b',
-    textSub: '#64748b',
-    border: '#e2e8f0',
-    primary: '#3b82f6',
-    iconBg: '#f1f5f9',
-    shadow: '0 4px 15px rgba(0,0,0,0.03)'
+    bg: '#f2f6f9',
+    cardBg: '#ffffff',
+    textMain: '#1c212d',
+    textSub: '#8a94a6',
+    border: 'none',
+    shadow: '0 8px 24px rgba(149, 157, 165, 0.08)',
+    chartBg: '#f2f6f9',
+    pillBg: '#f2f6f9',
+    blueText: '#3b82f6'
   };
 
-  const styles = {
-    container: {
-      background: theme.bg,
-      minHeight: '100vh',
-      margin: '-1rem',
-      padding: '1.5rem 1rem 4rem 1rem',
-      fontFamily: "'Inter', 'Prompt', sans-serif",
-      color: theme.textMain,
-      overflowX: 'hidden',
-      overflowY: 'auto',
-      transition: 'all 0.3s ease'
-    },
-    card: {
-      background: theme.card,
-      borderRadius: '16px',
-      padding: '1.25rem',
-      boxShadow: theme.shadow,
-      border: `1px solid ${theme.border}`,
-      marginBottom: '1rem',
-      transition: 'all 0.3s ease'
-    },
-    button: {
-      background: theme.iconBg, border: `1px solid ${theme.border}`, color: theme.textMain, borderRadius: '8px', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-    }
-  };
+  const DonutChart = ({ value, unit, label }) => {
+    const radius = 70;
+    const stroke = 14;
+    const normalizedRadius = radius - stroke * 2;
+    const circumference = normalizedRadius * 2 * Math.PI;
+    const strokeDashoffset = circumference - (0.8 * circumference); // 80% full
 
-  const Donut = ({ value, label, subLabel, color }) => {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{
-          width: '160px', height: '160px', borderRadius: '50%',
-          background: `conic-gradient(${color} 0%, ${color} 75%, ${theme.border} 75%, ${theme.border} 100%)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{
-            width: '130px', height: '130px', borderRadius: '50%', background: theme.card,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
-          }}>
-             <span style={{ fontSize: '1.8rem', fontWeight: '800', color: theme.textMain, lineHeight: 1 }}>{value}</span>
-             <span style={{ fontSize: '0.8rem', fontWeight: '700', color: theme.textSub, marginTop: '0.25rem' }}>{label}</span>
-             {subLabel && <span style={{ fontSize: '0.65rem', color: theme.primary }}>{subLabel}</span>}
-          </div>
+      <div style={{ position: 'relative', width: radius*2, height: radius*2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg height={radius * 2} width={radius * 2} style={{ transform: 'rotate(-90deg)', position: 'absolute' }}>
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#4ea8ff" />
+              <stop offset="100%" stopColor="#2dd4bf" />
+            </linearGradient>
+          </defs>
+          <circle
+            stroke={theme.chartBg}
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <circle
+            stroke="url(#grad)"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={circumference + ' ' + circumference}
+            style={{ strokeDashoffset, transition: 'stroke-dashoffset 1s ease' }}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+        </svg>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
+          <span style={{ fontSize: '0.7rem', color: theme.textSub, marginBottom: '-2px' }}>{unit}</span>
+          <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain, letterSpacing: '-0.5px' }}>{value}</span>
+          <span style={{ fontSize: '0.65rem', color: theme.blueText, marginTop: '-2px' }}>{label}</span>
         </div>
       </div>
     );
   };
 
-  const renderEnergyOverview = () => {
+  const MockGraph = () => (
+    <div style={{ width: '100%', height: '120px', position: 'relative', marginTop: '1rem' }}>
+      <svg viewBox="0 0 100 40" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+        {/* Grid lines */}
+        {[10, 20, 30].map(y => (
+          <line key={y} x1="0" y1={y} x2="100" y2={y} stroke={isDarkMode ? '#2a3143' : '#f1f5f9'} strokeWidth="0.5" />
+        ))}
+        {/* Area fill */}
+        <path d="M0,35 Q15,20 30,30 T60,15 T100,5 L100,40 L0,40 Z" fill={isDarkMode ? 'rgba(78, 168, 255, 0.1)' : 'rgba(59, 130, 246, 0.05)'} />
+        {/* Line */}
+        <path d="M0,35 Q15,20 30,30 T60,15 T100,5" fill="none" stroke={theme.blueText} strokeWidth="2.5" strokeLinecap="round" />
+        {/* Dot */}
+        <circle cx="100" cy="5" r="2.5" fill="#fff" stroke={theme.blueText} strokeWidth="1.5" />
+      </svg>
+      {/* Tooltip mockup */}
+      <div style={{ position: 'absolute', right: 0, top: '-10px', background: theme.blueText, color: '#fff', fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+        Today
+      </div>
+      {/* X Axis */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.5rem', color: theme.textSub, marginTop: '4px' }}>
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
+      </div>
+    </div>
+  );
+
+  const renderDashboard = () => {
     let globalKw = 0;
     let globalKwh = 0;
     let onlineCount = 0;
@@ -209,205 +208,189 @@ export default function EnergyDashboard() {
       }
     });
 
-    const AVG_RATE = 4.20; 
-    const estCost = (globalKwh * AVG_RATE).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const estCost = (globalKwh * 4.20).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         
-        {/* Top Section matching the reference layout */}
-        <div style={{ ...styles.card, display: 'flex', gap: '1rem', alignItems: 'center' }}>
-           <div style={{ flex: 1 }}>
-              <Donut value={globalKwh.toLocaleString()} label="kWh" subLabel="Total Yield" color="#3b82f6" />
-           </div>
-           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ background: theme.primary, width: 36, height: 36, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem' }}>💰</div>
-                <div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: theme.textMain }}>{estCost} <span style={{fontSize:'0.7rem', color:theme.textSub}}>THB</span></div>
-                  <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Est. Total Cost</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ background: '#10b981', width: 36, height: 36, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem' }}>⚡</div>
-                <div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: theme.textMain }}>{globalKw.toFixed(2)} <span style={{fontSize:'0.7rem', color:theme.textSub}}>kW</span></div>
-                  <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Current Power</div>
-                </div>
-              </div>
-           </div>
+        {/* Header toggle */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+          <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.cardBg, border: 'none', color: theme.textMain, borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: theme.shadow, cursor: 'pointer', fontSize: '1.2rem' }}>
+            {isDarkMode ? '🌙' : '☀'}
+          </button>
         </div>
 
-        {/* 3 Square Cards matching reference */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
-           <div style={{ ...styles.card, marginBottom: 0, padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-             <span style={{ fontSize: '1.5rem' }}>🏢</span>
-             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{BUILDINGS.length}</span>
-             <span style={{ fontSize: '0.7rem', color: theme.textSub }}>Site(s)</span>
-           </div>
-           <div style={{ ...styles.card, marginBottom: 0, padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-             <span style={{ fontSize: '1.5rem' }}>🟢</span>
-             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{onlineCount}</span>
-             <span style={{ fontSize: '0.7rem', color: theme.textSub }}>Device online</span>
-           </div>
-           <div style={{ ...styles.card, marginBottom: 0, padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-             <span style={{ fontSize: '1.5rem' }}>⚪</span>
-             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{installedCount - onlineCount}</span>
-             <span style={{ fontSize: '0.7rem', color: theme.textSub }}>Device offline</span>
-           </div>
+        {/* 1. TOP HUGE CARD */}
+        <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', boxShadow: theme.shadow, marginBottom: '0.75rem' }}>
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <DonutChart value={globalKwh.toLocaleString(undefined, {maximumFractionDigits:0})} unit="kWh" label="Total Yield" />
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingLeft: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <div style={{ background: '#3b82f6', width: 28, height: 28, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.8rem' }}>📅</div>
+              <div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: theme.textMain, lineHeight: 1 }}>{estCost} <span style={{fontSize:'0.7rem', fontWeight:'normal', color:theme.textSub}}>THB</span></div>
+                <div style={{ fontSize: '0.75rem', color: theme.textSub, marginTop: '2px' }}>Est. Cost</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <div style={{ background: '#10b981', width: 28, height: 28, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.8rem' }}>🏠</div>
+              <div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: theme.textMain, lineHeight: 1 }}>{globalKw.toFixed(2)} <span style={{fontSize:'0.7rem', fontWeight:'normal', color:theme.textSub}}>kW</span></div>
+                <div style={{ fontSize: '0.75rem', color: theme.textSub, marginTop: '2px' }}>Current Power</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* TOU Info Card as a horizontal bar like "Coal Saved" in reference */}
-        <div style={{ ...styles.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem' }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-             <div style={{ background: isPeak ? '#f59e0b' : '#3b82f6', width: 32, height: 32, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1rem' }}>
-               {isPeak ? '☀' : '🌙'}
+        {/* 2. TWO HORIZONTAL CARDS */}
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ flex: 1, background: theme.cardBg, borderRadius: '16px', padding: '1rem', boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+             <div style={{ background: theme.pillBg, width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.textMain }}>⚡</div>
+             <div>
+               <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Capacity</div>
+               <div style={{ fontSize: '1rem', fontWeight: 'bold', color: theme.textMain }}>{BUILDINGS.length * 50} <span style={{fontSize:'0.6rem', color:theme.textSub}}>kWp</span></div>
              </div>
-             <span style={{ color: theme.textMain, fontWeight: '600', fontSize: '0.9rem' }}>TOU Rate ({isPeak ? 'On-Peak' : 'Off-Peak'})</span>
-           </div>
-           <span style={{ fontWeight: 'bold', color: theme.textMain, fontSize: '1.1rem' }}>{isPeak ? '5.7982' : '2.6369'} <span style={{fontSize:'0.7rem', color:theme.textSub, fontWeight:'normal'}}>THB</span></span>
+          </div>
+          <div style={{ flex: 1, background: theme.cardBg, borderRadius: '16px', padding: '1rem', boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+             <div style={{ background: theme.pillBg, width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.textMain }}>⏱</div>
+             <div>
+               <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Current Time</div>
+               <div style={{ fontSize: '1rem', fontWeight: 'bold', color: theme.textMain }}>{new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</div>
+             </div>
+          </div>
         </div>
 
-        <h4 style={{ margin: '1rem 0 0.5rem 0', color: theme.textMain, fontSize: '1rem' }}>Device List</h4>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {BUILDINGS.map(b => {
-            const hasDevice = !!b.deviceId;
-            const data = buildingData[b.id];
-            const parsed = parseData(data?.raw);
-            
-            return (
-              <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ ...styles.card, marginBottom: 0, padding: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '8px', background: theme.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: hasDevice && parsed.isOnline ? '#10b981' : theme.textSub, fontWeight: 'bold', fontSize: '1.2rem' }}>
-                     {hasDevice && parsed.isOnline ? '⚡' : '🏢'}
-                  </div>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '0.9rem', color: theme.textMain }}>{b.name}</h4>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: theme.textSub, marginTop: '0.1rem' }}>
-                      {hasDevice ? (parsed.isOnline ? `${parsed.totalKwh} kWh / ${parsed.totalKw} kW` : 'Offline') : 'รอติดตั้งอุปกรณ์'}
-                    </p>
-                  </div>
-                </div>
-                <div style={{ color: theme.border }}>➔</div>
+        {/* 3. MAIN GRAPH CARD */}
+        <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', boxShadow: theme.shadow, marginBottom: '0.75rem' }}>
+           <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ background: theme.pillBg, width: 40, height: 40, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.blueText, fontWeight: 'bold', fontSize: '1.2rem' }}>
+                Tu
               </div>
-            );
-          })}
+              <div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: theme.textMain }}>Energy Trend</div>
+                <div style={{ fontSize: '0.75rem', color: theme.textSub }}>Usage over time</div>
+              </div>
+           </div>
+           <MockGraph />
         </div>
+
+        {/* 4. THREE VERTICAL CARDS */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
+           <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.25rem 0.5rem', textAlign: 'center', boxShadow: theme.shadow }}>
+             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🏢</div>
+             <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{BUILDINGS.length}</div>
+             <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Site(s)</div>
+           </div>
+           <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.25rem 0.5rem', textAlign: 'center', boxShadow: theme.shadow }}>
+             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔋</div>
+             <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{onlineCount}</div>
+             <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Device online</div>
+           </div>
+           <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.25rem 0.5rem', textAlign: 'center', boxShadow: theme.shadow }}>
+             <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.5 }}>🪫</div>
+             <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>{installedCount - onlineCount}</div>
+             <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Device offline</div>
+           </div>
+        </div>
+
+        {/* 5. HORIZONTAL STRIPS (Using TOU logic here) */}
+        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: theme.shadow, marginBottom: '0.75rem' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+             <div style={{ background: '#3b82f6', width: 36, height: 36, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem' }}>☀</div>
+             <span style={{ color: theme.textMain, fontSize: '0.9rem' }}>On-Peak Rate</span>
+           </div>
+           <span style={{ fontWeight: 'bold', color: theme.textMain, fontSize: '1.1rem' }}>5.79 <span style={{fontSize:'0.7rem', fontWeight:'normal', color:theme.textSub}}>THB</span></span>
+        </div>
+
+        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: theme.shadow, marginBottom: '1.5rem' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+             <div style={{ background: '#f59e0b', width: 36, height: 36, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem' }}>🌙</div>
+             <span style={{ color: theme.textMain, fontSize: '0.9rem' }}>Off-Peak Rate</span>
+           </div>
+           <span style={{ fontWeight: 'bold', color: theme.textMain, fontSize: '1.1rem' }}>2.63 <span style={{fontSize:'0.7rem', fontWeight:'normal', color:theme.textSub}}>THB</span></span>
+        </div>
+
+        {/* Detailed Buildings List mapped exactly like strips */}
+        <h4 style={{ margin: '0 0 1rem 0', color: theme.textMain, fontSize: '1rem' }}>Active Sites</h4>
+        {BUILDINGS.filter(b => b.deviceId).map(b => {
+          const data = buildingData[b.id];
+          const parsed = parseData(data?.raw);
+          return (
+            <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: theme.shadow, marginBottom: '0.75rem', cursor: 'pointer' }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                 <div style={{ background: parsed.isOnline ? '#10b981' : theme.pillBg, width: 36, height: 36, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: parsed.isOnline ? '#fff' : theme.textSub, fontSize: '1rem' }}>
+                   {parsed.isOnline ? '⚡' : '🏢'}
+                 </div>
+                 <div>
+                   <div style={{ color: theme.textMain, fontSize: '0.9rem', fontWeight: 'bold' }}>{b.name}</div>
+                   <div style={{ color: theme.textSub, fontSize: '0.7rem' }}>{parsed.isOnline ? 'Online' : 'Offline'}</div>
+                 </div>
+               </div>
+               {parsed.isOnline && (
+                 <div style={{ textAlign: 'right' }}>
+                   <div style={{ fontWeight: 'bold', color: theme.textMain, fontSize: '1rem' }}>{parsed.totalKw} <span style={{fontSize:'0.6rem', fontWeight:'normal', color:theme.textSub}}>kW</span></div>
+                   <div style={{ fontWeight: 'bold', color: theme.blueText, fontSize: '0.8rem' }}>{parsed.totalKwh} <span style={{fontSize:'0.6rem', fontWeight:'normal', color:theme.textSub}}>kWh</span></div>
+                 </div>
+               )}
+            </div>
+          );
+        })}
       </div>
     );
   };
 
-  const renderEnergyDetail = () => {
+  const renderDetail = () => {
     const bldg = BUILDINGS.find(b => b.id === activeTab);
     const data = buildingData[bldg.id];
     const parsed = parseData(data?.raw);
-    const hasDevice = !!bldg.deviceId;
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <button onClick={() => setActiveTab('overview')} style={{ background: 'transparent', border: 'none', color: theme.primary, fontSize: '1rem', fontWeight: 'bold', padding: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-          ← Back to Overview
+        <button onClick={() => setActiveTab('overview')} style={{ background: 'transparent', border: 'none', color: theme.blueText, fontSize: '1rem', fontWeight: 'bold', padding: 0, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+          ← Back
         </button>
-        
-        <div style={styles.card}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-             <div>
-               <h2 style={{ margin: 0, color: theme.textMain, fontSize: '1.4rem' }}>{bldg.name}</h2>
-               <p style={{ margin: '0.25rem 0 0 0', color: theme.textSub, fontSize: '0.85rem' }}>3-Phase Smart Meter</p>
-             </div>
-             {hasDevice && parsed.isOnline ? (
-               <span style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>Online</span>
-             ) : (
-               <span style={{ background: theme.iconBg, color: theme.textSub, padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>Offline</span>
-             )}
+
+        <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', boxShadow: theme.shadow, marginBottom: '1rem' }}>
+           <h2 style={{ margin: '0 0 0.5rem 0', color: theme.textMain, fontSize: '1.4rem' }}>{bldg.name}</h2>
+           <p style={{ margin: '0 0 1.5rem 0', color: theme.textSub, fontSize: '0.85rem' }}>3-Phase Real-time Monitor</p>
+
+           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+             <DonutChart value={parsed.totalKwh} unit="kWh" label="Total Yield" />
            </div>
 
-           {!hasDevice ? (
-             <div style={{ textAlign: 'center', padding: '3rem 1rem', color: theme.textSub }}>
-               <p style={{ fontSize: '3rem', margin: '0 0 1rem 0' }}>🚧</p>
-               <p style={{ margin: 0 }}>อยู่ระหว่างรอติดตั้งอุปกรณ์</p>
-             </div>
-           ) : (
-             <>
-               <div style={{ marginTop: '1.5rem' }}>
-                 <Donut value={parsed.totalKwh} label="kWh" subLabel="Total Yield" color="#10b981" />
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+             {[
+               { id: 'A', name: 'L1', data: parsed.phases.A, color: '#ef4444' },
+               { id: 'B', name: 'L2', data: parsed.phases.B, color: '#f59e0b' },
+               { id: 'C', name: 'L3', data: parsed.phases.C, color: '#3b82f6' }
+             ].map(p => (
+               <div key={p.id} style={{ background: theme.pillBg, borderRadius: '12px', padding: '1rem 0.5rem', textAlign: 'center' }}>
+                 <div style={{ color: p.color, fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{p.name}</div>
+                 <div style={{ fontSize: '1rem', fontWeight: 'bold', color: theme.textMain }}>{p.data.v} <span style={{fontSize:'0.6rem', color:theme.textSub}}>V</span></div>
+                 <div style={{ fontSize: '1rem', fontWeight: 'bold', color: theme.textMain }}>{p.data.a} <span style={{fontSize:'0.6rem', color:theme.textSub}}>A</span></div>
+                 <div style={{ fontSize: '1rem', fontWeight: 'bold', color: theme.textMain }}>{p.data.kw} <span style={{fontSize:'0.6rem', color:theme.textSub}}>kW</span></div>
                </div>
-
-               <h4 style={{ margin: '1.5rem 0 1rem 0', color: theme.textMain, fontSize: '1rem' }}>Real-time 3 Phase</h4>
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                 {[
-                   { id: 'A', name: 'Phase L1', data: parsed.phases.A, color: '#ef4444' },
-                   { id: 'B', name: 'Phase L2', data: parsed.phases.B, color: '#f59e0b' },
-                   { id: 'C', name: 'Phase L3', data: parsed.phases.C, color: '#3b82f6' }
-                 ].map(p => (
-                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: theme.iconBg, borderRadius: '12px', border: `1px solid ${theme.border}` }}>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                       <div style={{ width: 12, height: 12, borderRadius: '50%', background: p.color }}></div>
-                       <span style={{ fontWeight: 'bold', color: theme.textMain, fontSize: '0.85rem' }}>{p.name}</span>
-                     </div>
-                     <div style={{ display: 'flex', gap: '1rem', textAlign: 'right' }}>
-                       <div style={{ width: '45px' }}><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: theme.textMain }}>{p.data.v}</span> <span style={{ fontSize:'0.65rem', color:theme.textSub}}>V</span></div>
-                       <div style={{ width: '45px' }}><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: theme.textMain }}>{p.data.a}</span> <span style={{ fontSize:'0.65rem', color:theme.textSub}}>A</span></div>
-                       <div style={{ width: '60px' }}><span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#10b981' }}>{p.data.kw}</span> <span style={{ fontSize:'0.65rem', color:theme.textSub}}>kW</span></div>
-                     </div>
-                   </div>
-                 ))}
-               </div>
-
-               <button onClick={() => setShowDebug(!showDebug)} style={{ background: theme.iconBg, border: 'none', color: theme.textSub, padding: '0.75rem', borderRadius: '12px', fontSize: '0.75rem', width: '100%', marginTop: '1.5rem', fontWeight: 'bold', cursor: 'pointer' }}>
-                 {showDebug ? 'Hide API Data' : 'View Raw API Data'}
-               </button>
-               {showDebug && (
-                 <pre style={{ background: '#0f172a', color: '#34d399', padding: '1rem', borderRadius: '12px', fontSize: '0.65rem', overflowX: 'auto', marginTop: '0.5rem', userSelect: 'text' }}>
-                   {JSON.stringify(data?.raw, null, 2)}
-                 </pre>
-               )}
-             </>
-           )}
+             ))}
+           </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div style={styles.container}>
-      {/* Top Navigation Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {appModule === 'energy' ? '📊 Energy' : '💡 Control'}
-        </h1>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} style={styles.button}>
-            {isDarkMode ? '☀' : '🌙'}
-          </button>
-          <button onClick={handleRefresh} disabled={isRefreshing} style={styles.button}>
-            <span style={{ display: 'inline-block', transition: 'transform 0.5s', transform: isRefreshing ? 'rotate(180deg)' : 'none' }}>↻</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Module Switcher Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', background: theme.iconBg, padding: '0.35rem', borderRadius: '12px', marginBottom: '1.5rem', border: `1px solid ${theme.border}` }}>
-        <div onClick={() => setAppModule('energy')} style={{ background: appModule === 'energy' ? theme.card : 'transparent', color: appModule === 'energy' ? theme.primary : theme.textSub, boxShadow: appModule === 'energy' ? theme.shadow : 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: 1, textAlign: 'center', transition: 'all 0.3s', fontSize: '0.85rem' }}>
-          Monitor
-        </div>
-        <div onClick={() => setAppModule('lighting')} style={{ background: appModule === 'lighting' ? theme.card : 'transparent', color: appModule === 'lighting' ? theme.primary : theme.textSub, boxShadow: appModule === 'lighting' ? theme.shadow : 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flex: 1, textAlign: 'center', transition: 'all 0.3s', fontSize: '0.85rem' }}>
-          Control
-        </div>
-      </div>
-
-      {appModule === 'energy' ? (
-         activeTab === 'overview' ? renderEnergyOverview() : renderEnergyDetail()
-      ) : (
-         <div style={styles.card}>
-           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: theme.textSub }}>
-             <p style={{ fontSize: '3rem', margin: '0 0 1rem 0' }}>🔌</p>
-             <h3 style={{ margin: '0 0 0.5rem 0', color: theme.textMain }}>Smart Control</h3>
-             <p style={{ margin: 0, fontSize: '0.85rem' }}>เตรียมเชื่อมต่อระบบสวิตช์ Tuya เร็วๆ นี้</p>
-           </div>
-         </div>
-      )}
+    <div style={{
+      background: theme.bg,
+      minHeight: '100vh',
+      margin: '-1rem',
+      padding: '1.5rem 1rem 4rem 1rem',
+      fontFamily: "'Inter', 'Prompt', sans-serif",
+      color: theme.textMain,
+      overflowX: 'hidden',
+      overflowY: 'auto',
+      transition: 'all 0.3s ease'
+    }}>
+      {activeTab === 'overview' ? renderDashboard() : renderDetail()}
     </div>
   );
 }
