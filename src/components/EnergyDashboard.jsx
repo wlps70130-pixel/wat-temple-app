@@ -23,7 +23,8 @@ const BUILDINGS = [
 ];
 
 export default function EnergyDashboard() {
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' or building ID
+  const [appModule, setAppModule] = useState('energy'); // 'energy' or 'lighting'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' or building ID for energy
   const [buildingData, setBuildingData] = useState({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
@@ -45,11 +46,9 @@ export default function EnergyDashboard() {
 
   const fetchRealData = async (bldgId, deviceId) => {
     if (!deviceId) return;
-    
     try {
       const response = await fetch(`/api/tuya?deviceId=${deviceId}`);
       const apiData = await response.json();
-      
       setBuildingData(prev => ({
         ...prev,
         [bldgId]: {
@@ -67,16 +66,17 @@ export default function EnergyDashboard() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Fetch data for all buildings that have a device ID
-    const promises = BUILDINGS.filter(b => b.deviceId).map(b => fetchRealData(b.id, b.deviceId));
-    await Promise.all(promises);
+    if (appModule === 'energy') {
+      const promises = BUILDINGS.filter(b => b.deviceId).map(b => fetchRealData(b.id, b.deviceId));
+      await Promise.all(promises);
+    }
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
   useEffect(() => {
     handleRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [appModule]);
 
   const parseData = (raw) => {
     const defaultPhase = { v: '0.0', a: '0.0', kw: '0.00' };
@@ -150,10 +150,16 @@ export default function EnergyDashboard() {
     },
     button: {
       background: '#fff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: '12px', padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', transition: 'all 0.2s'
+    },
+    navTabActive: {
+      background: '#0f172a', color: '#fff', padding: '0.5rem 1rem', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', flex: 1, textAlign: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+    },
+    navTabInactive: {
+      background: 'rgba(255,255,255,0.5)', color: '#64748b', padding: '0.5rem 1rem', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', flex: 1, textAlign: 'center'
     }
   };
 
-  const renderOverview = () => {
+  const renderEnergyOverview = () => {
     let globalKw = 0;
     let globalKwh = 0;
     let onlineCount = 0;
@@ -177,9 +183,9 @@ export default function EnergyDashboard() {
         <div style={{ ...styles.glassCard, background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.7) 100%)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
              <div>
-               <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', fontWeight: '600', letterSpacing: '0.5px' }}>MASTER ENERGY AI</p>
+               <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', fontWeight: '600', letterSpacing: '0.5px' }}>ENERGY MONITORING</p>
                <h3 style={{ margin: '0.25rem 0 0 0', fontSize: '1.5rem', fontWeight: '800', background: 'linear-gradient(90deg, #0f172a, #334155)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                 วัดหลวงพ่อสดธรรมกายาราม
+                 ภาพรวมการใช้ไฟ
                </h3>
              </div>
              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: isPeak ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', color: isPeak ? '#ef4444' : '#10b981', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold' }}>
@@ -208,7 +214,7 @@ export default function EnergyDashboard() {
 
         {/* Building Grid */}
         <h4 style={{ margin: '0.5rem 0 0 0', color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
-          <span>จุดตรวจสอบ ({onlineCount}/{BUILDINGS.length})</span>
+          <span>จุดตรวจสอบมิเตอร์ ({onlineCount}/{BUILDINGS.length})</span>
         </h4>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
@@ -224,7 +230,7 @@ export default function EnergyDashboard() {
                   <div>
                     <h4 style={{ margin: 0, fontSize: '1rem', color: '#0f172a' }}>{b.name}</h4>
                     <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                      {hasDevice ? (parsed.isOnline ? `⚡ ${parsed.totalKw} kW | 💰 ${(parsed.totalKwh * (isPeak ? 5.7982 : 2.6369)).toLocaleString('th-TH', {maximumFractionDigits:0})} ฿` : 'รอการส่งข้อมูล...') : '⏳ รอติดตั้งอุปกรณ์'}
+                      {hasDevice ? (parsed.isOnline ? `⚡ ${parsed.totalKw} kW | 💰 ${(parsed.totalKwh * (isPeak ? 5.7982 : 2.6369)).toLocaleString('th-TH', {maximumFractionDigits:0})} ฿` : 'รอการส่งข้อมูล...') : '⏳ รอติดตั้งมิเตอร์'}
                     </p>
                   </div>
                   <div style={{ color: '#cbd5e1' }}>➔</div>
@@ -237,7 +243,7 @@ export default function EnergyDashboard() {
     );
   };
 
-  const renderDetail = () => {
+  const renderEnergyDetail = () => {
     const bldg = BUILDINGS.find(b => b.id === activeTab);
     const data = buildingData[bldg.id];
     const parsed = parseData(data?.raw);
@@ -250,7 +256,10 @@ export default function EnergyDashboard() {
         </button>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-           <h2 style={{ margin: 0, color: '#0f172a' }}>{bldg.name}</h2>
+           <div>
+             <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>Energy Monitor (มิเตอร์หลัก)</p>
+             <h2 style={{ margin: 0, color: '#0f172a' }}>{bldg.name}</h2>
+           </div>
            {hasDevice ? (
              parsed.isOnline ? <span style={{ background: '#d1fae5', color: '#059669', padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>Online</span>
              : <span style={{ background: '#fee2e2', color: '#dc2626', padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>Offline</span>
@@ -260,45 +269,18 @@ export default function EnergyDashboard() {
         {!hasDevice && (
           <div style={{ ...styles.glassCard, textAlign: 'center', color: '#64748b', padding: '3rem 1rem' }}>
             <p style={{ fontSize: '2rem', margin: '0 0 1rem 0' }}>🚧</p>
-            <p style={{ margin: 0 }}>จุดนี้อยู่ระหว่างรอติดตั้งสมาร์ทมิเตอร์และสวิตช์ควบคุม</p>
+            <p style={{ margin: 0 }}>จุดนี้อยู่ระหว่างรอติดตั้ง Smart Meter</p>
           </div>
         )}
 
         {hasDevice && (
           <>
             <div style={{ ...styles.glassCard }}>
-               <p style={{ margin: 0, color: '#64748b', fontSize: '0.75rem' }}>ค่าไฟประมาณการ (TOU {isPeak ? 'On-Peak' : 'Off-Peak'})</p>
+               <p style={{ margin: 0, color: '#64748b', fontSize: '0.75rem' }}>ค่าไฟประมาณการสะสม (TOU {isPeak ? 'On-Peak' : 'Off-Peak'})</p>
                <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2.5rem', color: '#0f172a', lineHeight: 1 }}>
                  {(parsed.totalKwh * (isPeak ? 5.7982 : 2.6369)).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span style={{ fontSize: '1rem', color: '#64748b' }}>บาท</span>
                </h3>
-               <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>ใช้ไฟสะสม: <strong style={{color:'#334155'}}>{parsed.totalKwh} kWh</strong></p>
-            </div>
-
-            {/* Smart Controls */}
-            <div style={{ ...styles.glassCard, background: 'rgba(255, 255, 255, 0.9)' }}>
-               <h4 style={{ margin: '0 0 1rem 0', color: '#0f172a', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                 💡 ระบบควบคุมไฟ (Smart Controls)
-               </h4>
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Master Switch</span>
-                      <div style={{ width: 40, height: 20, background: '#e2e8f0', borderRadius: '20px', position: 'relative' }}>
-                        <div style={{ width: 16, height: 16, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}></div>
-                      </div>
-                    </div>
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>ระบบเปิด-ปิดด้วยตนเอง</span>
-                  </div>
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#3b82f6' }}>Auto Schedule</span>
-                      <div style={{ width: 40, height: 20, background: '#3b82f6', borderRadius: '20px', position: 'relative' }}>
-                         <div style={{ width: 16, height: 16, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, right: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}></div>
-                      </div>
-                    </div>
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>18:00 น. - 06:00 น.</span>
-                  </div>
-               </div>
+               <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>ใช้ไฟสะสมรวม: <strong style={{color:'#334155'}}>{parsed.totalKwh} kWh</strong></p>
             </div>
 
             {/* 3 Phase Details */}
@@ -330,7 +312,7 @@ export default function EnergyDashboard() {
             </div>
 
             <button onClick={() => setShowDebug(!showDebug)} style={{ background: 'transparent', border: '1px dashed #cbd5e1', color: '#94a3b8', padding: '0.5rem', borderRadius: '12px', fontSize: '0.75rem', width: '100%', marginTop: '1rem' }}>
-              {showDebug ? 'ซ่อนข้อมูลดิบ' : '🛠️ แสดงข้อมูลดิบ API'}
+              {showDebug ? 'ซ่อนข้อมูลดิบ' : '🛠️ แสดงข้อมูลดิบ API มิเตอร์'}
             </button>
             {showDebug && (
               <pre style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', fontSize: '0.65rem', overflowX: 'auto', border: '1px solid #e2e8f0', userSelect: 'text' }}>
@@ -343,21 +325,92 @@ export default function EnergyDashboard() {
     );
   };
 
+  const renderLightingModule = () => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ ...styles.glassCard, background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.7) 100%)' }}>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', fontWeight: '600', letterSpacing: '0.5px' }}>SMART CONTROL CENTER</p>
+          <h3 style={{ margin: '0.25rem 0 0 0', fontSize: '1.5rem', fontWeight: '800', background: 'linear-gradient(90deg, #0f172a, #334155)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            หมวดควบคุมแสงสว่าง
+          </h3>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem' }}>
+            ควบคุมสมาร์ทสวิตช์และเบรกเกอร์ (แยกส่วนกับมิเตอร์หลัก)
+          </p>
+        </div>
+
+        <h4 style={{ margin: '0.5rem 0 0 0', color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
+          <span>จุดควบคุมไฟ (0/{BUILDINGS.length})</span>
+        </h4>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+          {BUILDINGS.map(b => (
+            <div key={b.id} style={{ ...styles.glassCard, padding: '1.25rem' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                 <div>
+                   <h4 style={{ margin: 0, fontSize: '1rem', color: '#0f172a' }}>ไฟส่องสว่าง {b.name}</h4>
+                   <span style={{ background: '#f1f5f9', color: '#64748b', padding: '0.15rem 0.5rem', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 'bold' }}>รอติดตั้งสวิตช์</span>
+                 </div>
+               </div>
+
+               {/* Smart Controls UI */}
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#cbd5e1' }}>Manual Switch</span>
+                      <div style={{ width: 40, height: 20, background: '#e2e8f0', borderRadius: '20px', position: 'relative' }}>
+                        <div style={{ width: 16, height: 16, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}></div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>ระบบเปิด-ปิดด้วยตนเอง</span>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#cbd5e1' }}>Auto Schedule</span>
+                      <div style={{ width: 40, height: 20, background: '#e2e8f0', borderRadius: '20px', position: 'relative' }}>
+                         <div style={{ width: 16, height: 16, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}></div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>ยังไม่ตั้งเวลา</span>
+                  </div>
+               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.blob1}></div>
       <div style={styles.blob2}></div>
       
       <div style={styles.content}>
-        {/* Top Navigation */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', letterSpacing: '-0.5px' }}>WatTemple <span style={{color: '#0ea5e9'}}>Energy</span></h1>
+        {/* Module Switcher (Root Navigation) */}
+        <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.6)', padding: '0.5rem', borderRadius: '16px', marginBottom: '1rem', backdropFilter: 'blur(10px)' }}>
+          <div onClick={() => setAppModule('energy')} style={appModule === 'energy' ? styles.navTabActive : styles.navTabInactive}>
+            📊 มอนิเตอร์ค่าไฟ
+          </div>
+          <div onClick={() => setAppModule('lighting')} style={appModule === 'lighting' ? styles.navTabActive : styles.navTabInactive}>
+            💡 ควบคุมสวิตช์
+          </div>
+        </div>
+
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0 0.5rem' }}>
+          <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', letterSpacing: '-0.5px' }}>
+            WatTemple <span style={{color: appModule === 'energy' ? '#0ea5e9' : '#f59e0b'}}>{appModule === 'energy' ? 'Energy' : 'Control'}</span>
+          </h1>
           <button onClick={handleRefresh} disabled={isRefreshing} style={styles.button}>
             <span style={{ display: 'inline-block', transition: 'transform 0.5s', transform: isRefreshing ? 'rotate(180deg)' : 'none' }}>↻</span>
           </button>
         </div>
 
-        {activeTab === 'overview' ? renderOverview() : renderDetail()}
+        {appModule === 'energy' ? (
+           activeTab === 'overview' ? renderEnergyOverview() : renderEnergyDetail()
+        ) : (
+           renderLightingModule()
+        )}
       </div>
     </div>
   );
