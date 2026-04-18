@@ -6,7 +6,7 @@ import Papa from 'papaparse';
 // ── Google Sheet (แท็บ "news") ─────────────────────────────────
 // คอลัมน์ที่ต้องมีใน Sheet: title | tag | image | date | link
 // เผยแพร่ Sheet → File → Share → Publish to web → CSV แล้วนำ URL มาวาง
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/11hBRfyMG6g2qhhSSPceu1_LvmBTrp0aOkmjculEM-r0/export?format=csv&gid=0';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=1313998691&single=true&output=csv';
 
 // Fallback ถ้า Sheet ยังไม่มีข้อมูล
 const FALLBACK_NEWS = [
