@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { User, Users, Loader2, X, BookOpen, Award, Calendar, FileText, Clock, Star } from 'lucide-react';
+import { User, Users, Loader2, X, BookOpen, Award, Calendar, FileText, Clock, Star, ChevronRight } from 'lucide-react';
 import Papa from 'papaparse';
+
+// แผนกงานทั้งหมด (hardcoded ชื่อ แต่สมาชิกดึงจาก Sheet)
+const DEPARTMENTS = [
+  { id:'dept-province', name:'งานเจ้าคณะจังหวัดราชบุรี', emoji:'🏛️', color:'#7c3aed', bg:'#ede9fe' },
+  { id:'dept-naktham',  name:'แผนกนักธรรม',               emoji:'📖', color:'#1d4ed8', bg:'#dbeafe' },
+  { id:'dept-pali',     name:'แผนกบาลี',                  emoji:'📜', color:'#0f766e', bg:'#ccfbf1' },
+  { id:'dept-media',    name:'แผนกสื่อและประชาสัมพันธ์', emoji:'📡', color:'#0ea5e9', bg:'#e0f2fe' },
+  { id:'dept-maint',    name:'แผนกซ่อมบำรุง',             emoji:'🔧', color:'#b45309', bg:'#fef3c7' },
+  { id:'dept-vipass',   name:'แผนกวิปัสสนาจารย์',        emoji:'🧘', color:'#16a34a', bg:'#dcfce7' },
+  { id:'dept-sound',    name:'แผนกเครื่องเสียง',          emoji:'🎙️', color:'#dc2626', bg:'#fee2e2' },
+  { id:'dept-kitchen',  name:'แผนกโรงครัว',               emoji:'🍲', color:'#d97706', bg:'#fef3c7' },
+];
 
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/11hBRfyMG6g2qhhSSPceu1_LvmBTrp0aOkmjculEM-r0/export?format=csv';
 
@@ -144,15 +156,22 @@ const HBranch = ({ count }) => {
 
 // ─── Main ─────────────────────────────────────────────────────────
 export default function SanghaChart() {
-  const [data, setData] = useState({ abbot: null, viceAbbots: [], assistants: [], monks: [] });
+  const [data, setData] = useState({ abbot: null, viceAbbots: [], assistants: [], monks: [], allRows: [] });
   const [loading, setLoading] = useState(true);
+  const [activeDept, setActiveDept] = useState(null);
 
   useEffect(() => {
     Papa.parse(SHEET_URL, {
       download: true, header: true,
       complete: (r) => {
         const rows = r.data.filter(row => row.role && row.name);
-        setData({ abbot: rows.find(r => r.role==='abbot')||null, viceAbbots: rows.filter(r => r.role==='viceAbbot'), assistants: rows.filter(r => r.role==='assistant'), monks: rows.filter(r => r.role==='monk') });
+        setData({
+          abbot: rows.find(r => r.role==='abbot')||null,
+          viceAbbots: rows.filter(r => r.role==='viceAbbot'),
+          assistants: rows.filter(r => r.role==='assistant'),
+          monks: rows.filter(r => r.role==='monk'),
+          allRows: rows,
+        });
         setLoading(false);
       },
       error: () => setLoading(false),
@@ -230,9 +249,75 @@ export default function SanghaChart() {
         <div style={{ textAlign:'center', padding:'3rem 1rem', color:'#94a3b8' }}>
           <Users size={48} color="#fde68a" style={{ margin:'0 auto 1rem' }}/>
           <p style={{ fontSize:'0.9rem' }}>ยังไม่มีข้อมูลในระบบ</p>
-          <p style={{ fontSize:'0.78rem', marginTop:'0.25rem' }}>กรุณาเพิ่มข้อมูลใน Google Sheets</p>
         </div>
       )}
+
+      {/* ─── แผนกงาน ─── */}
+      <div style={{ marginTop:'1.5rem' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.85rem' }}>
+          <div style={{ width:'3px', height:'18px', background:'#d97706', borderRadius:'2px' }}/>
+          <h3 style={{ margin:0, fontSize:'1rem', fontWeight:'800', color:'#1e293b' }}>แผนกงาน</h3>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:'0.6rem' }}>
+          {DEPARTMENTS.map(dept => {
+            const members = data.allRows.filter(r => (r.deptId||'').split(';').map(s=>s.trim()).includes(dept.id));
+            return (
+              <button key={dept.id} onClick={() => setActiveDept(dept)}
+                style={{ background:'white', border:`1.5px solid ${dept.bg}`, borderRadius:'14px', padding:'0.75rem 0.65rem', cursor:'pointer', textAlign:'left', transition:'all 0.18s', boxShadow:'0 2px 8px rgba(0,0,0,0.05)' }}
+                onMouseEnter={e=>e.currentTarget.style.boxShadow=`0 6px 20px ${dept.color}30`}
+                onMouseLeave={e=>e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                  <div style={{ fontSize:'1.6rem', lineHeight:1 }}>{dept.emoji}</div>
+                  <ChevronRight size={14} color={dept.color} style={{ marginTop:'2px' }}/>
+                </div>
+                <div style={{ fontSize:'0.78rem', fontWeight:'800', color:'#1e293b', marginTop:'0.4rem', lineHeight:1.3 }}>{dept.name}</div>
+                <div style={{ marginTop:'0.3rem', display:'inline-block', background:dept.bg, color:dept.color, fontSize:'0.62rem', fontWeight:'700', padding:'1px 7px', borderRadius:'20px' }}>
+                  {members.length > 0 ? `${members.length} รูป` : 'ยังไม่มีข้อมูล'}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ─── Dept Modal ─── */}
+      {activeDept && (() => {
+        const members = data.allRows.filter(r => (r.deptId||'').split(';').map(s=>s.trim()).includes(activeDept.id));
+        return (
+          <div onClick={() => setActiveDept(null)} style={{ position:'fixed', inset:0, zIndex:9998, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(5px)', display:'flex', alignItems:'flex-end', justifyContent:'center', animation:'fadeIn .2s' }}>
+            <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:'24px 24px 0 0', width:'100%', maxWidth:'480px', maxHeight:'80vh', overflow:'hidden', display:'flex', flexDirection:'column', animation:'slideUp .25s cubic-bezier(.34,1.4,.64,1)' }}>
+              <div style={{ display:'flex', justifyContent:'center', padding:'0.55rem 0 0' }}><div style={{ width:'36px', height:'4px', borderRadius:'2px', background:'#e2e8f0' }}/></div>
+              <div style={{ padding:'1rem 1.1rem 0.75rem', display:'flex', alignItems:'center', gap:'0.75rem', borderBottom:'1px solid #f1f5f9' }}>
+                <div style={{ width:'48px', height:'48px', borderRadius:'14px', background:activeDept.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', flexShrink:0 }}>{activeDept.emoji}</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontWeight:'800', fontSize:'0.95rem', color:'#1e293b' }}>{activeDept.name}</div>
+                  <div style={{ fontSize:'0.72rem', color:activeDept.color, fontWeight:'700', marginTop:'2px' }}>{members.length > 0 ? `${members.length} รูป` : 'ยังไม่มีข้อมูล'}</div>
+                </div>
+                <button onClick={() => setActiveDept(null)} style={{ background:'#f1f5f9', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><X size={15} color="#64748b"/></button>
+              </div>
+              <div style={{ overflowY:'auto', padding:'0.75rem 1.1rem 2rem', flex:1 }}>
+                {members.length === 0 ? (
+                  <div style={{ textAlign:'center', padding:'2.5rem 0', color:'#94a3b8' }}>
+                    <div style={{ fontSize:'2rem', marginBottom:'0.5rem' }}>{activeDept.emoji}</div>
+                    <p style={{ fontSize:'0.85rem' }}>ยังไม่มีข้อมูลสมาชิกในแผนกนี้</p>
+                    <p style={{ fontSize:'0.72rem', marginTop:'0.25rem' }}>เพิ่มคอลัมน์ deptId ใน Google Sheets</p>
+                  </div>
+                ) : members.map((m, i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.65rem 0', borderBottom:'1px solid #f8fafc' }}>
+                    {m.image?.trim()
+                      ? <img src={m.image} alt={m.name} style={{ width:'40px', height:'40px', borderRadius:'50%', objectFit:'cover', border:`2px solid ${activeDept.color}`, flexShrink:0 }}/>
+                      : <div style={{ width:'40px', height:'40px', borderRadius:'50%', background:activeDept.bg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><User size={18} color={activeDept.color}/></div>}
+                    <div style={{ minWidth:0 }}>
+                      <div style={{ fontWeight:'700', fontSize:'0.85rem', color:'#1e293b', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.name}</div>
+                      <div style={{ fontSize:'0.7rem', color:'#94a3b8', marginTop:'1px' }}>{m.title || m.role}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
