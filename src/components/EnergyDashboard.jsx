@@ -418,7 +418,11 @@ export default function EnergyDashboard() {
     const INTERVAL_HOURS = 0.25; // บันทึกทุก 15 นาที
 
     rawHistory.forEach(r => {
-      if (!r.timestamp || r.building === 'พลังงานโซล่าเซลล์') return;
+      if (!r.timestamp) return;
+      // กรองโซล่าเซลล์และข้อมูลที่ไม่ใช่อาคาร
+      const bldg = String(r.building || '').trim();
+      if (bldg === 'พลังงานโซล่าเซลล์' || bldg === '') return;
+
       let tsMonth = 0, tsYear = 0;
       const ts = String(r.timestamp).trim();
       if (ts.includes('T')) {
@@ -426,13 +430,19 @@ export default function EnergyDashboard() {
         tsMonth = parseInt(ts.slice(5, 7), 10);
       } else if (ts.includes('/')) {
         const parts = ts.split(' ')[0].split('/');
+        // รูปแบบ DD/MM/YYYY
         if (parts.length === 3) { tsMonth = parseInt(parts[1], 10); tsYear = parseInt(parts[2], 10); }
       }
+
+      // currentYearNum คือปี ค.ศ. เช่น 2026 ซึ่งตรงกับข้อมูลใน Google Sheets
       if (tsYear !== currentYearNum || tsMonth !== currentMonthNum) return;
+
       const kwh = parseFloat(r.totalKw || 0) * INTERVAL_HOURS;
       if (kwh <= 0) return;
-      if (r.touStatus === 'ON_PEAK') monthlyOnPeakKwh += kwh;
-      else monthlyOffPeakKwh += kwh;
+
+      const tou = String(r.touStatus || '').trim().toUpperCase();
+      if (tou === 'ON_PEAK') monthlyOnPeakKwh += kwh;
+      else if (tou === 'OFF_PEAK') monthlyOffPeakKwh += kwh;
     });
 
     // Fallback: ถ้ายังไม่มีข้อมูล ประมาณจาก kW ปัจจุบัน
