@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import Papa from 'papaparse';
 
 const BUILDINGS = [
   { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a326a888ee9e0e5c67pwni' },
@@ -34,7 +35,7 @@ export default function EnergyDashboard() {
   const [rawHistory, setRawHistory] = useState([]);
   const [historicalData, setHistoricalData] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const HISTORY_URL = "https://script.google.com/macros/s/AKfycbzFA-Kj3b9MwwFoFrfdF06XWRvbkj4suHmS9gv616XqnoG1_o6W8LvGlKUeRwSwWFZBgw/exec";
+  const HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=2048515869&single=true&output=csv";
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -46,8 +47,21 @@ export default function EnergyDashboard() {
       setIsLoadingHistory(true);
       try {
         const res = await fetch(HISTORY_URL);
-        const data = await res.json();
-        setRawHistory(data);
+        const csvText = await res.text();
+        const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+        
+        const parsedData = results.data.map(row => {
+          let kw = parseFloat(row['กำลังไฟรวม (kW)'] || 0);
+          // Tuya sometimes sends garbage values like -19800 for disconnected phases
+          if (kw < -100 || kw > 1000) kw = 0; 
+          
+          return {
+            timestamp: row['วัน-เวลา'],
+            totalKw: kw
+          };
+        }).filter(r => r.timestamp);
+        
+        setRawHistory(parsedData);
       } catch(e) {
         console.error("Fetch history error", e);
       } finally {
