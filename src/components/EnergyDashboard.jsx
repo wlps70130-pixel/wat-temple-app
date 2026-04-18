@@ -27,10 +27,11 @@ export default function EnergyDashboard() {
   const [activeTab, setActiveTab] = useState('overview'); 
   const [buildingData, setBuildingData] = useState({});
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [graphFilter, setGraphFilter] = useState('day'); // 'day', 'week', 'month', 'year'
+  const [graphFilter, setGraphFilter] = useState('15min'); // '15min', '30min', '1hour', 'day'
   const [peakRatio, setPeakRatio] = useState(40); // Default 40% On-Peak
   const [currentTime, setCurrentTime] = useState(new Date());
   
+  const [rawHistory, setRawHistory] = useState([]);
   const [historicalData, setHistoricalData] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const HISTORY_URL = "https://script.google.com/macros/s/AKfycbzFA-Kj3b9MwwFoFrfdF06XWRvbkj4suHmS9gv616XqnoG1_o6W8LvGlKUeRwSwWFZBgw/exec";
@@ -46,22 +47,7 @@ export default function EnergyDashboard() {
       try {
         const res = await fetch(HISTORY_URL);
         const data = await res.json();
-        
-        const grouped = {};
-        data.forEach(item => {
-           // Extract "HH:mm" from "dd/MM/yyyy HH:mm:ss"
-           const timeMatch = item.timestamp.match(/(\d{2}:\d{2}):\d{2}$/);
-           const timeLabel = timeMatch ? timeMatch[1] : item.timestamp;
-           
-           if (!grouped[timeLabel]) {
-             grouped[timeLabel] = { time: timeLabel, totalKw: 0 };
-           }
-           grouped[timeLabel].totalKw += parseFloat(item.totalKw || 0);
-        });
-        
-        const chartData = Object.values(grouped);
-        // Limit to latest 96 points (24 hours if 15min intervals)
-        setHistoricalData(chartData.slice(-96));
+        setRawHistory(data);
       } catch(e) {
         console.error("Fetch history error", e);
       } finally {
@@ -70,6 +56,58 @@ export default function EnergyDashboard() {
     };
     fetchHistory();
   }, []);
+
+  useEffect(() => {
+    if (!rawHistory.length) return;
+
+    const grouped = {};
+    rawHistory.forEach(item => {
+      const match = item.timestamp.match(/(\d{2}\/\d{2})\/\d{4} (\d{2}):(\d{2}):\d{2}/);
+      if (!match) return;
+      
+      const datePart = match[1];
+      const hourPart = match[2];
+      let minPart = parseInt(match[3], 10);
+      
+      let timeLabel = "";
+      if (graphFilter === '15min') {
+        timeLabel = `${hourPart}:${minPart.toString().padStart(2, '0')}`;
+      } else if (graphFilter === '30min') {
+        minPart = minPart < 30 ? "00" : "30";
+        timeLabel = `${hourPart}:${minPart}`;
+      } else if (graphFilter === '1hour') {
+        timeLabel = `${hourPart}:00`;
+      } else if (graphFilter === 'day') {
+        timeLabel = datePart;
+      }
+      
+      const fullLabel = graphFilter === 'day' ? timeLabel : `${datePart} ${timeLabel}`;
+      
+      if (!grouped[fullLabel]) {
+        grouped[fullLabel] = { displayTime: timeLabel, sumKw: 0, count: 0 };
+      }
+      grouped[fullLabel].sumKw += parseFloat(item.totalKw || 0);
+      grouped[fullLabel].count += 1;
+    });
+
+    const activeDevices = BUILDINGS.filter(b => b.deviceId).length || 1;
+
+    const chartData = Object.values(grouped).map(g => {
+      const timestampsCount = g.count / activeDevices;
+      const avgKw = timestampsCount > 0 ? (g.sumKw / timestampsCount) : 0;
+      return {
+        time: g.displayTime,
+        totalKw: parseFloat(avgKw.toFixed(2))
+      };
+    });
+
+    let pointsToKeep = 96;
+    if (graphFilter === '30min') pointsToKeep = 48;
+    if (graphFilter === '1hour') pointsToKeep = 24;
+    if (graphFilter === 'day') pointsToKeep = 7;
+    
+    setHistoricalData(chartData.slice(-pointsToKeep));
+  }, [rawHistory, graphFilter]);
 
   const fetchRealData = async (bldgId, deviceId) => {
     if (!deviceId) return;
@@ -346,8 +384,8 @@ export default function EnergyDashboard() {
           
           {/* Time Filter Tabs */}
           <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#f1f5f9', borderRadius: '8px', padding: '4px' }}>
-            {['day', 'week', 'month', 'year'].map(filter => {
-              const labels = { 'day':'วัน', 'week':'สัปดาห์', 'month':'เดือน', 'year':'ปี' };
+            {['15min', '30min', '1hour', 'day'].map(filter => {
+              const labels = { '15min':'15 นาที', '30min':'30 นาที', '1hour':'1 ชั่วโมง', 'day':'รายวัน' };
               const isActive = graphFilter === filter;
               return (
                 <div key={filter} onClick={() => setGraphFilter(filter)} style={{ flex: 1, textAlign: 'center', padding: '0.4rem 0', borderRadius: '6px', fontSize: '0.85rem', fontWeight: isActive ? 'bold' : 'normal', cursor: 'pointer', background: isActive ? theme.cardBg : 'transparent', color: isActive ? theme.textMain : theme.textSub, boxShadow: isActive ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}>
