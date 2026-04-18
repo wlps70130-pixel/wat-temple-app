@@ -27,6 +27,13 @@ export default function EnergyDashboard() {
   const [buildingData, setBuildingData] = useState({});
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [graphFilter, setGraphFilter] = useState('day'); // 'day', 'week', 'month', 'year'
+  const [peakRatio, setPeakRatio] = useState(40); // Default 40% On-Peak
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchRealData = async (bldgId, deviceId) => {
     if (!deviceId) return;
@@ -165,7 +172,34 @@ export default function EnergyDashboard() {
       }
     });
 
-    const estCost = (globalKwh * 4.20).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // PEA TOU Calculation (Type 6.2 Non-profit Low Voltage)
+    const PEA_RATES = {
+      onPeak: 4.3888,
+      offPeak: 2.6468,
+      ft: 0.3972,
+      service: 312.24,
+      vat: 0.07
+    };
+
+    const onPeakKwh = globalKwh * (peakRatio / 100);
+    const offPeakKwh = globalKwh * (1 - (peakRatio / 100));
+    
+    const onPeakCost = onPeakKwh * PEA_RATES.onPeak;
+    const offPeakCost = offPeakKwh * PEA_RATES.offPeak;
+    const ftCost = globalKwh * PEA_RATES.ft;
+    const totalBeforeVat = onPeakCost + offPeakCost + ftCost + (globalKwh > 0 ? PEA_RATES.service : 0);
+    const vatAmount = totalBeforeVat * PEA_RATES.vat;
+    const totalCost = totalBeforeVat + vatAmount;
+
+    const getTouStatus = (date) => {
+      const day = date.getDay();
+      const hour = date.getHours();
+      const isWeekday = day >= 1 && day <= 5;
+      const isPeakHour = hour >= 9 && hour < 22;
+      return (isWeekday && isPeakHour) ? 'ON_PEAK' : 'OFF_PEAK';
+    };
+
+    const touStatus = getTouStatus(currentTime);
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -189,13 +223,45 @@ export default function EnergyDashboard() {
               <h2 style={{ margin: '0.25rem 0', fontSize: '2rem', color: theme.primary }}>{globalKwh.toLocaleString(undefined, {maximumFractionDigits:0})} <span style={{fontSize:'1rem'}}>kWh</span></h2>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: theme.textSub }}>ประมาณการค่าไฟ</p>
-              <h2 style={{ margin: '0.25rem 0', fontSize: '1.5rem', color: theme.textMain }}>{estCost} <span style={{fontSize:'1rem'}}>฿</span></h2>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: theme.textSub }}>ประมาณการค่าไฟ (TOU)</p>
+              <h2 style={{ margin: '0.25rem 0', fontSize: '1.5rem', color: theme.textMain }}>{totalCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style={{fontSize:'1rem'}}>฿</span></h2>
             </div>
           </div>
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.9rem', color: theme.textSub }}>กำลังไฟฟ้าปัจจุบัน</span>
-            <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: theme.textMain }}>{globalKw.toFixed(2)} kW</span>
+          
+          {/* TOU DETAILS */}
+          <div style={{ marginTop: '1rem', padding: '1rem', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '12px', fontSize: '0.85rem' }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span>สถานะเวลาปัจจุบัน: <strong style={{ color: touStatus === 'ON_PEAK' ? theme.danger : theme.success }}>{touStatus === 'ON_PEAK' ? '🔴 On-Peak (4.3888 ฿/หน่วย)' : '🟢 Off-Peak (2.6468 ฿/หน่วย)'}</strong></span>
+                <span style={{ color: theme.textSub }}>{currentTime.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'})} น.</span>
+             </div>
+             
+             <div style={{ borderTop: `1px dashed ${theme.border}`, margin: '0.5rem 0' }}></div>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ color: theme.textSub }}>สัดส่วนการใช้ไฟ On-Peak โดยประมาณ:</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input type="range" min="0" max="100" value={peakRatio} onChange={e => setPeakRatio(e.target.value)} style={{ width: '80px', accentColor: theme.primary }}/>
+                  <span style={{ color: theme.textMain, fontWeight: 'bold', width: '35px', textAlign: 'right' }}>{peakRatio}%</span>
+                </div>
+             </div>
+             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', color: theme.textSub, marginTop: '0.75rem' }}>
+                <div>On-Peak ({peakRatio}%): {onPeakKwh.toLocaleString('th-TH', {maximumFractionDigits:1})} หน่วย<br/><span style={{color: theme.textMain}}>{onPeakCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
+                <div>Off-Peak ({100-peakRatio}%): {offPeakKwh.toLocaleString('th-TH', {maximumFractionDigits:1})} หน่วย<br/><span style={{color: theme.textMain}}>{offPeakCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
+                <div>ค่า Ft (0.3972 ฿/หน่วย):<br/><span style={{color: theme.textMain}}>{ftCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
+                <div>ค่าบริการรายเดือน (PEA):<br/><span style={{color: theme.textMain}}>{(globalKwh > 0 ? PEA_RATES.service : 0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
+             </div>
+             <div style={{ textAlign: 'right', marginTop: '0.75rem', color: theme.textMain, fontWeight: 'bold', borderTop: `1px dashed ${theme.border}`, paddingTop: '0.5rem' }}>
+                รวมภาษีมูลค่าเพิ่ม 7% = {vatAmount.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿
+             </div>
+          </div>
+
+          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.9rem', color: theme.textSub }}>กำลังไฟฟ้าปัจจุบัน (Real-time)</span>
+            <div style={{ textAlign: 'right' }}>
+               <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: theme.textMain }}>{globalKw.toFixed(2)} kW</span>
+               <div style={{ fontSize: '0.75rem', color: touStatus === 'ON_PEAK' ? theme.danger : theme.success }}>
+                  คิดเป็นค่าไฟประมาณ { (globalKw * (touStatus === 'ON_PEAK' ? PEA_RATES.onPeak : PEA_RATES.offPeak)).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) } ฿/ชม.
+               </div>
+            </div>
           </div>
         </div>
 
