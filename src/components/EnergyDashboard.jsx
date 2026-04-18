@@ -741,31 +741,48 @@ export default function EnergyDashboard() {
            </div>
         ) : (
           <>
-            {/* Overview Stats */}
+            {/* Overview Stats (Thai) */}
+            <h3 style={{ margin: '0.25rem 0 0 0', fontSize: '1.2rem', color: theme.textMain, fontWeight: '800', padding: '0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.2rem' }}>📊</span> ภาพรวมทางไฟฟ้า
+            </h3>
+            
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-               <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                 <div style={{ fontSize: '0.85rem', color: theme.textSub, fontWeight: '600', marginBottom: '0.4rem' }}>Total Power</div>
-                 <div style={{ fontSize: '1.8rem', fontWeight: '800', color: theme.primary, lineHeight: '1.1' }}>{parsed.totalKw} <span style={{fontSize:'1rem', color:theme.textSub, fontWeight:'600'}}>kW</span></div>
+               <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>⚡</div>
+                    <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '700' }}>กำลังไฟรวม</div>
+                 </div>
+                 <div style={{ fontSize: '2.2rem', fontWeight: '800', color: theme.primary, lineHeight: '1.1' }}>{parsed.totalKw} <span style={{fontSize:'1rem', color:theme.textSub, fontWeight:'600'}}>kW</span></div>
                </div>
-               <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                 <div style={{ fontSize: '0.85rem', color: theme.textSub, fontWeight: '600', marginBottom: '0.4rem' }}>Total Energy</div>
-                 <div style={{ fontSize: '1.8rem', fontWeight: '800', color: theme.success, lineHeight: '1.1' }}>{parsed.totalKwh} <span style={{fontSize:'1rem', color:theme.textSub, fontWeight:'600'}}>kWh</span></div>
+               
+               <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>🔋</div>
+                    <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '700' }}>หน่วยสะสม</div>
+                 </div>
+                 <div style={{ fontSize: '2.2rem', fontWeight: '800', color: theme.success, lineHeight: '1.1' }}>{parsed.totalKwh} <span style={{fontSize:'1rem', color:theme.textSub, fontWeight:'600'}}>kWh</span></div>
                </div>
             </div>
 
             {/* Environmental / Extra */}
-            <div style={{ display: 'flex', gap: '1rem' }}>
-               <div style={{ flex: 1, background: theme.cardBg, borderRadius: '20px', padding: '1rem 1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <span style={{ fontSize: '0.85rem', color: theme.textSub, fontWeight: '600' }}>Frequency</span>
-                 <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>{parsed.frequency} <span style={{fontSize:'0.8rem', color:theme.textSub}}>Hz</span></span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+               <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                 <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>🔄 รีแอกทีฟรวม</span>
+                 <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.warning }}>{parsed.totalKvar} <span style={{fontSize:'0.7rem', color:theme.textSub}}>kVar</span></span>
                </div>
-               <div style={{ flex: 1, background: theme.cardBg, borderRadius: '20px', padding: '1rem 1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <span style={{ fontSize: '0.85rem', color: theme.textSub, fontWeight: '600' }}>Temp</span>
-                 <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>{parsed.temperature} <span style={{fontSize:'0.8rem', color:theme.textSub}}>°C</span></span>
+               <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                 <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>📈 ความถี่</span>
+                 <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>{parsed.frequency} <span style={{fontSize:'0.7rem', color:theme.textSub}}>Hz</span></span>
+               </div>
+               <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                 <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>🌡️ อุณหภูมิ</span>
+                 <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>{parsed.temperature} <span style={{fontSize:'0.7rem', color:theme.textSub}}>°C</span></span>
                </div>
             </div>
 
-            <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '1.2rem', color: theme.textMain, fontWeight: '800', padding: '0 0.5rem' }}>Phases</h3>
+            <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '1.2rem', color: theme.textMain, fontWeight: '800', padding: '0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.2rem' }}>⚡</span> สถานะแยกเฟส (L1, L2, L3)
+            </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {[
