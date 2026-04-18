@@ -17,20 +17,27 @@ export default function AiAssistant({
     setIsAiLoading(true);
     setAiInsight(null);
     try {
-      const res = await fetch('/api/thaillm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode, context: contextData })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAiInsight(data.reply);
-      } else {
-        setAiInsight("เกิดข้อผิดพลาดจาก API ของโมเดล");
+        const res = await fetch('/api/thaillm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode, context: contextData })
+        });
+        
+        let data;
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          throw new Error(`Invalid response from server (Status: ${res.status})`);
+        }
+
+        if (data.success) {
+          setAiInsight(data.reply);
+        } else {
+          setAiInsight(`เกิดข้อผิดพลาดจาก API ของโมเดล: ${data.error || 'Unknown Error'}`);
+        }
+      } catch (e) {
+        setAiInsight(`เกิดข้อผิดพลาดในการเชื่อมต่อ: ${e.message}`);
       }
-    } catch (e) {
-      setAiInsight("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่");
-    }
     setIsAiLoading(false);
   };
 

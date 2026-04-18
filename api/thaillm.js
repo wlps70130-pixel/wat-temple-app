@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         break;
     }
 
-    const response = await fetch('http://thaillm.or.th/api/typhoon/v1/chat/completions', {
+    const response = await fetch('https://thaillm.or.th/api/typhoon/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
