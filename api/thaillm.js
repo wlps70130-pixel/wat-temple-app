@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     // Use environment variable if available, fallback to hardcoded key for immediate testing
     const apikey = process.env.THAILLM_API_KEY || 'tp96fQjhqBLcvN3qanCI1aoRV5Siv7bC';
     
-    const { mode = 'general', context } = req.body;
+    const mode = req.body.mode || 'general';
 
     let systemPrompt = 'คุณคือผู้ช่วย AI ทำหน้าที่คอยให้คำแนะนำสั้นๆ กระชับ เข้าใจง่าย ตอบคำถามอย่างสุภาพและเป็นมิตร';
     
