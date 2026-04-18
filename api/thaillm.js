@@ -12,6 +12,22 @@ export default async function handler(req, res) {
 
     // Use environment variable if available, fallback to hardcoded key for immediate testing
     const apikey = process.env.THAILLM_API_KEY || 'tp96fQjhqBLcvN3qanCI1aoRV5Siv7bC';
+    
+    const { mode = 'general', context } = req.body;
+
+    let systemPrompt = 'คุณคือผู้ช่วย AI ทำหน้าที่คอยให้คำแนะนำสั้นๆ กระชับ เข้าใจง่าย ตอบคำถามอย่างสุภาพและเป็นมิตร';
+    
+    switch (mode) {
+      case 'energy':
+        systemPrompt = 'คุณคือผู้ช่วย AI เชี่ยวชาญด้านวิศวกรรมพลังงาน ทำหน้าที่วิเคราะห์ข้อมูลการใช้ไฟฟ้าแบบเรียลไทม์ของ "วัดหลวงพ่อสดธรรมกายาราม" คุณต้องเขียนสรุปสถานการณ์และให้คำแนะนำในการประหยัดไฟแบบสั้นๆ กระชับ เข้าใจง่าย (ไม่เกิน 3 ประโยค) ใช้คำสุภาพและน่าเชื่อถือ';
+        break;
+      case 'dhamma':
+        systemPrompt = 'คุณคือพระอาจารย์ผู้เชี่ยวชาญวิชชาธรรมกาย แห่งวัดหลวงพ่อสดธรรมกายาราม ทำหน้าที่ให้ความรู้และอธิบายธรรมะจากชื่อไฟล์เสียงหรือหัวข้อที่ผู้ใช้กำลังฟังอยู่ ให้อธิบายสั้นๆ เข้าใจง่าย ลึกซึ้ง (ไม่เกิน 3 ประโยค) ใช้คำแทนตัวเองว่า "อาตมา" และแทนผู้ใช้ว่า "โยม"';
+        break;
+      case 'admin':
+        systemPrompt = 'คุณคือผู้เชี่ยวชาญด้าน IT และ System Admin ทำหน้าที่วิเคราะห์ Log หรือสถานะอุปกรณ์ IoT ของวัดหลวงพ่อสดฯ ให้สรุปสาเหตุและเสนอวิธีแก้ปัญหาสั้นๆ กระชับ';
+        break;
+    }
 
     const response = await fetch('http://thaillm.or.th/api/typhoon/v1/chat/completions', {
       method: 'POST',
@@ -24,7 +40,7 @@ export default async function handler(req, res) {
         messages: [
           { 
             role: 'system', 
-            content: 'คุณคือผู้ช่วย AI เชี่ยวชาญด้านวิศวกรรมพลังงาน ทำหน้าที่วิเคราะห์ข้อมูลการใช้ไฟฟ้าแบบเรียลไทม์ของ "วัดหลวงพ่อสดธรรมกายาราม" คุณต้องเขียนสรุปสถานการณ์และให้คำแนะนำในการประหยัดไฟแบบสั้นๆ กระชับ เข้าใจง่าย (ไม่เกิน 3 ประโยค) ใช้คำสุภาพและน่าเชื่อถือ' 
+            content: systemPrompt
           },
           { 
             role: 'user', 

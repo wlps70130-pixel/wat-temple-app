@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, Disc3, Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
+import AiAssistant from './AiAssistant';
 
 // เมื่อได้ลิงก์ Publish to web (CSV) จาก Google Sheet แล้ว ให้นำมาแปะทับที่นี่ได้เลยครับ
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=29969163&single=true&output=csv';
@@ -72,6 +73,21 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
           <p style={{ opacity: 0.9, fontSize: '0.9rem' }}>{category.subtitle}</p>
         </div>
       </div>
+      
+      {/* AI Dhamma Assistant (Only shows if a track is selected) */}
+      {currentTrack && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AiAssistant 
+            mode="dhamma"
+            contextData={`ผู้ใช้งานกำลังฟังไฟล์เสียงชื่อ: "${currentTrack.title}" (${currentTrack.subtitle || 'ไม่มีคำอธิบายเพิ่มเติม'})`}
+            title="พระอาจารย์ AI"
+            subtitle="ผู้ช่วยอธิบายและสรุปธรรมะ"
+            icon="🧘‍♂️"
+            themeColor={category.color}
+            buttonText="ขอคำอธิบายเพิ่มเติม"
+          />
+        </div>
+      )}
 
       {/* Track List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
