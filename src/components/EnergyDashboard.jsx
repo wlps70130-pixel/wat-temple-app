@@ -525,6 +525,124 @@ export default function EnergyDashboard() {
     const parsed = parseData(data?.raw);
     const hasDevice = !!bldg.deviceId;
 
+    if (bldg.isSolar) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.3s ease-out' }}>
+          <style>{`
+            @keyframes fade-in {
+              from { opacity: 0; transform: translateY(10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            .solar-ring {
+              background: conic-gradient(#84cc16 80%, ${isDarkMode ? '#334155' : '#e2e8f0'} 0);
+            }
+          `}</style>
+          
+          {/* Top Nav */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem' }}>
+            <button onClick={() => setActiveTab('overview')} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textMain, width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: theme.shadow, flexShrink: 0, fontSize: '1.2rem' }}>
+              ←
+            </button>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ margin: 0, color: theme.textMain, fontSize: '1.2rem', fontWeight: '800' }}>Solar Dashboard</h2>
+            </div>
+          </div>
+
+          {/* Dark Banner */}
+          <div style={{ background: isDarkMode ? '#18181b' : '#27272a', borderRadius: '24px', padding: '1.75rem 1.5rem', color: 'white', position: 'relative', overflow: 'hidden', boxShadow: theme.shadow }}>
+             <div style={{ position: 'relative', zIndex: 1, width: '65%' }}>
+                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', lineHeight: '1.3', letterSpacing: '0.5px' }}>
+                   <span style={{color: '#a3e635'}}>SUSTAINABLE</span> SUN<br/>ENERGY MONITORING<br/><span style={{opacity: 0.6, fontSize: '0.9rem'}}>DASHBOARD</span>
+                </h2>
+                <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                   <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System Status: </div>
+                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: parsed.isOnline ? '#a3e635' : '#ef4444' }}>{parsed.isOnline ? 'ACTIVE' : 'OFFLINE'}</div>
+                </div>
+             </div>
+             {/* House Image / Icon */}
+             <div style={{ position: 'absolute', right: '-15px', bottom: '-20px', fontSize: '7rem', opacity: 0.95, filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))' }}>
+                🏡
+             </div>
+          </div>
+
+          {/* Two Grid Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+             {/* Card 1: Power */}
+             <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                   <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Current Power</div>
+                   <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+                </div>
+                <div style={{ marginTop: '0.5rem', fontSize: '2.2rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-1px' }}>
+                   {parsed.totalKw} <span style={{fontSize: '1rem', color: theme.textSub, fontWeight: '600'}}>kW</span>
+                </div>
+                {/* Mini visual - green bars */}
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '50px', marginTop: 'auto', paddingTop: '1rem' }}>
+                   {[40, 70, 30, 80, 50, 100, 60].map((h, i) => (
+                     <div key={i} style={{ flex: 1, background: i === 5 ? '#84cc16' : (isDarkMode ? '#334155' : '#e2e8f0'), height: `${h}%`, borderRadius: '4px' }}></div>
+                   ))}
+                </div>
+             </div>
+
+             {/* Card 2: Energy & Status Ring */}
+             <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                   <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Yield Status</div>
+                   <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+                </div>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginTop: '1rem' }}>
+                   {/* CSS Circle */}
+                   <div className="solar-ring" style={{ width: '100px', height: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: theme.cardBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                         <div style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain, lineHeight: '1' }}>{parsed.isOnline ? '98%' : '0%'}</div>
+                         <div style={{ fontSize: '0.65rem', color: theme.textSub, fontWeight: '600', marginTop: '2px' }}>Efficiency</div>
+                      </div>
+                   </div>
+                </div>
+                <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>
+                   {parsed.totalKwh} <span style={{fontSize: '0.8rem', color: theme.textSub}}>kWh</span>
+                </div>
+             </div>
+          </div>
+
+          {/* Phases List */}
+          <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '1.05rem', fontWeight: '800', color: theme.textMain }}>Inverter Phases</div>
+                <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+             </div>
+             
+             {!hasDevice || !parsed.isOnline ? (
+               <div style={{ textAlign: 'center', padding: '2rem 0', color: theme.textSub, fontSize: '0.9rem', fontWeight: '500' }}>
+                 Waiting for inverter connection...
+               </div>
+             ) : (
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {[
+                    { name: 'L1', data: parsed.phases.A },
+                    { name: 'L2', data: parsed.phases.B },
+                    { name: 'L3', data: parsed.phases.C }
+                  ].map(p => (
+                    <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '16px', border: `1px solid ${theme.border}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ fontWeight: '800', color: theme.textMain, fontSize: '1.1rem' }}>{p.name}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                           <span style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>{p.data.v}V</span>
+                           <span style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>{p.data.a}A</span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ fontWeight: '800', color: '#84cc16', fontSize: '1.2rem' }}>{p.data.kw} <span style={{fontSize:'0.8rem', color:theme.textSub}}>kW</span></div>
+                      </div>
+                    </div>
+                  ))}
+               </div>
+             )}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.3s ease-out' }}>
         <style>{`
