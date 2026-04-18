@@ -394,6 +394,9 @@ export default function EnergyDashboard() {
     const currentMonth = months[currentTime.getMonth()];
     const currentYear = currentTime.getFullYear() + 543;
 
+    const totalPower = (solarKw + globalKw) || 1;
+    const prodPercent = (solarKw / totalPower) * 100;
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
         
@@ -455,42 +458,104 @@ export default function EnergyDashboard() {
            </div>
         </div>
 
-        {/* Two Grid Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-           {/* Card 1: Solar Power */}
-           <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                 <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Solar Yield</div>
-                 <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+        {/* EFT Inspired Widgets */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+           
+           {/* Energy Flow Gauge */}
+           <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, position: 'relative' }}>
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.05rem', fontWeight: '800', color: theme.textMain }}>Energy Flow</div>
+              
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                 <div style={{ position: 'relative', width: '220px', height: '110px', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '220px', height: '220px', borderRadius: '50%', background: `conic-gradient(from 270deg, #fcd34d 0%, #fcd34d ${prodPercent/2}%, #0ea5e9 ${prodPercent/2}%, #0ea5e9 50%, transparent 50%)` }}>
+                       {/* Inner cutout */}
+                       <div style={{ position: 'absolute', top: '15px', left: '15px', width: '190px', height: '190px', background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '50%' }}></div>
+                    </div>
+                    {/* Center indicator line */}
+                    <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '2px', height: '15px', background: isDarkMode ? '#cbd5e1' : '#64748b' }}></div>
+                    <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.75rem', color: theme.textSub, fontWeight: '700' }}>kW</div>
+                 </div>
               </div>
-              <div style={{ marginTop: '0.5rem', fontSize: '2.2rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-1px' }}>
-                 {solarKw.toFixed(2)} <span style={{fontSize: '1rem', color: theme.textSub, fontWeight: '600'}}>kW</span>
+
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', marginTop: '0.5rem' }}>
+                 <div style={{ textAlign: 'center' }}>
+                    <div style={{ color: '#fcd34d', fontSize: '1.8rem', fontWeight: '800', lineHeight: '1' }}>{solarKw.toFixed(1)}</div>
+                    <div style={{ color: theme.textSub, fontSize: '0.8rem', fontWeight: '600', marginTop: '0.3rem' }}>Production</div>
+                 </div>
+                 <div style={{ textAlign: 'center' }}>
+                    <div style={{ color: '#0ea5e9', fontSize: '1.8rem', fontWeight: '800', lineHeight: '1' }}>{globalKw.toFixed(1)}</div>
+                    <div style={{ color: theme.textSub, fontSize: '0.8rem', fontWeight: '600', marginTop: '0.3rem' }}>Consumption</div>
+                 </div>
               </div>
-              {/* Mini visual - green bars */}
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '50px', marginTop: 'auto', paddingTop: '1rem' }}>
-                 {[40, 70, 30, 80, 50, 100, 60].map((h, i) => (
-                   <div key={i} style={{ flex: 1, background: i === 5 ? '#84cc16' : (isDarkMode ? '#334155' : '#e2e8f0'), height: `${h}%`, borderRadius: '4px' }}></div>
-                 ))}
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${theme.border}`, marginTop: '1.5rem', paddingTop: '1.25rem' }}>
+                 <div>
+                    <div style={{ fontSize: '1.2rem', color: theme.textMain, fontWeight: '800' }}>{prodPercent.toFixed(1)}%</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>Self-Sufficiency</div>
+                 </div>
+                 <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '1.2rem', color: theme.textMain, fontWeight: '800' }}>{((solarKw - globalKw) > 0 ? '+' : '')}{(solarKw - globalKw).toFixed(1)}</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>Net Grid Power</div>
+                 </div>
               </div>
            </div>
 
-           {/* Card 2: Load Power */}
-           <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                 <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Building Load</div>
-                 <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
-              </div>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginTop: '1rem' }}>
-                 {/* CSS Circle */}
-                 <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: `conic-gradient(${touStatus === 'ON_PEAK' ? '#ef4444' : '#84cc16'} ${Math.min((globalKw/200)*100, 100)}%, ${isDarkMode ? '#334155' : '#e2e8f0'} 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: theme.cardBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                       <div style={{ fontSize: '1.3rem', fontWeight: '800', color: theme.textMain, lineHeight: '1' }}>{globalKw.toFixed(1)}</div>
-                       <div style={{ fontSize: '0.65rem', color: theme.textSub, fontWeight: '600', marginTop: '2px' }}>kW</div>
+           {/* Production by Source & Top Loads */}
+           <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: '800', color: theme.textMain, marginBottom: '1.25rem' }}>Energy Distribution</div>
+              
+              <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#e2e8f0', borderRadius: '16px', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                 <div style={{ flex: 1, padding: '1rem', borderRight: `1px solid ${theme.border}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#a3e635', fontWeight: '700' }}>
+                       <span style={{ fontSize: '1.1rem' }}>🌱</span> Renewable
+                    </div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textMain, marginTop: '0.25rem' }}>
+                       {solarKw.toFixed(1)} <span style={{fontSize:'0.75rem', color:theme.textSub, fontWeight:'600'}}>kW</span>
+                       <span style={{fontSize:'0.8rem', color:'#a3e635', marginLeft:'0.5rem'}}>▲ {prodPercent.toFixed(0)}%</span>
+                    </div>
+                 </div>
+                 <div style={{ flex: 1, padding: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#0ea5e9', fontWeight: '700' }}>
+                       <span style={{ fontSize: '1.1rem' }}>⚡</span> PEA Grid
+                    </div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textMain, marginTop: '0.25rem' }}>
+                       {globalKw.toFixed(1)} <span style={{fontSize:'0.75rem', color:theme.textSub, fontWeight:'600'}}>kW</span>
+                       <span style={{fontSize:'0.8rem', color:'#0ea5e9', marginLeft:'0.5rem'}}>▼ {(100-prodPercent).toFixed(0)}%</span>
                     </div>
                  </div>
               </div>
-              <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', fontWeight: '800', color: theme.textMain }}>
-                 {touStatus === 'ON_PEAK' ? '🔴 On-Peak' : '🟢 Off-Peak'}
+
+              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: '140px', paddingTop: '1rem', borderTop: `1px solid ${theme.border}` }}>
+                 {/* Solar Bar */}
+                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '50px' }}>
+                    <div style={{ width: '100%', height: `${Math.max((solarKw / Math.max(solarKw, globalKw, 1)) * 100, 5)}%`, background: 'linear-gradient(to top, #ca8a04, #fde047)', borderRadius: '8px', boxShadow: '0 4px 10px rgba(253,224,71,0.1)' }}></div>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#fde047', marginTop: '0.5rem' }}></div>
+                    <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.25rem', fontWeight: '700' }}>Solar</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '800', color: theme.textMain }}>{solarKw.toFixed(1)}</div>
+                 </div>
+
+                 {/* Top 3 Loads */}
+                 {BUILDINGS.filter(b => b.deviceId && !b.isSolar && buildingData[b.id]?.raw && parseData(buildingData[b.id].raw).isOnline)
+                    .map(b => ({ name: b.name.replace('ศาลา','').replace('สำนักงาน',''), kw: parseFloat(parseData(buildingData[b.id].raw).totalKw) }))
+                    .sort((a, b) => b.kw - a.kw)
+                    .slice(0, 3)
+                    .map((b, i) => {
+                       const gradients = [
+                          'linear-gradient(to top, #0284c7, #38bdf8)',
+                          'linear-gradient(to top, #6366f1, #818cf8)',
+                          'linear-gradient(to top, #0f766e, #2dd4bf)'
+                       ];
+                       const dots = ['#38bdf8', '#818cf8', '#2dd4bf'];
+                       return (
+                         <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '50px' }}>
+                            <div style={{ width: '100%', height: `${Math.max((b.kw / Math.max(solarKw, globalKw, 1)) * 100, 5)}%`, background: gradients[i], borderRadius: '8px' }}></div>
+                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: dots[i], marginTop: '0.5rem' }}></div>
+                            <div style={{ fontSize: '0.65rem', color: theme.textSub, marginTop: '0.25rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '50px' }}>{b.name}</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: theme.textMain }}>{b.kw.toFixed(1)}</div>
+                         </div>
+                       );
+                    })
+                 }
               </div>
            </div>
         </div>
