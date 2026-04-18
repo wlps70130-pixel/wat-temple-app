@@ -32,7 +32,13 @@ export default function Header({ onBack }) {
         </button>
       )}
       <div className="header-logo" style={{ marginLeft: onBack ? '2.5rem' : '0', transition: 'margin 0.3s ease', display: 'flex', alignItems: 'center' }}>
-        <img src="/logo.png" alt="โลโก้วัดหลวงพ่อสด" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }} />
+        <img
+          src="/favicon.svg"
+          alt="โลโก้วัดหลวงพ่อสด"
+          style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }}
+          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+        />
+        <span style={{ display: 'none', fontSize: '1.6rem', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}>🛕</span>
       </div>
       <div className="header-text">
         <link rel="stylesheet" href={elegantFontLink} />
