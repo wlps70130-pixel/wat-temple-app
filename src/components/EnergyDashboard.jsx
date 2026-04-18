@@ -62,12 +62,31 @@ export default function EnergyDashboard() {
 
     const grouped = {};
     rawHistory.forEach(item => {
-      const match = item.timestamp.match(/(\d{2}\/\d{2})\/\d{4} (\d{2}):(\d{2}):\d{2}/);
-      if (!match) return;
+      if (!item.timestamp || typeof item.timestamp !== 'string') return;
       
-      const datePart = match[1];
-      const hourPart = match[2];
-      let minPart = parseInt(match[3], 10);
+      let datePart = "";
+      let hourPart = "";
+      let minPart = 0;
+
+      if (item.timestamp.includes('T')) {
+        // Handle "2026-04-18T19:35:19.000Z" (Sheet date conversion bug)
+        const match = item.timestamp.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):/);
+        if (match) {
+          datePart = `${match[3]}/${match[2]}`;
+          hourPart = match[4];
+          minPart = parseInt(match[5], 10);
+        }
+      } else {
+        // Handle "18/04/2026 19:35:19"
+        const match = item.timestamp.match(/(\d{2}\/\d{2})\/\d{4} (\d{2}):(\d{2}):/);
+        if (match) {
+          datePart = match[1];
+          hourPart = match[2];
+          minPart = parseInt(match[3], 10);
+        }
+      }
+
+      if (!datePart || !hourPart) return; // Skip invalid or garbage rows
       
       let timeLabel = "";
       if (graphFilter === '15min') {
