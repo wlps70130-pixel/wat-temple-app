@@ -390,6 +390,10 @@ export default function EnergyDashboard() {
     const totalDevicesCount = BUILDINGS.filter(b => b.deviceId).length;
     const allOnline = activeDevicesCount > 0 && activeDevicesCount === totalDevicesCount;
 
+    const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+    const currentMonth = months[currentTime.getMonth()];
+    const currentYear = currentTime.getFullYear() + 543;
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
         
@@ -414,14 +418,34 @@ export default function EnergyDashboard() {
                 </div>
               </div>
               
-              <div style={{ marginTop: '1.25rem', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(12px)', borderRadius: '16px', padding: '0.85rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <div>
+              <div style={{ marginTop: '1.25rem', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(12px)', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fcd34d', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                       ✨ อัตราค่าไฟ (TOU)
+                       ✨ ประมาณการค่าไฟ (TOU)
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', fontWeight: '500' }}>
+                       เดือน {currentMonth} {currentYear}
                     </div>
                  </div>
-                 <div style={{ background: 'white', color: '#0f172a', padding: '0.4rem 0.75rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '800', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-                    {totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} ฿
+                 
+                 <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {/* On-Peak */}
+                    <div style={{ flex: 1, background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', padding: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                       <span style={{ fontSize: '0.7rem', color: '#fca5a5', fontWeight: '600' }}>🔴 On-Peak</span>
+                       <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#f87171' }}>{onPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} <span style={{fontSize:'0.75rem'}}>฿</span></span>
+                    </div>
+                    {/* Off-Peak */}
+                    <div style={{ flex: 1, background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '12px', padding: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                       <span style={{ fontSize: '0.7rem', color: '#86efac', fontWeight: '600' }}>🟢 Off-Peak</span>
+                       <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#4ade80' }}>{offPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} <span style={{fontSize:'0.75rem'}}>฿</span></span>
+                    </div>
+                 </div>
+                 
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>รวมค่าบริการ/Ft/ภาษี</span>
+                    <div style={{ background: 'white', color: '#0f172a', padding: '0.3rem 0.75rem', borderRadius: '10px', fontSize: '1rem', fontWeight: '800', boxShadow: '0 4px 6px rgba(0,0,0,0.2)' }}>
+                       รวม {totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} ฿
+                    </div>
                  </div>
               </div>
            </div>
