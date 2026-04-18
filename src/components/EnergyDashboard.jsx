@@ -116,7 +116,8 @@ export default function EnergyDashboard() {
         
         const parsedData = results.data.map(row => {
           let kw = parseFloat(row['กำลังไฟรวม (kW)'] || 0);
-          if (kw < -100 || kw > 1000) kw = 0; 
+          // กรองสัญญาณ sensor ผิดปกติ (Tuya บางครั้งส่ง -6600 หมายถึง offline)
+          if (kw < -500 || kw > 1000) kw = 0;
           
           return {
             timestamp: row['วัน-เวลา'],
@@ -386,22 +387,38 @@ export default function EnergyDashboard() {
       vat: 0.07
     };
 
-    // วันหยุดราชการไทยปี 2568 (YYYY-MM-DD) - Off-Peak ทั้งวัน
+    // วันหยุดราชการไทยปี ค.ศ. 2026 (พ.ศ. 2569) - Off-Peak ทั้งวัน
     const THAI_HOLIDAYS_2568 = new Set([
-      '2025-01-01','2025-02-12','2025-04-06','2025-04-07','2025-04-08',
-      '2025-04-13','2025-04-14','2025-04-15','2025-05-01','2025-05-12',
-      '2025-06-02','2025-07-28','2025-08-11','2025-08-12','2025-10-13',
-      '2025-10-23','2025-12-05','2025-12-10','2025-12-31'
+      // ปี ค.ศ. 2026 (พ.ศ. 2569)
+      '2026-01-01', // วันขึ้นปีใหม่
+      '2026-02-02', // วันมาฆบูชา
+      '2026-04-06', // วันจักรี
+      '2026-04-13', // วันสงกรานต์
+      '2026-04-14', // วันสงกรานต์
+      '2026-04-15', // วันสงกรานต์
+      '2026-05-01', // วันแรงงานแห่งชาติ
+      '2026-05-11', // วันพืชมงคล
+      '2026-05-12', // วันวิสาขบูชา
+      '2026-06-03', // วันเฉลิมพระชนมพรรษาสมเด็จพระราชินี
+      '2026-07-28', // วันเฉลิมพระชนมพรรษา ร.10
+      '2026-07-29', // ชดเชยหรือวันหยุดพิเศษ
+      '2026-08-12', // วันแม่แห่งชาติ
+      '2026-10-13', // วันคล้ายวันสวรรคต ร.9
+      '2026-10-23', // วันปิยมหาราช
+      '2026-12-05', // วันพ่อแห่งชาติ
+      '2026-12-10', // วันรัฐธรรมนูญ
+      '2026-12-31', // วันสิ้นปี
     ]);
 
-    // ฟังก์ชัน TOU ที่ถูกต้อง (รวมวันหยุดราชการ)
+    // ฟังก์ชัน TOU ที่ถูกต้อง - ใช้เวลาท้องถิ่นไทย (ไม่ใช้ UTC)
     const getTouStatus = (date) => {
-      const dateStr = date.toISOString().slice(0, 10); // YYYY-MM-DD
+      // สร้าง YYYY-MM-DD จากเวลาท้องถิ่น (ไม่ใช้ toISOString ซึ่งเป็น UTC)
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${y}-${m}-${d}`;
       const day = date.getDay(); // 0=อาทิตย์, 6=เสาร์
-      const hour = date.getHours();
-      const min = date.getMinutes();
-      const totalMins = hour * 60 + min;
-      // On-Peak: จันทร์-ศุกร์ 09:00-22:00 น. ยกเว้นวันหยุดราชการ
+      const totalMins = date.getHours() * 60 + date.getMinutes();
       const isWeekday = day >= 1 && day <= 5;
       const isHoliday = THAI_HOLIDAYS_2568.has(dateStr);
       const isPeakHour = totalMins >= 9 * 60 && totalMins < 22 * 60;
