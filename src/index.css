@@ -321,7 +321,7 @@ body {
   flex-direction: column;
 }
 
-.embla__slide-img-wrapper { width: 100%; aspect-ratio: 4/3; overflow: hidden; position: relative; }
+.embla__slide-img-wrapper { width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative; }
 .embla__slide-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
 .embla__slide:hover .embla__slide-img-wrapper img { transform: scale(1.05); }
 .embla__slide-content { padding: 1.25rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; background: #ffffff; }
