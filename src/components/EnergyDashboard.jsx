@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Papa from 'papaparse';
 
@@ -25,6 +25,70 @@ const BUILDINGS = [
   { id: 'v_water', name: 'วิหารกลางน้ำ', deviceId: '' }
 ];
 
+const parseData = (raw) => {
+  const defaultPhase = { v: '0.0', a: '0.0', kw: '0.00', pf: '0.00', kvar: '0.00', kwh: '0.00' };
+  const parsed = {
+    isOnline: false,
+    totalKw: '0.00',
+    totalKwh: '0.00',
+    totalKvar: '0.00',
+    frequency: '0',
+    temperature: '0.0',
+    phases: { A: { ...defaultPhase }, B: { ...defaultPhase }, C: { ...defaultPhase } }
+  };
+
+  if (!raw) return parsed;
+  parsed.isOnline = true;
+
+  const statusArray = raw.status || [];
+  if (statusArray.length === 0) {
+    parsed.isOnline = false;
+    return parsed;
+  }
+
+  const findCode = (prefix) => {
+     const item = statusArray.find(s => String(s.code).toLowerCase() === prefix);
+     if (item && item.value !== undefined) {
+       const val = Number(item.value);
+       return isNaN(val) ? 0 : val;
+     }
+     return 0;
+  };
+
+  // Phase A
+  parsed.phases.A.v = (findCode('voltagea') / 10).toFixed(1);
+  parsed.phases.A.a = (findCode('currenta') / 1000).toFixed(2);
+  parsed.phases.A.kw = (findCode('activepowera') / 1000).toFixed(3);
+  parsed.phases.A.pf = (findCode('powerfactora') / 100).toFixed(2);
+  parsed.phases.A.kvar = (findCode('reactivepowera') / 1000).toFixed(3);
+  parsed.phases.A.kwh = (findCode('energyconsumeda') / 100).toFixed(2);
+  
+  // Phase B
+  parsed.phases.B.v = (findCode('voltageb') / 10).toFixed(1);
+  parsed.phases.B.a = (findCode('currentb') / 1000).toFixed(2);
+  parsed.phases.B.kw = (findCode('activepowerb') / 1000).toFixed(3);
+  parsed.phases.B.pf = (findCode('powerfactorb') / 100).toFixed(2);
+  parsed.phases.B.kvar = (findCode('reactivepowerb') / 1000).toFixed(3);
+  parsed.phases.B.kwh = (findCode('energyconsumedb') / 100).toFixed(2);
+  
+  // Phase C
+  parsed.phases.C.v = (findCode('voltagec') / 10).toFixed(1);
+  parsed.phases.C.a = (findCode('currentc') / 1000).toFixed(2);
+  parsed.phases.C.kw = (findCode('activepowerc') / 1000).toFixed(3);
+  parsed.phases.C.pf = (findCode('powerfactorc') / 100).toFixed(2);
+  parsed.phases.C.kvar = (findCode('reactivepowerc') / 1000).toFixed(3);
+  parsed.phases.C.kwh = (findCode('energyconsumedc') / 100).toFixed(2);
+
+  // Totals & Environmental
+  parsed.totalKw = (findCode('activepower') / 1000).toFixed(3);
+  parsed.totalKwh = (findCode('totalenergyconsumed') / 100).toFixed(2);
+  parsed.totalKvar = (findCode('reactivepower') / 1000).toFixed(3);
+  parsed.frequency = findCode('frequency'); // Tuya usually sends raw 50 for 50Hz
+  parsed.temperature = (findCode('temperature') / 10).toFixed(1);
+  
+  return parsed;
+};
+
 export default function EnergyDashboard() {
   const [activeTab, setActiveTab] = useState('overview'); 
   const [buildingData, setBuildingData] = useState({});
@@ -33,7 +97,7 @@ export default function EnergyDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   
   const [rawHistory, setRawHistory] = useState([]);
-  const [historicalData, setHistoricalData] = useState([]);
+
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=2048515869&single=true&output=csv";
 
@@ -72,8 +136,8 @@ export default function EnergyDashboard() {
     fetchHistory();
   }, []);
 
-  useEffect(() => {
-    if (!rawHistory.length) return;
+  const historicalData = useMemo(() => {
+    if (!rawHistory.length) return [];
 
     const grouped = {};
     rawHistory.forEach(item => {
@@ -84,7 +148,6 @@ export default function EnergyDashboard() {
       let minPart = 0;
 
       if (item.timestamp.includes('T')) {
-        // Handle "2026-04-18T19:35:19.000Z" (Sheet date conversion bug)
         const match = item.timestamp.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):/);
         if (match) {
           datePart = `${match[3]}/${match[2]}`;
@@ -92,7 +155,6 @@ export default function EnergyDashboard() {
           minPart = parseInt(match[5], 10);
         }
       } else {
-        // Handle "18/04/2026 19:35:19"
         const match = item.timestamp.match(/(\d{2}\/\d{2})\/\d{4} (\d{2}):(\d{2}):/);
         if (match) {
           datePart = match[1];
@@ -101,7 +163,7 @@ export default function EnergyDashboard() {
         }
       }
 
-      if (!datePart || !hourPart) return; // Skip invalid or garbage rows
+      if (!datePart || !hourPart) return;
       
       let timeLabel = "";
       if (graphFilter === '15min') {
@@ -152,98 +214,69 @@ export default function EnergyDashboard() {
     if (graphFilter === '1hour') pointsToKeep = 24;
     if (graphFilter === 'day') pointsToKeep = 7;
     
-    setHistoricalData(chartData.slice(-pointsToKeep));
+    return chartData.slice(-pointsToKeep);
   }, [rawHistory, graphFilter]);
 
-  const fetchRealData = async (bldgId, deviceId, type) => {
+  const parsedBuildingData = useMemo(() => {
+    const result = {};
+    BUILDINGS.forEach(b => {
+      if (buildingData[b.id]?.raw) {
+        result[b.id] = parseData(buildingData[b.id].raw);
+      } else {
+        result[b.id] = parseData(null);
+      }
+    });
+    return result;
+  }, [buildingData]);
+
+  const fetchRealData = async (bldgId, deviceId, type, retry = 3) => {
     if (!deviceId) return;
-    try {
-      const url = type === 'shelly' ? `/api/shelly?deviceId=${deviceId}` : `/api/tuya?deviceId=${deviceId}`;
-      const response = await fetch(url);
-      const apiData = await response.json();
-      setBuildingData(prev => ({
-        ...prev,
-        [bldgId]: {
-          raw: apiData.success ? apiData.result : null,
-          error: apiData.success ? null : (apiData.error || "Unknown API Error")
+    
+    const url = type === 'shelly' ? `/api/shelly?deviceId=${deviceId}` : `/api/tuya?deviceId=${deviceId}`;
+    
+    for (let i = 0; i < retry; i++) {
+      try {
+        const response = await fetch(url, {
+          signal: AbortSignal.timeout(5000)
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const apiData = await response.json();
+        
+        setBuildingData(prev => ({
+          ...prev,
+          [bldgId]: {
+            raw: apiData.success ? apiData.result : null,
+            error: apiData.success ? null : (apiData.error || "Unknown API Error"),
+            lastUpdate: new Date()
+          }
+        }));
+        return; // Success, exit retry loop
+      } catch (error) {
+        if (i === retry - 1) {
+          // All retries failed
+          setBuildingData(prev => ({
+            ...prev,
+            [bldgId]: { raw: null, error: error.message, lastAttempt: new Date() }
+          }));
         }
-      }));
-    } catch (error) {
-      setBuildingData(prev => ({
-        ...prev,
-        [bldgId]: { raw: null, error: error.message }
-      }));
+        // Exponential backoff wait before next retry
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
     }
   };
 
   useEffect(() => {
-    const promises = BUILDINGS.filter(b => b.deviceId).map(b => fetchRealData(b.id, b.deviceId, b.type));
-    Promise.all(promises);
+    const fetchAll = () => {
+      BUILDINGS.filter(b => b.deviceId).forEach(b => fetchRealData(b.id, b.deviceId, b.type));
+    };
+    
+    fetchAll(); // Fetch immediately on mount
+    const interval = setInterval(fetchAll, 30000); // Poll every 30 seconds
+    
+    return () => clearInterval(interval);
   }, []);
-
-  const parseData = (raw) => {
-    const defaultPhase = { v: '0.0', a: '0.0', kw: '0.00', pf: '0.00', kvar: '0.00', kwh: '0.00' };
-    const parsed = {
-      isOnline: false,
-      totalKw: '0.00',
-      totalKwh: '0.00',
-      totalKvar: '0.00',
-      frequency: '0',
-      temperature: '0.0',
-      phases: { A: { ...defaultPhase }, B: { ...defaultPhase }, C: { ...defaultPhase } }
-    };
-
-    if (!raw) return parsed;
-    parsed.isOnline = true;
-
-    const statusArray = raw.status || [];
-    if (statusArray.length === 0) {
-      parsed.isOnline = false;
-      return parsed;
-    }
-
-    const findCode = (prefix) => {
-       const item = statusArray.find(s => String(s.code).toLowerCase() === prefix);
-       if (item && item.value !== undefined) {
-         const val = Number(item.value);
-         return isNaN(val) ? 0 : val;
-       }
-       return 0;
-    };
-
-    // Phase A
-    parsed.phases.A.v = (findCode('voltagea') / 10).toFixed(1);
-    parsed.phases.A.a = (findCode('currenta') / 1000).toFixed(2);
-    parsed.phases.A.kw = (findCode('activepowera') / 1000).toFixed(3);
-    parsed.phases.A.pf = (findCode('powerfactora') / 100).toFixed(2);
-    parsed.phases.A.kvar = (findCode('reactivepowera') / 1000).toFixed(3);
-    parsed.phases.A.kwh = (findCode('energyconsumeda') / 100).toFixed(2);
-    
-    // Phase B
-    parsed.phases.B.v = (findCode('voltageb') / 10).toFixed(1);
-    parsed.phases.B.a = (findCode('currentb') / 1000).toFixed(2);
-    parsed.phases.B.kw = (findCode('activepowerb') / 1000).toFixed(3);
-    parsed.phases.B.pf = (findCode('powerfactorb') / 100).toFixed(2);
-    parsed.phases.B.kvar = (findCode('reactivepowerb') / 1000).toFixed(3);
-    parsed.phases.B.kwh = (findCode('energyconsumedb') / 100).toFixed(2);
-    
-    // Phase C
-    parsed.phases.C.v = (findCode('voltagec') / 10).toFixed(1);
-    parsed.phases.C.a = (findCode('currentc') / 1000).toFixed(2);
-    parsed.phases.C.kw = (findCode('activepowerc') / 1000).toFixed(3);
-    parsed.phases.C.pf = (findCode('powerfactorc') / 100).toFixed(2);
-    parsed.phases.C.kvar = (findCode('reactivepowerc') / 1000).toFixed(3);
-    parsed.phases.C.kwh = (findCode('energyconsumedc') / 100).toFixed(2);
-
-    // Totals & Environmental
-    parsed.totalKw = (findCode('activepower') / 1000).toFixed(3);
-    parsed.totalKwh = (findCode('totalenergyconsumed') / 100).toFixed(2);
-    parsed.totalKvar = (findCode('reactivepower') / 1000).toFixed(3);
-    parsed.frequency = findCode('frequency'); // Tuya usually sends raw 50 for 50Hz
-    parsed.temperature = (findCode('temperature') / 10).toFixed(1);
-    
-    return parsed;
-  };
 
   const theme = isDarkMode ? {
     bg: '#0f172a',
@@ -330,9 +363,9 @@ export default function EnergyDashboard() {
     let solarKwh = 0;
     
     BUILDINGS.forEach(b => {
-      if (buildingData[b.id]?.raw) {
-        const pd = parseData(buildingData[b.id].raw);
-        if (pd.isOnline) {
+      if (b.deviceId) {
+        const pd = parsedBuildingData[b.id];
+        if (pd?.isOnline) {
           if (!b.isSolar) {
             globalKw += parseFloat(pd.totalKw);
             globalKwh += parseFloat(pd.totalKwh);
@@ -386,7 +419,7 @@ export default function EnergyDashboard() {
 
     const touStatus = getTouStatus(currentTime);
 
-    const activeDevicesCount = BUILDINGS.filter(b => b.deviceId && buildingData[b.id]?.raw && parseData(buildingData[b.id].raw).isOnline).length;
+    const activeDevicesCount = BUILDINGS.filter(b => b.deviceId && parsedBuildingData[b.id]?.isOnline).length;
     const totalDevicesCount = BUILDINGS.filter(b => b.deviceId).length;
     const allOnline = activeDevicesCount > 0 && activeDevicesCount === totalDevicesCount;
 
@@ -535,8 +568,8 @@ export default function EnergyDashboard() {
                  </div>
 
                  {/* Top 3 Loads */}
-                 {BUILDINGS.filter(b => b.deviceId && !b.isSolar && buildingData[b.id]?.raw && parseData(buildingData[b.id].raw).isOnline)
-                    .map(b => ({ name: b.name.replace('ศาลา','').replace('สำนักงาน',''), kw: parseFloat(parseData(buildingData[b.id].raw).totalKw) }))
+                 {BUILDINGS.filter(b => b.deviceId && !b.isSolar && parsedBuildingData[b.id]?.isOnline)
+                    .map(b => ({ name: b.name.replace('ศาลา','').replace('สำนักงาน',''), kw: parseFloat(parsedBuildingData[b.id].totalKw) }))
                     .sort((a, b) => b.kw - a.kw)
                     .slice(0, 3)
                     .map((b, i) => {
@@ -590,10 +623,22 @@ export default function EnergyDashboard() {
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {BUILDINGS.map(b => {
+            {Object.keys(buildingData).length === 0 ? (
+              // Skeleton Loaders
+              [1, 2, 3, 4, 5].map(i => (
+                <div key={i} style={{ background: theme.cardBg, borderRadius: '20px', padding: '1.1rem 1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: isDarkMode ? '#1e293b' : '#e2e8f0', animation: 'pulse-dot 1.5s infinite' }}></div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ height: '16px', background: isDarkMode ? '#1e293b' : '#e2e8f0', borderRadius: '4px', width: '60%', marginBottom: '8px', animation: 'pulse-dot 1.5s infinite' }}></div>
+                    <div style={{ height: '12px', background: isDarkMode ? '#1e293b' : '#e2e8f0', borderRadius: '4px', width: '40%', animation: 'pulse-dot 1.5s infinite' }}></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+            BUILDINGS.map(b => {
               const hasDevice = !!b.deviceId;
               const data = buildingData[b.id];
-              const parsed = parseData(data?.raw);
+              const parsed = parsedBuildingData[b.id] || parseData(null);
               const isSolar = b.isSolar;
               
               let statusText = 'Pending';
@@ -632,7 +677,8 @@ export default function EnergyDashboard() {
                   </div>
                 </div>
               );
-            })}
+            })
+            )}
           </div>
         </div>
       </div>
@@ -641,8 +687,7 @@ export default function EnergyDashboard() {
 
   const renderDetail = () => {
     const bldg = BUILDINGS.find(b => b.id === activeTab);
-    const data = buildingData[bldg.id];
-    const parsed = parseData(data?.raw);
+    const parsed = parsedBuildingData[bldg.id] || parseData(null);
     const hasDevice = !!bldg.deviceId;
 
     if (bldg.isSolar) {
