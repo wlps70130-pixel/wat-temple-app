@@ -11,6 +11,7 @@ import AudioPlayer from './components/AudioPlayer';
 
 import EnergyDashboard from './components/EnergyDashboard';
 import AmuletViewer from './components/AmuletViewer';
+import CCTVViewer from './components/CCTVViewer';
 
 
 function App() {
@@ -91,6 +92,8 @@ function App() {
         />
       ) : currentView === 'amulet' ? (
         <AmuletViewer />
+      ) : currentView === 'cctv' ? (
+        <CCTVViewer />
       ) : null}
 
       {/* Hidden Audio Element */}

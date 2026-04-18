@@ -1,21 +1,25 @@
 import React from 'react';
-import { UserPlus, Headphones, Gift, HeartHandshake, Library, Zap, Wrench, CalendarSync, Car, Stethoscope, HardHat, Users } from 'lucide-react';
+import { UserPlus, Headphones, Gift, HeartHandshake, Library, Zap, Wrench, CalendarSync, Car, Stethoscope, HardHat, Users, Camera } from 'lucide-react';
 
 const MENU_ITEMS = [
   // Active Modules (Top Priority)
-  { id: 2, label: 'ฟังธรรม', icon: Headphones, color: '#f472b6', isActive: true, target: 'dhamma' },
-  { id: 11, label: 'ค่าพลังงาน', icon: Zap, color: '#fb923c', isActive: true, target: 'energy' },
-  { id: 5, label: 'คณะสงฆ์', icon: Users, color: '#d97706', isActive: true, target: 'sangha' },
-  // Inactive Modules (Waiting for update)
-  { id: 1, label: 'ทำบุญ', icon: HeartHandshake, color: '#4ade80', isActive: false },
-  { id: 3, label: 'พระของขวัญ', icon: Gift, color: '#facc15', isActive: true, target: 'amulet' },
-  { id: 4, label: 'กิจนิมนต์', icon: CalendarSync, color: '#f87171', isActive: false },
-  { id: 6, label: 'ห้องสมุด', icon: Library, color: '#a78bfa', isActive: false },
-  { id: 7, label: 'แจ้งป่วย', icon: Stethoscope, color: '#ef4444', isActive: false },
-  { id: 8, label: 'จองรถ', icon: Car, color: '#2dd4bf', isActive: false },
-  { id: 9, label: 'งานก่อสร้าง', icon: HardHat, color: '#f59e0b', isActive: false },
-  { id: 10, label: 'ซ่อมบำรุง', icon: Wrench, color: '#9ca3af', isActive: false }
+  { id: 2,  label: 'ฟังธรรม',     icon: Headphones, color: '#f472b6', isActive: true,  target: 'dhamma' },
+  { id: 11, label: 'ค่าพลังงาน',  icon: Zap,        color: '#fb923c', isActive: true,  target: 'energy' },
+  { id: 5,  label: 'คณะสงฆ์',     icon: Users,      color: '#d97706', isActive: true,  target: 'sangha' },
+  { id: 3,  label: 'พระของขวัญ',  icon: Gift,       color: '#facc15', isActive: true,  target: 'amulet' },
+  { id: 12, label: 'กล้องวงจรปิด',icon: Camera,     color: '#3b82f6', isActive: true,  target: 'cctv' },
+  // Inactive Modules
+  { id: 1,  label: 'ทำบุญ',       icon: HeartHandshake, color: '#4ade80', isActive: false },
+  { id: 4,  label: 'กิจนิมนต์',   icon: CalendarSync,   color: '#f87171', isActive: false },
+  { id: 6,  label: 'ห้องสมุด',    icon: Library,        color: '#a78bfa', isActive: false },
+  { id: 7,  label: 'แจ้งป่วย',    icon: Stethoscope,    color: '#ef4444', isActive: false },
+  { id: 8,  label: 'จองรถ',       icon: Car,            color: '#2dd4bf', isActive: false },
+  { id: 9,  label: 'งานก่อสร้าง', icon: HardHat,        color: '#f59e0b', isActive: false },
+  { id: 10, label: 'ซ่อมบำรุง',   icon: Wrench,         color: '#9ca3af', isActive: false },
 ];
+
+
+
 
 export default function MenuGrid({ onMenuClick }) {
   return (
