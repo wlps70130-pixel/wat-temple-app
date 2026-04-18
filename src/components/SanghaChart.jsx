@@ -219,7 +219,7 @@ export default function SanghaChart() {
               <div style={{ fontSize:'1rem', fontWeight:'800', color:'#92400e' }}>🧡 พระภิกษุสามเณร</div>
               <div style={{ fontSize:'0.75rem', color:'#b45309', marginTop:'2px' }}>ทั้งหมด {data.monks.length} รูป</div>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'0.6rem' }}>
+            <div className="sangha-monks-grid" style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'0.6rem' }}>
               {data.monks.map((m, i) => <MonkCard key={i} monk={m} avatarSize={46} nameFontSize="0.75rem" titleFontSize="0.62rem" borderColor="#fcd34d"/>)}
             </div>
           </div>
