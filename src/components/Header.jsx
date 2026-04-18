@@ -35,10 +35,10 @@ export default function Header({ onBack }) {
         <img
           src="/logo.png"
           alt="โลโก้วัดหลวงพ่อสด"
-          style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
           onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
         />
-        <span style={{ display: 'none', fontSize: '1.6rem', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}>🛕</span>
+        <span style={{ display: 'none', fontSize: '1.6rem', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>🛕</span>
       </div>
       <div className="header-text">
         <link rel="stylesheet" href={elegantFontLink} />
