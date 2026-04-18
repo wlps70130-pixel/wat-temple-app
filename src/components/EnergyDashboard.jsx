@@ -5,6 +5,7 @@ import Papa from 'papaparse';
 const BUILDINGS = [
   { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a326a888ee9e0e5c67pwni' },
   { id: 'multipurpose', name: 'ศาลาพระประจำวัน', deviceId: 'a3a95d6030b8bc9a02idhq' },
+  { id: 'solar', name: 'พลังงานโซล่าเซลล์', deviceId: '', isSolar: true },
   { id: 'b1', name: 'อาคาร 1', deviceId: '' },
   { id: 'b2', name: 'อาคาร 2', deviceId: '' },
   { id: 'b3', name: 'อาคาร 3', deviceId: '' },
@@ -55,6 +56,7 @@ export default function EnergyDashboard() {
           
           return {
             timestamp: row['วัน-เวลา'],
+            building: row['อาคาร'],
             totalKw: kw,
             touStatus: row['ช่วงเวลา (TOU)']
           };
@@ -116,20 +118,32 @@ export default function EnergyDashboard() {
       const fullLabel = graphFilter === 'day' ? timeLabel : `${datePart} ${timeLabel}`;
       
       if (!grouped[fullLabel]) {
-        grouped[fullLabel] = { displayTime: timeLabel, sumKw: 0, count: 0 };
+        grouped[fullLabel] = { displayTime: timeLabel, sumKwLoad: 0, countLoad: 0, sumKwSolar: 0, countSolar: 0 };
       }
-      grouped[fullLabel].sumKw += parseFloat(item.totalKw || 0);
-      grouped[fullLabel].count += 1;
+      
+      if (item.building === 'พลังงานโซล่าเซลล์') {
+        grouped[fullLabel].sumKwSolar += parseFloat(item.totalKw || 0);
+        grouped[fullLabel].countSolar += 1;
+      } else {
+        grouped[fullLabel].sumKwLoad += parseFloat(item.totalKw || 0);
+        grouped[fullLabel].countLoad += 1;
+      }
     });
 
-    const activeDevices = BUILDINGS.filter(b => b.deviceId).length || 1;
+    const activeLoadDevices = BUILDINGS.filter(b => b.deviceId && !b.isSolar).length || 1;
+    const activeSolarDevices = BUILDINGS.filter(b => b.deviceId && b.isSolar).length || 1;
 
     const chartData = Object.values(grouped).map(g => {
-      const timestampsCount = g.count / activeDevices;
-      const avgKw = timestampsCount > 0 ? (g.sumKw / timestampsCount) : 0;
+      const timestampsCountLoad = g.countLoad / activeLoadDevices;
+      const avgKwLoad = timestampsCountLoad > 0 ? (g.sumKwLoad / timestampsCountLoad) : 0;
+      
+      const timestampsCountSolar = g.countSolar / activeSolarDevices;
+      const avgKwSolar = timestampsCountSolar > 0 ? (g.sumKwSolar / timestampsCountSolar) : 0;
+      
       return {
         time: g.displayTime,
-        totalKw: parseFloat(avgKw.toFixed(2))
+        totalKw: parseFloat(avgKwLoad.toFixed(2)),
+        solarKw: parseFloat(avgKwSolar.toFixed(2))
       };
     });
 
@@ -288,8 +302,15 @@ export default function EnergyDashboard() {
             />
             <Bar 
               dataKey="totalKw" 
-              name="กำลังไฟรวม (kW)" 
+              name="กำลังไฟใช้จริงรวม (kW)" 
               fill={theme.primary} 
+              radius={[4, 4, 0, 0]}
+              animationDuration={1500}
+            />
+            <Bar 
+              dataKey="solarKw" 
+              name="โซล่าเซลล์ผลิตได้ (kW)" 
+              fill="#f59e0b" 
               radius={[4, 4, 0, 0]}
               animationDuration={1500}
             />
@@ -306,7 +327,7 @@ export default function EnergyDashboard() {
     BUILDINGS.forEach(b => {
       if (buildingData[b.id]?.raw) {
         const pd = parseData(buildingData[b.id].raw);
-        if (pd.isOnline) {
+        if (pd.isOnline && !b.isSolar) {
           globalKw += parseFloat(pd.totalKw);
           globalKwh += parseFloat(pd.totalKwh);
         }
@@ -446,13 +467,14 @@ export default function EnergyDashboard() {
               const hasDevice = !!b.deviceId;
               const data = buildingData[b.id];
               const parsed = parseData(data?.raw);
+              const isSolar = b.isSolar;
               
               return (
-                <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: theme.cardBg, borderRadius: '12px', padding: '1.25rem', cursor: 'pointer', border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: isSolar ? (isDarkMode ? '#3f2c00' : '#fef3c7') : theme.cardBg, borderRadius: '12px', padding: '1.25rem', cursor: 'pointer', border: `1px solid ${isSolar ? '#f59e0b' : theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ width: 12, height: 12, borderRadius: '50%', background: hasDevice ? (parsed.isOnline ? theme.success : theme.danger) : theme.border }}></div>
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain, fontWeight: '500' }}>{b.name}</h4>
+                      <h4 style={{ margin: 0, fontSize: '1.1rem', color: isSolar ? '#d97706' : theme.textMain, fontWeight: '500' }}>{isSolar ? '☀️ ' : ''}{b.name}</h4>
                       <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: theme.textSub }}>
                         {hasDevice ? (parsed.isOnline ? 'เชื่อมต่อแล้ว' : 'ออฟไลน์') : 'รอการติดตั้งอุปกรณ์'}
                       </p>
