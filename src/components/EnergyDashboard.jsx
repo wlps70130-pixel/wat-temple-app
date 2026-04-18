@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Papa from 'papaparse';
 
 const BUILDINGS = [
@@ -29,7 +29,6 @@ export default function EnergyDashboard() {
   const [buildingData, setBuildingData] = useState({});
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [graphFilter, setGraphFilter] = useState('15min'); // '15min', '30min', '1hour', 'day'
-  const [peakRatio, setPeakRatio] = useState(40); // Default 40% On-Peak
   const [currentTime, setCurrentTime] = useState(new Date());
   
   const [rawHistory, setRawHistory] = useState([]);
@@ -52,12 +51,12 @@ export default function EnergyDashboard() {
         
         const parsedData = results.data.map(row => {
           let kw = parseFloat(row['กำลังไฟรวม (kW)'] || 0);
-          // Tuya sometimes sends garbage values like -19800 for disconnected phases
           if (kw < -100 || kw > 1000) kw = 0; 
           
           return {
             timestamp: row['วัน-เวลา'],
-            totalKw: kw
+            totalKw: kw,
+            touStatus: row['ช่วงเวลา (TOU)']
           };
         }).filter(r => r.timestamp);
         
@@ -277,7 +276,7 @@ export default function EnergyDashboard() {
     return (
       <div style={{ width: '100%', height: 250, marginTop: '1.5rem', marginLeft: '-15px' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={historicalData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+          <BarChart data={historicalData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={theme.border} vertical={false} />
             <XAxis dataKey="time" stroke={theme.textSub} fontSize={11} tickMargin={10} minTickGap={30} />
             <YAxis stroke={theme.textSub} fontSize={11} tickFormatter={(val) => `${val}kW`} width={50} />
@@ -285,18 +284,16 @@ export default function EnergyDashboard() {
               contentStyle={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '12px', color: theme.textMain, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
               itemStyle={{ color: theme.primary, fontWeight: 'bold' }}
               labelStyle={{ color: theme.textSub, marginBottom: '0.25rem', fontSize: '0.85rem' }}
+              cursor={{ fill: isDarkMode ? '#1e293b' : '#f1f5f9' }}
             />
-            <Line 
-              type="monotone" 
+            <Bar 
               dataKey="totalKw" 
               name="กำลังไฟรวม (kW)" 
-              stroke={theme.primary} 
-              strokeWidth={3} 
-              dot={false} 
-              activeDot={{ r: 6, fill: theme.primary, stroke: theme.cardBg, strokeWidth: 2 }} 
+              fill={theme.primary} 
+              radius={[4, 4, 0, 0]}
               animationDuration={1500}
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     );
@@ -325,8 +322,21 @@ export default function EnergyDashboard() {
       vat: 0.07
     };
 
-    const onPeakKwh = globalKwh * (peakRatio / 100);
-    const offPeakKwh = globalKwh * (1 - (peakRatio / 100));
+    // Calculate REAL ratio from history
+    let historyOnPeak = 0;
+    let historyOffPeak = 0;
+    rawHistory.forEach(r => {
+      if (r.touStatus === 'ON_PEAK') historyOnPeak += r.totalKw;
+      else if (r.touStatus === 'OFF_PEAK') historyOffPeak += r.totalKw;
+    });
+    
+    let realPeakRatio = 40; // Default if no data
+    if (historyOnPeak + historyOffPeak > 0) {
+      realPeakRatio = (historyOnPeak / (historyOnPeak + historyOffPeak)) * 100;
+    }
+
+    const onPeakKwh = globalKwh * (realPeakRatio / 100);
+    const offPeakKwh = globalKwh * (1 - (realPeakRatio / 100));
     
     const onPeakCost = onPeakKwh * PEA_RATES.onPeak;
     const offPeakCost = offPeakKwh * PEA_RATES.offPeak;
@@ -381,15 +391,12 @@ export default function EnergyDashboard() {
              
              <div style={{ borderTop: `1px dashed ${theme.border}`, margin: '0.5rem 0' }}></div>
              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ color: theme.textSub }}>สัดส่วนการใช้ไฟ On-Peak โดยประมาณ:</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input type="range" min="0" max="100" value={peakRatio} onChange={e => setPeakRatio(e.target.value)} style={{ width: '80px', accentColor: theme.primary }}/>
-                  <span style={{ color: theme.textMain, fontWeight: 'bold', width: '35px', textAlign: 'right' }}>{peakRatio}%</span>
-                </div>
+                <span style={{ color: theme.textSub }}>สัดส่วนการใช้ไฟตามจริง (จากสถิติ):</span>
+                <span style={{ color: theme.textMain, fontWeight: 'bold' }}>On-Peak {realPeakRatio.toFixed(1)}%</span>
              </div>
              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', color: theme.textSub, marginTop: '0.75rem' }}>
-                <div>On-Peak ({peakRatio}%): {onPeakKwh.toLocaleString('th-TH', {maximumFractionDigits:1})} หน่วย<br/><span style={{color: theme.textMain}}>{onPeakCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
-                <div>Off-Peak ({100-peakRatio}%): {offPeakKwh.toLocaleString('th-TH', {maximumFractionDigits:1})} หน่วย<br/><span style={{color: theme.textMain}}>{offPeakCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
+                <div>On-Peak ({realPeakRatio.toFixed(1)}%): {onPeakKwh.toLocaleString('th-TH', {maximumFractionDigits:1})} หน่วย<br/><span style={{color: theme.textMain}}>{onPeakCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
+                <div>Off-Peak ({(100-realPeakRatio).toFixed(1)}%): {offPeakKwh.toLocaleString('th-TH', {maximumFractionDigits:1})} หน่วย<br/><span style={{color: theme.textMain}}>{offPeakCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
                 <div>ค่า Ft (0.3972 ฿/หน่วย):<br/><span style={{color: theme.textMain}}>{ftCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
                 <div>ค่าบริการรายเดือน (PEA):<br/><span style={{color: theme.textMain}}>{(globalKwh > 0 ? PEA_RATES.service : 0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
              </div>
