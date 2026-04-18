@@ -13,31 +13,37 @@ export default function AiAssistant({
   const [aiInsight, setAiInsight] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
+  const [isFallback, setIsFallback] = useState(false);
+
   const handleAnalyze = async () => {
     setIsAiLoading(true);
     setAiInsight(null);
+    setIsFallback(false);
     try {
-        const res = await fetch('/api/thaillm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode, context: contextData })
-        });
-        
-        let data;
-        try {
-          data = await res.json();
-        } catch (jsonErr) {
-          throw new Error(`Invalid response from server (Status: ${res.status})`);
-        }
+      const res = await fetch('/api/thaillm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, context: contextData })
+      });
 
-        if (data.success) {
-          setAiInsight(data.reply);
-        } else {
-          setAiInsight(`เกิดข้อผิดพลาดจาก API ของโมเดล: ${data.error || 'Unknown Error'}`);
-        }
-      } catch (e) {
-        setAiInsight(`เกิดข้อผิดพลาดในการเชื่อมต่อ: ${e.message}`);
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('ไม่สามารถอ่านข้อมูลจากเซิร์ฟเวอร์ได้');
       }
+
+      if (data.success) {
+        setAiInsight(data.reply);
+        setIsFallback(!!data.fallback);
+      } else {
+        setAiInsight('ขออภัย ระบบ AI ชั่วคราวไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่อีกครั้งครับ');
+        setIsFallback(true);
+      }
+    } catch (e) {
+      setAiInsight('ขออภัย ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ตและลองใหม่ครับ');
+      setIsFallback(true);
+    }
     setIsAiLoading(false);
   };
 
