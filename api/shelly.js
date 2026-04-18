@@ -19,37 +19,68 @@ export default async function handler(req, res) {
      
      const data = await response.json();
      
-     if (!data.isok || !data.data || !data.data.device_status || !data.data.device_status.emeters) {
-        return res.status(500).json({ success: false, error: "Invalid Shelly response or Device Offline" });
+     const ds = data.data.device_status;
+     let status = [];
+     
+     if (ds.emeters) {
+         // Gen 1 (Shelly 3EM)
+         const emeters = ds.emeters;
+         const sumPower = emeters.reduce((acc, e) => acc + (e.power || 0), 0);
+         const sumTotal = emeters.reduce((acc, e) => acc + (e.total || 0), 0);
+         const sumReactive = emeters.reduce((acc, e) => acc + (e.reactive || 0), 0);
+         
+         status = [
+           { code: "activepower", value: Math.round(sumPower) },
+           { code: "totalenergyconsumed", value: Math.round(sumTotal / 10) }, 
+           { code: "reactivepower", value: Math.round(sumReactive) },
+           
+           { code: "voltagea", value: Math.round((emeters[0]?.voltage || 0) * 10) },
+           { code: "currenta", value: Math.round((emeters[0]?.current || 0) * 1000) },
+           { code: "activepowera", value: Math.round(emeters[0]?.power || 0) },
+           { code: "powerfactora", value: Math.round((emeters[0]?.pf || 0) * 100) },
+           
+           { code: "voltageb", value: Math.round((emeters[1]?.voltage || 0) * 10) },
+           { code: "currentb", value: Math.round((emeters[1]?.current || 0) * 1000) },
+           { code: "activepowerb", value: Math.round(emeters[1]?.power || 0) },
+           { code: "powerfactorb", value: Math.round((emeters[1]?.pf || 0) * 100) },
+           
+           { code: "voltagec", value: Math.round((emeters[2]?.voltage || 0) * 10) },
+           { code: "currentc", value: Math.round((emeters[2]?.current || 0) * 1000) },
+           { code: "activepowerc", value: Math.round(emeters[2]?.power || 0) },
+           { code: "powerfactorc", value: Math.round((emeters[2]?.pf || 0) * 100) }
+         ];
+     } else if (ds['em:0'] && ds['emdata:0']) {
+         // Gen 2 / Gen 3 (Shelly Pro 3EM)
+         const em = ds['em:0'];
+         const emdata = ds['emdata:0'];
+         
+         const sumPower = em.total_act_power || 0;
+         const sumTotal = emdata.total_act || 0;
+         const sumReactive = em.total_aprt_power || 0;
+         
+         status = [
+           { code: "activepower", value: Math.round(sumPower) },
+           { code: "totalenergyconsumed", value: Math.round(sumTotal / 10) }, 
+           { code: "reactivepower", value: Math.round(sumReactive) },
+           
+           { code: "voltagea", value: Math.round((em.a_voltage || 0) * 10) },
+           { code: "currenta", value: Math.round((em.a_current || 0) * 1000) },
+           { code: "activepowera", value: Math.round(em.a_act_power || 0) },
+           { code: "powerfactora", value: Math.round((em.a_pf || 0) * 100) },
+           
+           { code: "voltageb", value: Math.round((em.b_voltage || 0) * 10) },
+           { code: "currentb", value: Math.round((em.b_current || 0) * 1000) },
+           { code: "activepowerb", value: Math.round(em.b_act_power || 0) },
+           { code: "powerfactorb", value: Math.round((em.b_pf || 0) * 100) },
+           
+           { code: "voltagec", value: Math.round((em.c_voltage || 0) * 10) },
+           { code: "currentc", value: Math.round((em.c_current || 0) * 1000) },
+           { code: "activepowerc", value: Math.round(em.c_act_power || 0) },
+           { code: "powerfactorc", value: Math.round((em.c_pf || 0) * 100) }
+         ];
+     } else {
+         return res.status(500).json({ success: false, error: "Invalid Shelly response format" });
      }
-     
-     const emeters = data.data.device_status.emeters;
-     
-     const sumPower = emeters.reduce((acc, e) => acc + (e.power || 0), 0);
-     const sumTotal = emeters.reduce((acc, e) => acc + (e.total || 0), 0);
-     const sumReactive = emeters.reduce((acc, e) => acc + (e.reactive || 0), 0);
-     
-     // Map Shelly 3EM data to exact Tuya API format so the Frontend/Apps Script requires NO changes!
-     const status = [
-       { code: "activepower", value: Math.round(sumPower) },
-       { code: "totalenergyconsumed", value: Math.round(sumTotal / 10) }, // Tuya expects kWh * 100. Shelly is Wh. Wh/10 = kWh*100
-       { code: "reactivepower", value: Math.round(sumReactive) },
-       
-       { code: "voltagea", value: Math.round((emeters[0]?.voltage || 0) * 10) },
-       { code: "currenta", value: Math.round((emeters[0]?.current || 0) * 1000) },
-       { code: "activepowera", value: Math.round(emeters[0]?.power || 0) },
-       { code: "powerfactora", value: Math.round((emeters[0]?.pf || 0) * 100) },
-       
-       { code: "voltageb", value: Math.round((emeters[1]?.voltage || 0) * 10) },
-       { code: "currentb", value: Math.round((emeters[1]?.current || 0) * 1000) },
-       { code: "activepowerb", value: Math.round(emeters[1]?.power || 0) },
-       { code: "powerfactorb", value: Math.round((emeters[1]?.pf || 0) * 100) },
-       
-       { code: "voltagec", value: Math.round((emeters[2]?.voltage || 0) * 10) },
-       { code: "currentc", value: Math.round((emeters[2]?.current || 0) * 1000) },
-       { code: "activepowerc", value: Math.round(emeters[2]?.power || 0) },
-       { code: "powerfactorc", value: Math.round((emeters[2]?.pf || 0) * 100) }
-     ];
      
      return res.status(200).json({
        success: true,
