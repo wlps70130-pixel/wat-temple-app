@@ -33,7 +33,7 @@ export default function Header({ onBack }) {
       )}
       <div className="header-logo" style={{ marginLeft: onBack ? '2.5rem' : '0', transition: 'margin 0.3s ease', display: 'flex', alignItems: 'center' }}>
         <img
-          src="/favicon.svg"
+          src="/logo.png"
           alt="โลโก้วัดหลวงพ่อสด"
           style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }}
           onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
