@@ -377,47 +377,64 @@ export default function EnergyDashboard() {
       }
     });
 
-    // PEA TOU Calculation (Type 6.2 Non-profit Low Voltage)
+    // PEA TOU Rates (Type 6.2 - Non-profit, Low Voltage) อัปเดต 2568
     const PEA_RATES = {
-      onPeak: 4.3888,
-      offPeak: 2.6468,
-      ft: 0.3972,
-      service: 312.24,
+      onPeak: 4.3888,   // บาท/หน่วย
+      offPeak: 2.6468,  // บาท/หน่วย
+      ft: 0.3972,       // ค่า Ft
+      service: 312.24,  // ค่าบริการรายเดือน
       vat: 0.07
     };
 
-    // Calculate REAL ratio from history
-    let historyOnPeak = 0;
-    let historyOffPeak = 0;
-    rawHistory.forEach(r => {
-      if (r.touStatus === 'ON_PEAK') historyOnPeak += r.totalKw;
-      else if (r.touStatus === 'OFF_PEAK') historyOffPeak += r.totalKw;
-    });
-    
-    let realPeakRatio = 40; // Default if no data
-    if (historyOnPeak + historyOffPeak > 0) {
-      realPeakRatio = (historyOnPeak / (historyOnPeak + historyOffPeak)) * 100;
-    }
+    // วันหยุดราชการไทยปี 2568 (YYYY-MM-DD) - Off-Peak ทั้งวัน
+    const THAI_HOLIDAYS_2568 = new Set([
+      '2025-01-01','2025-02-12','2025-04-06','2025-04-07','2025-04-08',
+      '2025-04-13','2025-04-14','2025-04-15','2025-05-01','2025-05-12',
+      '2025-06-02','2025-07-28','2025-08-11','2025-08-12','2025-10-13',
+      '2025-10-23','2025-12-05','2025-12-10','2025-12-31'
+    ]);
 
-    const onPeakKwh = globalKwh * (realPeakRatio / 100);
-    const offPeakKwh = globalKwh * (1 - (realPeakRatio / 100));
-    
-    const onPeakCost = onPeakKwh * PEA_RATES.onPeak;
-    const offPeakCost = offPeakKwh * PEA_RATES.offPeak;
-    const ftCost = globalKwh * PEA_RATES.ft;
-    const totalBeforeVat = onPeakCost + offPeakCost + ftCost + (globalKwh > 0 ? PEA_RATES.service : 0);
-    const vatAmount = totalBeforeVat * PEA_RATES.vat;
-    const totalCost = totalBeforeVat + vatAmount;
-
+    // ฟังก์ชัน TOU ที่ถูกต้อง (รวมวันหยุดราชการ)
     const getTouStatus = (date) => {
-      const day = date.getDay();
+      const dateStr = date.toISOString().slice(0, 10); // YYYY-MM-DD
+      const day = date.getDay(); // 0=อาทิตย์, 6=เสาร์
       const hour = date.getHours();
+      const min = date.getMinutes();
+      const totalMins = hour * 60 + min;
+      // On-Peak: จันทร์-ศุกร์ 09:00-22:00 น. ยกเว้นวันหยุดราชการ
       const isWeekday = day >= 1 && day <= 5;
-      const isPeakHour = hour >= 9 && hour < 22;
-      return (isWeekday && isPeakHour) ? 'ON_PEAK' : 'OFF_PEAK';
+      const isHoliday = THAI_HOLIDAYS_2568.has(dateStr);
+      const isPeakHour = totalMins >= 9 * 60 && totalMins < 22 * 60;
+      return (isWeekday && !isHoliday && isPeakHour) ? 'ON_PEAK' : 'OFF_PEAK';
     };
 
     const touStatus = getTouStatus(currentTime);
+
+    // คำนวณ kWh รายเดือนจาก Google Sheets History (ถูกต้อง)
+    const currentMonthKey = `${currentTime.getFullYear()}-${String(currentTime.getMonth() + 1).padStart(2, '0')}`;
+    let monthlyOnPeakKwh = 0;
+    let monthlyOffPeakKwh = 0;
+    const INTERVAL_HOURS = 0.25; // บันทึกทุก 15 นาที
+
+    rawHistory.forEach(r => {
+      if (!r.timestamp || r.building === 'พลังงานโซล่าเซลล์') return;
+      // ตรวจสอบว่าเป็นข้อมูลของเดือนนี้
+      const tsYear = r.timestamp.slice(0, 4);
+      const tsMon = r.timestamp.includes('T') ? r.timestamp.slice(5, 7) : r.timestamp.slice(6, 8);
+      const tsKey = `${tsYear}-${tsMon}`;
+      if (tsKey !== currentMonthKey) return;
+      const kwh = parseFloat(r.totalKw || 0) * INTERVAL_HOURS;
+      if (r.touStatus === 'ON_PEAK') monthlyOnPeakKwh += kwh;
+      else monthlyOffPeakKwh += kwh;
+    });
+
+    const totalMonthlyKwh = monthlyOnPeakKwh + monthlyOffPeakKwh;
+    const onPeakCost = monthlyOnPeakKwh * PEA_RATES.onPeak;
+    const offPeakCost = monthlyOffPeakKwh * PEA_RATES.offPeak;
+    const ftCost = totalMonthlyKwh * PEA_RATES.ft;
+    const totalBeforeVat = onPeakCost + offPeakCost + ftCost + (totalMonthlyKwh > 0 ? PEA_RATES.service : 0);
+    const vatAmount = totalBeforeVat * PEA_RATES.vat;
+    const totalCost = totalBeforeVat + vatAmount;
 
     const activeDevicesCount = BUILDINGS.filter(b => b.deviceId && parsedBuildingData[b.id]?.isOnline).length;
     const totalDevicesCount = BUILDINGS.filter(b => b.deviceId).length;
@@ -429,8 +446,19 @@ export default function EnergyDashboard() {
 
     const totalPower = (solarKw + globalKw) || 1;
     const prodPercent = Math.min((solarKw / totalPower) * 100, 100);
+    // กริดไฟฟ้า: ถ้า solar > load = ส่งออก (+), ถ้า solar < load = ดึงเข้า (-)
+    const netGrid = globalKw - solarKw;
 
-    const aiContextData = `ข้อมูลปัจจุบัน: โซล่าเซลล์ผลิตได้ ${solarKw.toFixed(1)} kW, โหลดตึกทั้งหมดใช้ไฟรวม ${globalKw.toFixed(1)} kW, เปอร์เซ็นต์การพึ่งพาตัวเอง ${prodPercent.toFixed(1)}%, วันนี้เป็นช่วงเวลา ${touStatus === 'ON_PEAK' ? 'On-Peak (ค่าไฟแพง)' : 'Off-Peak (ค่าไฟถูก)'}`;
+    const aiContextData = [
+      `📊 ข้อมูลพลังงาน ณ ปัจจุบัน:`,
+      `- โซล่าเซลล์ผลิตได้: ${solarKw.toFixed(2)} kW`,
+      `- โหลดรวมทุกอาคาร: ${globalKw.toFixed(2)} kW`,
+      `- การพึ่งพาพลังงานทดแทน: ${prodPercent.toFixed(1)}%`,
+      `- กระแสไฟสุทธิจากกริด: ${netGrid > 0 ? '+' : ''}${netGrid.toFixed(2)} kW (${netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออกไปยัง PEA'})`,
+      `- ช่วงเวลา TOU ปัจจุบัน: ${touStatus === 'ON_PEAK' ? '🔴 On-Peak (ค่าไฟแพง 4.39 บาท/หน่วย)' : '🟢 Off-Peak (ค่าไฟถูก 2.65 บาท/หน่วย)'}`,
+      `- ประมาณการค่าไฟเดือน${currentMonth}: ${totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท`,
+      `  (On-Peak: ${monthlyOnPeakKwh.toFixed(0)} หน่วย, Off-Peak: ${monthlyOffPeakKwh.toFixed(0)} หน่วย)`,
+    ].join('\n');
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
@@ -450,9 +478,12 @@ export default function EnergyDashboard() {
                 <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', lineHeight: '1.3', letterSpacing: '0.5px' }}>
                    <span style={{color: '#a3e635'}}>SUSTAINABLE</span> SUN<br/>ENERGY MONITORING<br/><span style={{opacity: 0.6, fontSize: '0.9rem'}}>DASHBOARD</span>
                 </h2>
-                <div style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                   <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System Status: </div>
+                <div style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                   <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System: </div>
                    <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: allOnline ? '#a3e635' : '#ef4444' }}>{allOnline ? 'ALL ONLINE' : 'SOME OFFLINE'}</div>
+                   <div style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: '700', padding: '0.15rem 0.6rem', borderRadius: '10px', background: touStatus === 'ON_PEAK' ? 'rgba(239,68,68,0.25)' : 'rgba(34,197,94,0.25)', color: touStatus === 'ON_PEAK' ? '#fca5a5' : '#86efac', border: `1px solid ${touStatus === 'ON_PEAK' ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)'}` }}>
+                     {touStatus === 'ON_PEAK' ? '🔴 ON-PEAK' : '🟢 OFF-PEAK'}
+                   </div>
                 </div>
               </div>
               
@@ -525,12 +556,16 @@ export default function EnergyDashboard() {
               
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${theme.border}`, marginTop: '1.5rem', paddingTop: '1.25rem' }}>
                  <div>
-                    <div style={{ fontSize: '1.2rem', color: theme.textMain, fontWeight: '800' }}>{prodPercent.toFixed(1)}%</div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>Self-Sufficiency</div>
+                    <div style={{ fontSize: '1.2rem', color: prodPercent >= 80 ? '#a3e635' : prodPercent >= 50 ? '#fbbf24' : theme.danger, fontWeight: '800' }}>{prodPercent.toFixed(1)}%</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>พึ่งพาพลังงานทดแทน</div>
+                 </div>
+                 <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '700', padding: '0.2rem 0.75rem', borderRadius: '10px', background: touStatus === 'ON_PEAK' ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)', color: touStatus === 'ON_PEAK' ? theme.danger : theme.success }}>{touStatus === 'ON_PEAK' ? '🔴 On-Peak' : '🟢 Off-Peak'}</div>
+                    <div style={{ fontSize: '0.65rem', color: theme.textSub, fontWeight: '500', marginTop: '4px' }}>ช่วงเวลาปัจจุบัน</div>
                  </div>
                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.2rem', color: theme.textMain, fontWeight: '800' }}>{((solarKw - globalKw) > 0 ? '+' : '')}{(solarKw - globalKw).toFixed(1)}</div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>Net Grid Power</div>
+                    <div style={{ fontSize: '1.2rem', color: netGrid <= 0 ? '#a3e635' : theme.danger, fontWeight: '800' }}>{netGrid > 0 ? '+' : ''}{netGrid.toFixed(1)} kW</div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>{netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออกไป PEA'}</div>
                  </div>
               </div>
            </div>
