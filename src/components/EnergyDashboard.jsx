@@ -250,21 +250,23 @@ export default function EnergyDashboard() {
     cardBg: '#1e293b',
     textMain: '#f8fafc',
     textSub: '#94a3b8',
-    border: '#334155',
+    border: 'rgba(255,255,255,0.05)',
     primary: '#3b82f6',
     success: '#10b981',
     warning: '#f59e0b',
-    danger: '#ef4444'
+    danger: '#ef4444',
+    shadow: '0 8px 20px rgba(0,0,0,0.4)'
   } : {
     bg: '#f8fafc',
     cardBg: '#ffffff',
     textMain: '#0f172a',
     textSub: '#64748b',
-    border: '#e2e8f0',
+    border: 'rgba(0,0,0,0.04)',
     primary: '#2563eb',
-    success: '#059669',
-    warning: '#d97706',
-    danger: '#dc2626'
+    success: '#10b981',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+    shadow: '0 8px 24px rgba(0,0,0,0.04)'
   };
 
   const AmrGraph = ({ filter }) => {
@@ -377,80 +379,80 @@ export default function EnergyDashboard() {
 
     const touStatus = getTouStatus(currentTime);
 
+    const activeDevicesCount = BUILDINGS.filter(b => b.deviceId && buildingData[b.id]?.raw && parseData(buildingData[b.id].raw).isOnline).length;
+    const totalDevicesCount = BUILDINGS.filter(b => b.deviceId).length;
+    const allOnline = activeDevicesCount > 0 && activeDevicesCount === totalDevicesCount;
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
         
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 'bold', color: theme.textMain }}>ภาพรวมพลังงาน</h1>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: theme.textSub }}>วัดหลวงพ่อสดธรรมกายาราม</p>
-          </div>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textMain, borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem' }}>
-            {isDarkMode ? '🌙' : '☀'}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+          <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-0.5px' }}>Panels</h1>
+          <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textMain, borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', boxShadow: theme.shadow }}>
+            {isDarkMode ? '🌙' : '☀️'}
           </button>
         </div>
 
-        {/* Master Summary Card */}
-        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}` }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: theme.textSub }}>หน่วยไฟสะสมทั้งหมด</p>
-              <h2 style={{ margin: '0.25rem 0', fontSize: '2rem', color: theme.primary }}>{globalKwh.toLocaleString(undefined, {maximumFractionDigits:0})} <span style={{fontSize:'1rem'}}>kWh</span></h2>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: theme.textSub }}>ประมาณการค่าไฟ (TOU)</p>
-              <h2 style={{ margin: '0.25rem 0', fontSize: '1.5rem', color: theme.textMain }}>{totalCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style={{fontSize:'1rem'}}>฿</span></h2>
-            </div>
-          </div>
-          
-          {/* TOU DETAILS */}
-          <div style={{ marginTop: '1rem', padding: '1rem', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '12px', fontSize: '0.85rem' }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span>สถานะเวลาปัจจุบัน: <strong style={{ color: touStatus === 'ON_PEAK' ? theme.danger : theme.success }}>{touStatus === 'ON_PEAK' ? '🔴 On-Peak (4.3888 ฿/หน่วย)' : '🟢 Off-Peak (2.6468 ฿/หน่วย)'}</strong></span>
-                <span style={{ color: theme.textSub }}>{currentTime.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'})} น.</span>
-             </div>
-             
-             <div style={{ borderTop: `1px dashed ${theme.border}`, margin: '0.5rem 0' }}></div>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ color: theme.textSub }}>สัดส่วนการใช้ไฟตามจริง (จากสถิติ):</span>
-                <span style={{ color: theme.textMain, fontWeight: 'bold' }}>On-Peak {realPeakRatio.toFixed(1)}%</span>
-             </div>
-             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', color: theme.textSub, marginTop: '0.75rem' }}>
-                <div>On-Peak ({realPeakRatio.toFixed(1)}%): {onPeakKwh.toLocaleString('th-TH', {maximumFractionDigits:1})} หน่วย<br/><span style={{color: theme.textMain}}>{onPeakCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
-                <div>Off-Peak ({(100-realPeakRatio).toFixed(1)}%): {offPeakKwh.toLocaleString('th-TH', {maximumFractionDigits:1})} หน่วย<br/><span style={{color: theme.textMain}}>{offPeakCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
-                <div>ค่า Ft (0.3972 ฿/หน่วย):<br/><span style={{color: theme.textMain}}>{ftCost.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
-                <div>ค่าบริการรายเดือน (PEA):<br/><span style={{color: theme.textMain}}>{(globalKwh > 0 ? PEA_RATES.service : 0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</span></div>
-             </div>
-             <div style={{ textAlign: 'right', marginTop: '0.75rem', color: theme.textMain, fontWeight: 'bold', borderTop: `1px dashed ${theme.border}`, paddingTop: '0.5rem' }}>
-                รวมภาษีมูลค่าเพิ่ม 7% = {vatAmount.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿
-             </div>
-          </div>
+        {/* Master Summary Card (Green Gradient like the image) */}
+        <div style={{ 
+          background: allOnline ? 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)' : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
+          borderRadius: '24px', 
+          padding: '1.5rem', 
+          color: 'white', 
+          position: 'relative', 
+          overflow: 'hidden',
+          boxShadow: allOnline ? '0 12px 24px rgba(16, 185, 129, 0.25)' : '0 12px 24px rgba(59, 130, 246, 0.25)'
+        }}>
+          {/* Subtle Grid Pattern Overlay */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.2) 2px, transparent 2px)', backgroundSize: '20px 20px', opacity: 0.4 }}></div>
 
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.9rem', color: theme.textSub }}>กำลังไฟฟ้าปัจจุบัน (Real-time)</span>
-            <div style={{ textAlign: 'right' }}>
-               <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: theme.textMain }}>{globalKw.toFixed(2)} kW</span>
-               <div style={{ fontSize: '0.75rem', color: touStatus === 'ON_PEAK' ? theme.danger : theme.success }}>
-                  คิดเป็นค่าไฟประมาณ { (globalKw * (touStatus === 'ON_PEAK' ? PEA_RATES.onPeak : PEA_RATES.offPeak)).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) } ฿/ชม.
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ width: '60%', pright: '40%' }}>
+              <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                {allOnline ? `All ${totalDevicesCount} Panel online` : `${activeDevicesCount} of ${totalDevicesCount} online`}
+              </h2>
+              <p style={{ margin: '0.4rem 0 1.25rem 0', fontSize: '0.85rem', opacity: 0.9, lineHeight: '1.4' }}>
+                {allOnline ? "It's a great day. All panels are online and in good condition." : "Some panels are currently offline or waiting for setup."}
+              </p>
+            </div>
+            
+            {/* 3D Icon or Emoji on top right */}
+            <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '4.5rem', opacity: 0.95, filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.15))' }}>
+              {allOnline ? '🏭' : '⚡'}
+            </div>
+            
+            {/* The dark inner card (AI optimization style) */}
+            <div style={{ background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(12px)', borderRadius: '16px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fcd34d', fontWeight: 'bold', fontSize: '0.95rem' }}>
+                     ✨ อัตราค่าไฟ (TOU)
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#cbd5e1', marginTop: '0.2rem' }}>
+                     {touStatus === 'ON_PEAK' ? '🔴 On-Peak (แพง)' : '🟢 Off-Peak (ประหยัด)'} • ดึงไฟ {globalKw.toFixed(2)} kW
+                  </div>
+               </div>
+               {/* Action / Value Button */}
+               <div style={{ background: 'white', color: '#0f172a', padding: '0.5rem 0.75rem', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '800', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                  {totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} ฿
                </div>
             </div>
           </div>
         </div>
 
         {/* Graph Section */}
-        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}` }}>
+        <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain }}>สถิติการใช้งาน</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain, fontWeight: '700' }}>สถิติการใช้งาน</h3>
           </div>
           
           {/* Time Filter Tabs */}
-          <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#f1f5f9', borderRadius: '8px', padding: '4px' }}>
+          <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#f1f5f9', borderRadius: '12px', padding: '4px' }}>
             {['15min', '30min', '1hour', 'day'].map(filter => {
               const labels = { '15min':'15 นาที', '30min':'30 นาที', '1hour':'1 ชั่วโมง', 'day':'รายวัน' };
               const isActive = graphFilter === filter;
               return (
-                <div key={filter} onClick={() => setGraphFilter(filter)} style={{ flex: 1, textAlign: 'center', padding: '0.4rem 0', borderRadius: '6px', fontSize: '0.85rem', fontWeight: isActive ? 'bold' : 'normal', cursor: 'pointer', background: isActive ? theme.cardBg : 'transparent', color: isActive ? theme.textMain : theme.textSub, boxShadow: isActive ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}>
+                <div key={filter} onClick={() => setGraphFilter(filter)} style={{ flex: 1, textAlign: 'center', padding: '0.5rem 0', borderRadius: '10px', fontSize: '0.85rem', fontWeight: isActive ? '700' : '500', cursor: 'pointer', background: isActive ? theme.cardBg : 'transparent', color: isActive ? theme.textMain : theme.textSub, boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.2s' }}>
                   {labels[filter]}
                 </div>
               );
@@ -460,9 +462,13 @@ export default function EnergyDashboard() {
           <AmrGraph filter={graphFilter} />
         </div>
 
-        {/* Prominent Building List */}
-        <div>
-          <h3 style={{ margin: '1rem 0 0.75rem 0', fontSize: '1.2rem', color: theme.textMain }}>รายการจุดตรวจวัด ({BUILDINGS.length} จุด)</h3>
+        {/* List of Panels */}
+        <div style={{ marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0 0.5rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1.2rem', color: theme.textMain, fontWeight: '800' }}>Panels</h3>
+            <span style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '500' }}>Total {BUILDINGS.length}</span>
+          </div>
+          
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {BUILDINGS.map(b => {
               const hasDevice = !!b.deviceId;
@@ -470,26 +476,40 @@ export default function EnergyDashboard() {
               const parsed = parseData(data?.raw);
               const isSolar = b.isSolar;
               
+              let statusText = 'Pending';
+              let statusColor = theme.warning;
+              if (hasDevice) {
+                statusText = parsed.isOnline ? 'Active' : 'Offline';
+                statusColor = parsed.isOnline ? theme.success : theme.danger;
+              }
+              
               return (
-                <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: isSolar ? (isDarkMode ? '#3f2c00' : '#fef3c7') : theme.cardBg, borderRadius: '12px', padding: '1.25rem', cursor: 'pointer', border: `1px solid ${isSolar ? '#f59e0b' : theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: hasDevice ? (parsed.isOnline ? theme.success : theme.danger) : theme.border }}></div>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '1.1rem', color: isSolar ? '#d97706' : theme.textMain, fontWeight: '500' }}>{isSolar ? '☀️ ' : ''}{b.name}</h4>
-                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: theme.textSub }}>
-                        {hasDevice ? (parsed.isOnline ? 'เชื่อมต่อแล้ว' : 'ออฟไลน์') : 'รอการติดตั้งอุปกรณ์'}
-                      </p>
+                <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: theme.cardBg, borderRadius: '20px', padding: '1.1rem 1.25rem', cursor: 'pointer', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem', transition: 'transform 0.1s' }}>
+                  
+                  {/* Icon */}
+                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: isSolar ? (isDarkMode ? '#451a03' : '#fef3c7') : (isDarkMode ? '#1e293b' : '#f1f5f9'), border: `1px solid ${isSolar ? '#fde68a' : theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
+                    {isSolar ? '☀️' : '🏢'}
+                  </div>
+                  
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ margin: 0, fontSize: '1.05rem', color: theme.textMain, fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {b.name}
+                    </div>
+                    <div style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: theme.textSub, fontWeight: '500' }}>
+                      Power {hasDevice && parsed.isOnline ? parsed.totalKw : '0.00'} kW
                     </div>
                   </div>
-                  {hasDevice && parsed.isOnline && (
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: theme.textMain }}>{parsed.totalKw} <span style={{fontSize:'0.75rem', fontWeight:'normal', color:theme.textSub}}>kW</span></div>
-                      <div style={{ fontSize: '0.85rem', color: theme.primary }}>{parsed.totalKwh} <span style={{fontSize:'0.75rem', color:theme.textSub}}>kWh</span></div>
+                  
+                  {/* Stats */}
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '700', color: statusColor, marginBottom: '0.2rem' }}>
+                      {statusText}
                     </div>
-                  )}
-                  {!hasDevice && (
-                    <div style={{ color: theme.border, fontSize: '1.2rem' }}>➔</div>
-                  )}
+                    <div style={{ fontSize: '0.95rem', color: theme.textMain, fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
+                      <span style={{ color: theme.warning }}>⚡</span> {hasDevice && parsed.isOnline ? parsed.totalKwh : '--'} <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>kwh</span>
+                    </div>
+                  </div>
                 </div>
               );
             })}
