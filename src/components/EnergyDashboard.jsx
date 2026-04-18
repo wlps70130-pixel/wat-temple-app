@@ -326,13 +326,20 @@ export default function EnergyDashboard() {
   const renderDashboard = () => {
     let globalKw = 0;
     let globalKwh = 0;
+    let solarKw = 0;
+    let solarKwh = 0;
     
     BUILDINGS.forEach(b => {
       if (buildingData[b.id]?.raw) {
         const pd = parseData(buildingData[b.id].raw);
-        if (pd.isOnline && !b.isSolar) {
-          globalKw += parseFloat(pd.totalKw);
-          globalKwh += parseFloat(pd.totalKwh);
+        if (pd.isOnline) {
+          if (!b.isSolar) {
+            globalKw += parseFloat(pd.totalKw);
+            globalKwh += parseFloat(pd.totalKwh);
+          } else {
+            solarKw += parseFloat(pd.totalKw);
+            solarKwh += parseFloat(pd.totalKwh);
+          }
         }
       }
     });
@@ -387,57 +394,68 @@ export default function EnergyDashboard() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
         
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-0.5px' }}>Panels</h1>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textMain, borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', boxShadow: theme.shadow }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-0.5px' }}>Dashboard</h1>
+          <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textMain, borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', boxShadow: theme.shadow }}>
             {isDarkMode ? '🌙' : '☀️'}
           </button>
         </div>
 
-        {/* Master Summary Card (Green Gradient like the image) */}
-        <div style={{ 
-          background: allOnline ? 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)' : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
-          borderRadius: '24px', 
-          padding: '1.5rem', 
-          color: 'white', 
-          position: 'relative', 
-          overflow: 'hidden',
-          boxShadow: allOnline ? '0 12px 24px rgba(16, 185, 129, 0.25)' : '0 12px 24px rgba(59, 130, 246, 0.25)'
-        }}>
-          {/* Subtle Grid Pattern Overlay */}
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.2) 2px, transparent 2px)', backgroundSize: '20px 20px', opacity: 0.4 }}></div>
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ width: '60%', pright: '40%' }}>
-              <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                {allOnline ? `All ${totalDevicesCount} Panel online` : `${activeDevicesCount} of ${totalDevicesCount} online`}
+        {/* Dark Banner */}
+        <div style={{ background: isDarkMode ? '#18181b' : '#27272a', borderRadius: '24px', padding: '1.75rem 1.5rem', color: 'white', position: 'relative', overflow: 'hidden', boxShadow: theme.shadow }}>
+           <div style={{ position: 'relative', zIndex: 1, width: '65%' }}>
+              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', lineHeight: '1.3', letterSpacing: '0.5px' }}>
+                 <span style={{color: '#a3e635'}}>SUSTAINABLE</span> SUN<br/>ENERGY MONITORING<br/><span style={{opacity: 0.6, fontSize: '0.9rem'}}>DASHBOARD</span>
               </h2>
-              <p style={{ margin: '0.4rem 0 1.25rem 0', fontSize: '0.85rem', opacity: 0.9, lineHeight: '1.4' }}>
-                {allOnline ? "It's a great day. All panels are online and in good condition." : "Some panels are currently offline or waiting for setup."}
-              </p>
-            </div>
-            
-            {/* 3D Icon or Emoji on top right */}
-            <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '4.5rem', opacity: 0.95, filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.15))' }}>
-              {allOnline ? '🏭' : '⚡'}
-            </div>
-            
-            {/* The dark inner card (AI optimization style) */}
-            <div style={{ background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(12px)', borderRadius: '16px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-               <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fcd34d', fontWeight: 'bold', fontSize: '0.95rem' }}>
-                     ✨ อัตราค่าไฟ (TOU)
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: '#cbd5e1', marginTop: '0.2rem' }}>
-                     {touStatus === 'ON_PEAK' ? '🔴 On-Peak (แพง)' : '🟢 Off-Peak (ประหยัด)'} • ดึงไฟ {globalKw.toFixed(2)} kW
-                  </div>
-               </div>
-               {/* Action / Value Button */}
-               <div style={{ background: 'white', color: '#0f172a', padding: '0.5rem 0.75rem', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '800', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-                  {totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} ฿
-               </div>
-            </div>
-          </div>
+              <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                 <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System Status: </div>
+                 <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: allOnline ? '#a3e635' : '#ef4444' }}>{allOnline ? 'ALL ONLINE' : 'SOME OFFLINE'}</div>
+              </div>
+           </div>
+           {/* House Image / Icon */}
+           <div style={{ position: 'absolute', right: '-15px', bottom: '-20px', fontSize: '7rem', opacity: 0.95, filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))' }}>
+              🏡
+           </div>
+        </div>
+
+        {/* Two Grid Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+           {/* Card 1: Solar Power */}
+           <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                 <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Solar Yield</div>
+                 <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+              </div>
+              <div style={{ marginTop: '0.5rem', fontSize: '2.2rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-1px' }}>
+                 {solarKw.toFixed(2)} <span style={{fontSize: '1rem', color: theme.textSub, fontWeight: '600'}}>kW</span>
+              </div>
+              {/* Mini visual - green bars */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '50px', marginTop: 'auto', paddingTop: '1rem' }}>
+                 {[40, 70, 30, 80, 50, 100, 60].map((h, i) => (
+                   <div key={i} style={{ flex: 1, background: i === 5 ? '#84cc16' : (isDarkMode ? '#334155' : '#e2e8f0'), height: `${h}%`, borderRadius: '4px' }}></div>
+                 ))}
+              </div>
+           </div>
+
+           {/* Card 2: Load Power */}
+           <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                 <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Building Load</div>
+                 <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+              </div>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginTop: '1rem' }}>
+                 {/* CSS Circle */}
+                 <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: `conic-gradient(${touStatus === 'ON_PEAK' ? '#ef4444' : '#84cc16'} ${Math.min((globalKw/200)*100, 100)}%, ${isDarkMode ? '#334155' : '#e2e8f0'} 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: theme.cardBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                       <div style={{ fontSize: '1.3rem', fontWeight: '800', color: theme.textMain, lineHeight: '1' }}>{globalKw.toFixed(1)}</div>
+                       <div style={{ fontSize: '0.65rem', color: theme.textSub, fontWeight: '600', marginTop: '2px' }}>kW</div>
+                    </div>
+                 </div>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', fontWeight: '800', color: theme.textMain }}>
+                 {touStatus === 'ON_PEAK' ? '🔴 On-Peak' : '🟢 Off-Peak'}
+              </div>
+           </div>
         </div>
 
         {/* Graph Section */}
