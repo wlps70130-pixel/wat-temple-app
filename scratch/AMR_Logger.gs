@@ -3,19 +3,21 @@
 // ==========================================
 
 // 1. ใส่ URL ของเว็บไซต์ (Vercel) ของคุณเบนซ์ที่นี่
-// (ไม่ต้องมีเครื่องหมาย / ต่อท้าย)
-const VERCEL_APP_URL = "https://YOUR_VERCEL_APP_URL.vercel.app";
+// (เช่น https://wat-temple-app.vercel.app โดยไม่ต้องมีเครื่องหมาย / ต่อท้าย)
+const VERCEL_APP_URL = "https://wat-temple-app.vercel.app";
 
 // 2. รายชื่อ Device ID ที่ต้องการดึงข้อมูล
+// ถ้าเป็น Tuya ให้ใช้ type: "tuya" (หรือปล่อยว่างไว้)
+// ถ้าเป็น Shelly ให้ใช้ type: "shelly"
 const DEVICES = [
-  { name: "ศาลาสมเด็จฯ", id: "somdej", deviceId: "a326a888ee9e0e5c67pwni" },
-  { name: "ศาลาพระประจำวัน", id: "multipurpose", deviceId: "a3a95d6030b8bc9a02idhq" }
+  { name: "ศาลาสมเด็จฯ", id: "somdej", type: "tuya", deviceId: "a326a888ee9e0e5c67pwni" },
+  { name: "ศาลาพระประจำวัน", id: "multipurpose", type: "tuya", deviceId: "a3a95d6030b8bc9a02idhq" },
+  { name: "พลังงานโซล่าเซลล์", id: "solar", type: "shelly", deviceId: "e08cfe96bc38" }
 ];
 
 // ฟังก์ชันตรวจสอบ On-Peak / Off-Peak (เวลาประเทศไทย)
 function getTouStatus() {
   const now = new Date();
-  // จัดรูปแบบให้อยู่ใน Timezone ประเทศไทย (+07:00)
   const tzDate = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Bangkok"}));
   
   const day = tzDate.getDay(); // 0 = อาทิตย์, 1 = จันทร์ ... 6 = เสาร์
@@ -30,7 +32,7 @@ function getTouStatus() {
   return "OFF_PEAK";
 }
 
-// ฟังก์ชันแปลงข้อมูล Tuya JSON ให้อ่านง่าย
+// ฟังก์ชันแปลงข้อมูล Tuya JSON (และ Shelly ที่แปลงมาแล้ว) ให้อ่านง่าย
 function parseTuyaData(statusArray) {
   if (!statusArray) return null;
   
@@ -59,12 +61,18 @@ function parseTuyaData(statusArray) {
 // (ให้ตั้ง Trigger รันฟังก์ชันนี้ทุก 15 นาที)
 // ==========================================
 function fetchAndSaveTuyaData() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  // บังคับหาชื่อแท็บ AMR_Data เท่านั้น จะได้ไม่ไปลงแท็บพระมั่ว
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("AMR_Data");
+  
+  if (!sheet) {
+    Logger.log("ไม่พบแท็บชื่อ AMR_Data โปรดสร้างแท็บนี้ก่อน");
+    return;
+  }
   
   // สร้าง Header อัตโนมัติถ้าบรรทัดแรกยังว่าง
   if (sheet.getLastRow() === 0) {
     sheet.appendRow([
-      "วัน-เวลา (ด/ว/ป ช:น)", 
+      "วัน-เวลา", 
       "อาคาร", 
       "ช่วงเวลา (TOU)", 
       "หน่วยไฟสะสมรวม (kWh)", 
@@ -79,7 +87,6 @@ function fetchAndSaveTuyaData() {
       "แรงดันเฟส B (V)",
       "แรงดันเฟส C (V)"
     ]);
-    // จัดสี Header ให้สวยงาม
     sheet.getRange("A1:N1").setBackground("#1e293b").setFontColor("white").setFontWeight("bold");
     sheet.setFrozenRows(1);
   }
@@ -90,11 +97,15 @@ function fetchAndSaveTuyaData() {
   // วนลูปดึงข้อมูลทีละอุปกรณ์
   DEVICES.forEach(device => {
     try {
-      const url = VERCEL_APP_URL + "/api/tuya?deviceId=" + device.deviceId;
+      // เลือกว่าจะดึงจาก API ตัวไหน (Tuya หรือ Shelly)
+      const apiPath = device.type === 'shelly' ? '/api/shelly' : '/api/tuya';
+      const url = VERCEL_APP_URL + apiPath + "?deviceId=" + device.deviceId;
+      
       const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
       const json = JSON.parse(response.getContentText());
       
       if (json.success && json.result && json.result.status) {
+        // ไม่ว่าจะเป็น Tuya หรือ Shelly เราก็ใช้ตัวอ่านเดียวกันได้เลย เพราะหลังบ้านเว็บเราแปลงให้แล้ว!
         const data = parseTuyaData(json.result.status);
         
         // บันทึกลง Sheet
@@ -119,40 +130,4 @@ function fetchAndSaveTuyaData() {
       Logger.log("Error fetching " + device.name + ": " + error.toString());
     }
   });
-}
-
-// ==========================================
-// ฟังก์ชัน API: ส่งข้อมูลกลับไปให้เว็บ (React) โหลดกราฟ
-// ==========================================
-function doGet(e) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const lastRow = sheet.getLastRow();
-  
-  if (lastRow <= 1) {
-    return ContentService.createTextOutput(JSON.stringify([]))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  // ดึงข้อมูลแถวทั้งหมด (ข้าม Header)
-  const numRowsToFetch = Math.min(lastRow - 1, 500); // ดึงล่าสุดไม่เกิน 500 แถว
-  const startRow = lastRow - numRowsToFetch + 1;
-  const data = sheet.getRange(startRow, 1, numRowsToFetch, 14).getValues();
-  
-  const result = data.map(row => ({
-    timestamp: row[0],
-    building: row[1],
-    touStatus: row[2],
-    totalKwh: row[3],
-    totalKw: row[4],
-    currentA: row[5],
-    currentB: row[6],
-    currentC: row[7],
-    kwA: row[8],
-    kwB: row[9],
-    kwC: row[10]
-  }));
-
-  // ส่ง JSON กลับไป (อนุญาตให้ข้ามโดเมนได้)
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
 }

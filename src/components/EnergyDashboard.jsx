@@ -5,7 +5,7 @@ import Papa from 'papaparse';
 const BUILDINGS = [
   { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a326a888ee9e0e5c67pwni' },
   { id: 'multipurpose', name: 'ศาลาพระประจำวัน', deviceId: 'a3a95d6030b8bc9a02idhq' },
-  { id: 'solar', name: 'พลังงานโซล่าเซลล์', deviceId: '', isSolar: true },
+  { id: 'solar', name: 'พลังงานโซล่าเซลล์', deviceId: 'e08cfe96bc38', isSolar: true, type: 'shelly' },
   { id: 'b1', name: 'อาคาร 1', deviceId: '' },
   { id: 'b2', name: 'อาคาร 2', deviceId: '' },
   { id: 'b3', name: 'อาคาร 3', deviceId: '' },
@@ -155,10 +155,11 @@ export default function EnergyDashboard() {
     setHistoricalData(chartData.slice(-pointsToKeep));
   }, [rawHistory, graphFilter]);
 
-  const fetchRealData = async (bldgId, deviceId) => {
+  const fetchRealData = async (bldgId, deviceId, type) => {
     if (!deviceId) return;
     try {
-      const response = await fetch(`/api/tuya?deviceId=${deviceId}`);
+      const url = type === 'shelly' ? `/api/shelly?deviceId=${deviceId}` : `/api/tuya?deviceId=${deviceId}`;
+      const response = await fetch(url);
       const apiData = await response.json();
       setBuildingData(prev => ({
         ...prev,
@@ -176,7 +177,7 @@ export default function EnergyDashboard() {
   };
 
   useEffect(() => {
-    const promises = BUILDINGS.filter(b => b.deviceId).map(b => fetchRealData(b.id, b.deviceId));
+    const promises = BUILDINGS.filter(b => b.deviceId).map(b => fetchRealData(b.id, b.deviceId, b.type));
     Promise.all(promises);
   }, []);
 
