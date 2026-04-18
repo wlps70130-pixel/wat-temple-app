@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const BUILDINGS = [
   { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a326a888ee9e0e5c67pwni' },
@@ -29,10 +30,45 @@ export default function EnergyDashboard() {
   const [graphFilter, setGraphFilter] = useState('day'); // 'day', 'week', 'month', 'year'
   const [peakRatio, setPeakRatio] = useState(40); // Default 40% On-Peak
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  const [historicalData, setHistoricalData] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const HISTORY_URL = "https://script.google.com/macros/s/AKfycbzFA-Kj3b9MwwFoFrfdF06XWRvbkj4suHmS9gv616XqnoG1_o6W8LvGlKUeRwSwWFZBgw/exec";
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      setIsLoadingHistory(true);
+      try {
+        const res = await fetch(HISTORY_URL);
+        const data = await res.json();
+        
+        const grouped = {};
+        data.forEach(item => {
+           // Extract "HH:mm" from "dd/MM/yyyy HH:mm:ss"
+           const timeMatch = item.timestamp.match(/(\d{2}:\d{2}):\d{2}$/);
+           const timeLabel = timeMatch ? timeMatch[1] : item.timestamp;
+           
+           if (!grouped[timeLabel]) {
+             grouped[timeLabel] = { time: timeLabel, totalKw: 0 };
+           }
+           grouped[timeLabel].totalKw += parseFloat(item.totalKw || 0);
+        });
+        
+        const chartData = Object.values(grouped);
+        // Limit to latest 96 points (24 hours if 15min intervals)
+        setHistoricalData(chartData.slice(-96));
+      } catch(e) {
+        console.error("Fetch history error", e);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+    fetchHistory();
   }, []);
 
   const fetchRealData = async (bldgId, deviceId) => {
@@ -146,14 +182,51 @@ export default function EnergyDashboard() {
     danger: '#dc2626'
   };
 
-  const MockGraph = ({ filter }) => {
-    return (
-      <div style={{ width: '100%', height: '180px', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '12px', border: `1px dashed ${theme.border}` }}>
-        <div style={{ textAlign: 'center', color: theme.textSub }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.5 }}>📊</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>รออัปเดตข้อมูล</div>
-          <div style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>ระบบกราฟสถิติอยู่ระหว่างการเชื่อมต่อฐานข้อมูลย้อนหลัง</div>
+  const AmrGraph = ({ filter }) => {
+    if (isLoadingHistory) {
+      return (
+        <div style={{ width: '100%', height: '200px', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '12px', border: `1px dashed ${theme.border}` }}>
+          <div style={{ color: theme.textSub, fontSize: '0.9rem' }}>⏳ กำลังโหลดข้อมูลย้อนหลังจาก Google Sheets...</div>
         </div>
+      );
+    }
+    
+    if (historicalData.length === 0) {
+      return (
+        <div style={{ width: '100%', height: '200px', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '12px', border: `1px dashed ${theme.border}` }}>
+          <div style={{ textAlign: 'center', color: theme.textSub }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.5 }}>📊</div>
+            <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>กำลังเริ่มเก็บสถิติ</div>
+            <div style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>ข้อมูลกราฟจะปรากฏขึ้นหลังจากการบันทึกรอบถัดไป (15 นาที)</div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ width: '100%', height: 250, marginTop: '1.5rem', marginLeft: '-15px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={historicalData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={theme.border} vertical={false} />
+            <XAxis dataKey="time" stroke={theme.textSub} fontSize={11} tickMargin={10} minTickGap={30} />
+            <YAxis stroke={theme.textSub} fontSize={11} tickFormatter={(val) => `${val}kW`} width={50} />
+            <Tooltip 
+              contentStyle={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '12px', color: theme.textMain, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+              itemStyle={{ color: theme.primary, fontWeight: 'bold' }}
+              labelStyle={{ color: theme.textSub, marginBottom: '0.25rem', fontSize: '0.85rem' }}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="totalKw" 
+              name="กำลังไฟรวม (kW)" 
+              stroke={theme.primary} 
+              strokeWidth={3} 
+              dot={false} 
+              activeDot={{ r: 6, fill: theme.primary, stroke: theme.cardBg, strokeWidth: 2 }} 
+              animationDuration={1500}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     );
   };
@@ -284,7 +357,7 @@ export default function EnergyDashboard() {
             })}
           </div>
 
-          <MockGraph filter={graphFilter} />
+          <AmrGraph filter={graphFilter} />
         </div>
 
         {/* Prominent Building List */}
