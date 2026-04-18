@@ -8,7 +8,7 @@ const MENU_ITEMS = [
   { id: 5, label: 'คณะสงฆ์', icon: Users, color: '#d97706', isActive: true, target: 'sangha' },
   // Inactive Modules (Waiting for update)
   { id: 1, label: 'ทำบุญ', icon: HeartHandshake, color: '#4ade80', isActive: false },
-  { id: 3, label: 'พระของขวัญ', icon: Gift, color: '#facc15', isActive: false },
+  { id: 3, label: 'พระของขวัญ', icon: Gift, color: '#facc15', isActive: true, target: 'amulet' },
   { id: 4, label: 'กิจนิมนต์', icon: CalendarSync, color: '#f87171', isActive: false },
   { id: 6, label: 'ห้องสมุด', icon: Library, color: '#a78bfa', isActive: false },
   { id: 7, label: 'แจ้งป่วย', icon: Stethoscope, color: '#ef4444', isActive: false },

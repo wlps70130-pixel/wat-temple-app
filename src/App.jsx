@@ -10,6 +10,8 @@ import DhammaPlaylist from './components/DhammaPlaylist';
 import AudioPlayer from './components/AudioPlayer';
 
 import EnergyDashboard from './components/EnergyDashboard';
+import AmuletViewer from './components/AmuletViewer';
+
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -87,6 +89,8 @@ function App() {
           isPlaying={isPlaying}
           onPlayTrack={playTrack}
         />
+      ) : currentView === 'amulet' ? (
+        <AmuletViewer />
       ) : null}
 
       {/* Hidden Audio Element */}
