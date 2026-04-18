@@ -3,7 +3,7 @@ import { Play, Pause, Shuffle, ListMusic, Clock3, Loader2, ChevronDown } from 'l
 import Papa from 'papaparse';
 import AiAssistant from './AiAssistant';
 
-const SHEET_URL = '/dhamma_tracks.csv';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=2048515869&single=true&output=csv';
 
 // ─── EQ Animation Bars ──────────────────────────────────────────
 const EqBars = ({ color = '#1db954' }) => (
