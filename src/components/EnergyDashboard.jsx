@@ -403,17 +403,30 @@ export default function EnergyDashboard() {
 
         {/* Dark Banner */}
         <div style={{ background: isDarkMode ? '#18181b' : '#27272a', borderRadius: '24px', padding: '1.75rem 1.5rem', color: 'white', position: 'relative', overflow: 'hidden', boxShadow: theme.shadow }}>
-           <div style={{ position: 'relative', zIndex: 1, width: '65%' }}>
-              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', lineHeight: '1.3', letterSpacing: '0.5px' }}>
-                 <span style={{color: '#a3e635'}}>SUSTAINABLE</span> SUN<br/>ENERGY MONITORING<br/><span style={{opacity: 0.6, fontSize: '0.9rem'}}>DASHBOARD</span>
-              </h2>
-              <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                 <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System Status: </div>
-                 <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: allOnline ? '#a3e635' : '#ef4444' }}>{allOnline ? 'ALL ONLINE' : 'SOME OFFLINE'}</div>
+           <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
+              <div style={{ width: '70%' }}>
+                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', lineHeight: '1.3', letterSpacing: '0.5px' }}>
+                   <span style={{color: '#a3e635'}}>SUSTAINABLE</span> SUN<br/>ENERGY MONITORING<br/><span style={{opacity: 0.6, fontSize: '0.9rem'}}>DASHBOARD</span>
+                </h2>
+                <div style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                   <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System Status: </div>
+                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: allOnline ? '#a3e635' : '#ef4444' }}>{allOnline ? 'ALL ONLINE' : 'SOME OFFLINE'}</div>
+                </div>
+              </div>
+              
+              <div style={{ marginTop: '1.25rem', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(12px)', borderRadius: '16px', padding: '0.85rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                 <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fcd34d', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                       ✨ อัตราค่าไฟ (TOU)
+                    </div>
+                 </div>
+                 <div style={{ background: 'white', color: '#0f172a', padding: '0.4rem 0.75rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '800', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    {totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} ฿
+                 </div>
               </div>
            </div>
            {/* House Image / Icon */}
-           <div style={{ position: 'absolute', right: '-15px', bottom: '-20px', fontSize: '7rem', opacity: 0.95, filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))' }}>
+           <div style={{ position: 'absolute', right: '-15px', top: '15px', fontSize: '6.5rem', opacity: 0.95, filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))' }}>
               🏡
            </div>
         </div>
