@@ -97,8 +97,11 @@ export default function EnergyDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   
   const [rawHistory, setRawHistory] = useState([]);
-
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  
+  // AI State
+  const [aiInsight, setAiInsight] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=2048515869&single=true&output=csv";
 
   useEffect(() => {
@@ -428,7 +431,28 @@ export default function EnergyDashboard() {
     const currentYear = currentTime.getFullYear() + 543;
 
     const totalPower = (solarKw + globalKw) || 1;
-    const prodPercent = (solarKw / totalPower) * 100;
+    const prodPercent = Math.min((solarKw / totalPower) * 100, 100);
+
+    const handleAnalyze = async () => {
+      setIsAiLoading(true);
+      try {
+        const context = `ข้อมูลปัจจุบัน: โซล่าเซลล์ผลิตได้ ${solarKw.toFixed(1)} kW, โหลดตึกทั้งหมดใช้ไฟรวม ${globalKw.toFixed(1)} kW, เปอร์เซ็นต์การพึ่งพาตัวเอง ${prodPercent.toFixed(1)}%, วันนี้เป็นช่วงเวลา ${touStatus === 'ON_PEAK' ? 'On-Peak (ค่าไฟแพง)' : 'Off-Peak (ค่าไฟถูก)'}`;
+        const res = await fetch('/api/thaillm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ context })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setAiInsight(data.reply);
+        } else {
+          setAiInsight("เกิดข้อผิดพลาดจาก API ของโมเดล");
+        }
+      } catch (e) {
+        setAiInsight("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่");
+      }
+      setIsAiLoading(false);
+    };
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
@@ -591,6 +615,59 @@ export default function EnergyDashboard() {
                  }
               </div>
            </div>
+        </div>
+
+        {/* AI Insight Analyst */}
+        <div style={{ background: isDarkMode ? 'linear-gradient(135deg, #1e1b4b, #312e81)' : 'linear-gradient(135deg, #f0fdf4, #dcfce3)', borderRadius: '24px', padding: '1.5rem', border: `1px solid ${isDarkMode ? '#4f46e5' : '#86efac'}`, boxShadow: theme.shadow, position: 'relative', overflow: 'hidden' }}>
+           <div style={{ position: 'absolute', right: '-20px', top: '-10px', fontSize: '8rem', opacity: isDarkMode ? 0.05 : 0.2 }}>🤖</div>
+           
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+              <div>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '1.5rem' }}>🪄</span>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: isDarkMode ? '#c7d2fe' : '#166534', fontWeight: '800' }}>AI Energy Analyst</h3>
+                 </div>
+                 <p style={{ margin: 0, fontSize: '0.85rem', color: isDarkMode ? '#818cf8' : '#15803d', fontWeight: '500' }}>ขับเคลื่อนโดย Typhoon (ThaiLLM)</p>
+              </div>
+              <button 
+                 onClick={handleAnalyze} 
+                 disabled={isAiLoading}
+                 style={{ 
+                    background: isAiLoading ? (isDarkMode ? '#475569' : '#cbd5e1') : (isDarkMode ? '#6366f1' : '#22c55e'), 
+                    color: 'white', 
+                    border: 'none', 
+                    padding: '0.6rem 1.25rem', 
+                    borderRadius: '20px', 
+                    fontWeight: '700', 
+                    cursor: isAiLoading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    transition: 'all 0.2s'
+                 }}
+              >
+                 {isAiLoading ? (
+                    <>
+                       <div style={{ width: '12px', height: '12px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                       กำลังวิเคราะห์...
+                    </>
+                 ) : 'วิเคราะห์ข้อมูล'}
+              </button>
+           </div>
+
+           {aiInsight && (
+              <div style={{ marginTop: '1.5rem', background: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.7)', padding: '1.25rem', borderRadius: '16px', border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)'}`, position: 'relative', zIndex: 1, animation: 'fade-in 0.4s ease-out' }}>
+                 <div style={{ fontSize: '0.95rem', color: isDarkMode ? '#f8fafc' : '#1e293b', lineHeight: '1.6', fontWeight: '500' }}>
+                    {aiInsight.split('\n').map((line, i) => (
+                       <p key={i} style={{ margin: '0 0 0.5rem 0' }}>{line}</p>
+                    ))}
+                 </div>
+              </div>
+           )}
+           <style>{`
+             @keyframes spin { 100% { transform: rotate(360deg); } }
+           `}</style>
         </div>
 
         {/* Graph Section */}
