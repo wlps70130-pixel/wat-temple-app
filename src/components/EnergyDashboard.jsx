@@ -410,23 +410,39 @@ export default function EnergyDashboard() {
 
     const touStatus = getTouStatus(currentTime);
 
-    // คำนวณ kWh รายเดือนจาก Google Sheets History (ถูกต้อง)
-    const currentMonthKey = `${currentTime.getFullYear()}-${String(currentTime.getMonth() + 1).padStart(2, '0')}`;
+    // คำนวณ kWh รายเดือน: parse timestamp ทั้ง ISO และ DD/MM/YYYY format
+    const currentMonthNum = currentTime.getMonth() + 1;
+    const currentYearNum = currentTime.getFullYear();
     let monthlyOnPeakKwh = 0;
     let monthlyOffPeakKwh = 0;
     const INTERVAL_HOURS = 0.25; // บันทึกทุก 15 นาที
 
     rawHistory.forEach(r => {
       if (!r.timestamp || r.building === 'พลังงานโซล่าเซลล์') return;
-      // ตรวจสอบว่าเป็นข้อมูลของเดือนนี้
-      const tsYear = r.timestamp.slice(0, 4);
-      const tsMon = r.timestamp.includes('T') ? r.timestamp.slice(5, 7) : r.timestamp.slice(6, 8);
-      const tsKey = `${tsYear}-${tsMon}`;
-      if (tsKey !== currentMonthKey) return;
+      let tsMonth = 0, tsYear = 0;
+      const ts = String(r.timestamp).trim();
+      if (ts.includes('T')) {
+        tsYear = parseInt(ts.slice(0, 4), 10);
+        tsMonth = parseInt(ts.slice(5, 7), 10);
+      } else if (ts.includes('/')) {
+        const parts = ts.split(' ')[0].split('/');
+        if (parts.length === 3) { tsMonth = parseInt(parts[1], 10); tsYear = parseInt(parts[2], 10); }
+      }
+      if (tsYear !== currentYearNum || tsMonth !== currentMonthNum) return;
       const kwh = parseFloat(r.totalKw || 0) * INTERVAL_HOURS;
+      if (kwh <= 0) return;
       if (r.touStatus === 'ON_PEAK') monthlyOnPeakKwh += kwh;
       else monthlyOffPeakKwh += kwh;
     });
+
+    // Fallback: ถ้ายังไม่มีข้อมูล ประมาณจาก kW ปัจจุบัน
+    const isEstimated = monthlyOnPeakKwh + monthlyOffPeakKwh === 0;
+    if (isEstimated && globalKw > 0) {
+      const daysElapsed = Math.max(currentTime.getDate(), 1);
+      const estimatedKwh = globalKw * 13 * daysElapsed;
+      monthlyOnPeakKwh = estimatedKwh * 0.55;
+      monthlyOffPeakKwh = estimatedKwh * 0.45;
+    }
 
     const totalMonthlyKwh = monthlyOnPeakKwh + monthlyOffPeakKwh;
     const onPeakCost = monthlyOnPeakKwh * PEA_RATES.onPeak;
@@ -446,18 +462,16 @@ export default function EnergyDashboard() {
 
     const totalPower = (solarKw + globalKw) || 1;
     const prodPercent = Math.min((solarKw / totalPower) * 100, 100);
-    // กริดไฟฟ้า: ถ้า solar > load = ส่งออก (+), ถ้า solar < load = ดึงเข้า (-)
     const netGrid = globalKw - solarKw;
 
     const aiContextData = [
       `📊 ข้อมูลพลังงาน ณ ปัจจุบัน:`,
       `- โซล่าเซลล์ผลิตได้: ${solarKw.toFixed(2)} kW`,
-      `- โหลดรวมทุกอาคาร: ${globalKw.toFixed(2)} kW`,
-      `- การพึ่งพาพลังงานทดแทน: ${prodPercent.toFixed(1)}%`,
-      `- กระแสไฟสุทธิจากกริด: ${netGrid > 0 ? '+' : ''}${netGrid.toFixed(2)} kW (${netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออกไปยัง PEA'})`,
-      `- ช่วงเวลา TOU ปัจจุบัน: ${touStatus === 'ON_PEAK' ? '🔴 On-Peak (ค่าไฟแพง 4.39 บาท/หน่วย)' : '🟢 Off-Peak (ค่าไฟถูก 2.65 บาท/หน่วย)'}`,
-      `- ประมาณการค่าไฟเดือน${currentMonth}: ${totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท`,
-      `  (On-Peak: ${monthlyOnPeakKwh.toFixed(0)} หน่วย, Off-Peak: ${monthlyOffPeakKwh.toFixed(0)} หน่วย)`,
+      `- โหลดรวม: ${globalKw.toFixed(2)} kW`,
+      `- พึ่งพาพลังงานทดแทน: ${prodPercent.toFixed(1)}%`,
+      `- ไฟสุทธิ: ${netGrid > 0 ? '+' : ''}${netGrid.toFixed(2)} kW (${netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออกไป PEA'})`,
+      `- TOU: ${touStatus === 'ON_PEAK' ? '🔴 On-Peak (4.39 บาท/หน่วย)' : '🟢 Off-Peak (2.65 บาท/หน่วย)'}`,
+      `- ค่าไฟเดือน${currentMonth}: ${totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท (${isEstimated ? 'ประมาณ' : 'จากข้อมูลจริง'})`,
     ].join('\n');
 
     return (
@@ -487,33 +501,36 @@ export default function EnergyDashboard() {
                 </div>
               </div>
               
-              <div style={{ marginTop: '1.25rem', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(12px)', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ marginTop: '1.25rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fcd34d', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                       ✨ ประมาณการค่าไฟ (TOU)
+                    <div style={{ color: '#fcd34d', fontWeight: '700', fontSize: '0.8rem' }}>
+                       ✨ ค่าไฟฟ้า {isEstimated ? '(ประมาณ)' : '(ข้อมูลจริง)'}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', fontWeight: '500' }}>
-                       เดือน {currentMonth} {currentYear}
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>
+                       {currentMonth} {currentYear}
                     </div>
                  </div>
-                 
+
                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {/* On-Peak */}
-                    <div style={{ flex: 1, background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', padding: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                       <span style={{ fontSize: '0.7rem', color: '#fca5a5', fontWeight: '600' }}>🔴 On-Peak</span>
-                       <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#f87171' }}>{onPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} <span style={{fontSize:'0.75rem'}}>฿</span></span>
+                    <div style={{ flex: 1, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px', padding: '0.55rem 0.3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                       <span style={{ fontSize: '0.65rem', color: '#fca5a5', fontWeight: '700' }}>🔴 On-Peak</span>
+                       <span style={{ fontSize: '1.15rem', fontWeight: '800', color: '#f87171', lineHeight: 1.1 }}>{onPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} <span style={{fontSize:'0.7rem'}}>฿</span></span>
+                       <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.45)' }}>{monthlyOnPeakKwh.toFixed(0)} หน่วย</span>
                     </div>
-                    {/* Off-Peak */}
-                    <div style={{ flex: 1, background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '12px', padding: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                       <span style={{ fontSize: '0.7rem', color: '#86efac', fontWeight: '600' }}>🟢 Off-Peak</span>
-                       <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#4ade80' }}>{offPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} <span style={{fontSize:'0.75rem'}}>฿</span></span>
+                    <div style={{ flex: 1, background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '12px', padding: '0.55rem 0.3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                       <span style={{ fontSize: '0.65rem', color: '#86efac', fontWeight: '700' }}>🟢 Off-Peak</span>
+                       <span style={{ fontSize: '1.15rem', fontWeight: '800', color: '#4ade80', lineHeight: 1.1 }}>{offPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} <span style={{fontSize:'0.7rem'}}>฿</span></span>
+                       <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.45)' }}>{monthlyOffPeakKwh.toFixed(0)} หน่วย</span>
                     </div>
                  </div>
-                 
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>รวมค่าบริการ/Ft/ภาษี</span>
-                    <div style={{ background: 'white', color: '#0f172a', padding: '0.3rem 0.75rem', borderRadius: '10px', fontSize: '1rem', fontWeight: '800', boxShadow: '0 4px 6px rgba(0,0,0,0.2)' }}>
-                       รวม {totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} ฿
+
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+                      Ft + ค่าบริการ + VAT 7%<br/>
+                      <span>{totalMonthlyKwh.toFixed(0)} หน่วยรวม</span>
+                    </div>
+                    <div style={{ background: 'white', color: '#0f172a', padding: '0.35rem 0.85rem', borderRadius: '12px', fontSize: '1.05rem', fontWeight: '800', boxShadow: '0 4px 6px rgba(0,0,0,0.25)', whiteSpace: 'nowrap' }}>
+                       {totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} ฿
                     </div>
                  </div>
               </div>
