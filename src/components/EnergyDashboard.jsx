@@ -857,7 +857,7 @@ export default function EnergyDashboard() {
               ].map(p => (
                 <div key={p.id} style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, position: 'relative', overflow: 'hidden' }}>
                    {/* Background subtle color hint */}
-                   <div style={{ position: 'absolute', top: 0, right: 0, width: '150px', height: '150px', background: \`radial-gradient(circle, \${p.color} 0%, transparent 70%)\`, opacity: isDarkMode ? 0.15 : 0.05, transform: 'translate(30%, -30%)' }}></div>
+                   <div style={{ position: 'absolute', top: 0, right: 0, width: '150px', height: '150px', background: `radial-gradient(circle, ${p.color} 0%, transparent 70%)`, opacity: isDarkMode ? 0.15 : 0.05, transform: 'translate(30%, -30%)' }}></div>
                    
                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', position: 'relative', zIndex: 1 }}>
                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -876,13 +876,13 @@ export default function EnergyDashboard() {
                        <div style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>Current</div>
                        <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem' }}>{p.data.a}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px', color:theme.textSub}}>A</span></div>
                      </div>
-                     <div style={{ background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '1rem', borderRadius: '16px', border: \`1px solid \${p.color}40\` }}>
+                     <div style={{ background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '1rem', borderRadius: '16px', border: `1px solid ${p.color}40` }}>
                        <div style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>Power</div>
                        <div style={{ fontSize: '1.2rem', fontWeight: '800', color: p.color, marginTop: '0.2rem' }}>{p.data.kw}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px'}}>kW</span></div>
                      </div>
                    </div>
 
-                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: \`1px dashed \${theme.border}\`, fontSize: '0.85rem', color: theme.textSub, position: 'relative', zIndex: 1, fontWeight: '500' }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: `1px dashed ${theme.border}`, fontSize: '0.85rem', color: theme.textSub, position: 'relative', zIndex: 1, fontWeight: '500' }}>
                      <div>PF: <strong style={{color: theme.textMain}}>{p.data.pf}</strong></div>
                      <div>kVar: <strong style={{color: theme.textMain}}>{p.data.kvar}</strong></div>
                      <div><strong style={{color: theme.textMain, fontSize:'0.9rem'}}>{p.data.kwh}</strong> <span style={{fontSize:'0.75rem'}}>kWh</span></div>
