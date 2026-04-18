@@ -1,6 +1,9 @@
 import React from 'react';
 import { ChevronLeft } from 'lucide-react';
 
+// ฟอนต์หรูสำหรับชื่อวัด
+const elegantFontLink = "https://fonts.googleapis.com/css2?family=Sarabun:wght@500;700&family=Prompt:wght@600&display=swap";
+
 export default function Header({ onBack }) {
   return (
     <header className="header glass glass-card" style={{ position: 'relative' }}>
@@ -32,8 +35,27 @@ export default function Header({ onBack }) {
         <img src="/logo.png" alt="โลโก้วัดหลวงพ่อสด" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }} />
       </div>
       <div className="header-text">
-        <h1>วัดหลวงพ่อสด<br/>ธรรมกายาราม</h1>
-        <p>สำนักปฏิบัติธรรมประจำจังหวัดราชบุรี แห่งที่ 1</p>
+        <link rel="stylesheet" href={elegantFontLink} />
+        <h1 style={{
+          fontFamily: "'Sarabun', 'Prompt', sans-serif",
+          fontWeight: 700,
+          fontSize: 'clamp(0.95rem, 3.5vw, 1.35rem)',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          letterSpacing: '0.02em',
+          lineHeight: 1.2,
+          color: 'var(--primary-dark)'
+        }}>วัดหลวงพ่อสดธรรมกายาราม</h1>
+        <p style={{
+          fontFamily: "'Sarabun', sans-serif",
+          fontWeight: 500,
+          fontSize: 'clamp(0.68rem, 2.2vw, 0.85rem)',
+          letterSpacing: '0.01em',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}>สำนักปฏิบัติธรรมประจำจังหวัดราชบุรี แห่งที่ 1</p>
       </div>
     </header>
   );
