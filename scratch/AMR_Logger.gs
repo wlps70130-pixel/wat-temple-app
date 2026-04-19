@@ -10,7 +10,7 @@ const VERCEL_APP_URL = "https://wat-temple-app.vercel.app";
 // ถ้าเป็น Tuya ให้ใช้ type: "tuya" (หรือปล่อยว่างไว้)
 // ถ้าเป็น Shelly ให้ใช้ type: "shelly"
 const DEVICES = [
-  { name: "ศาลาสมเด็จฯ", id: "somdej", type: "tuya", deviceId: "a326a888ee9e0e5c67pwni" },
+  { name: "ศาลาสมเด็จฯ", id: "somdej", type: "tuya", deviceId: "a3415610e1bc4a9df14lsa" },
   { name: "ศาลาพระประจำวัน", id: "multipurpose", type: "tuya", deviceId: "a3a95d6030b8bc9a02idhq" },
   { name: "พลังงานโซล่าเซลล์", id: "solar", type: "shelly", deviceId: "e08cfe96bc38" }
 ];

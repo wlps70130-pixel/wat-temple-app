@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 import AiAssistant from './AiAssistant';
 
 const BUILDINGS = [
-  { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a326a888ee9e0e5c67pwni' },
+  { id: 'somdej', name: 'ศาลาสมเด็จฯ', deviceId: 'a3415610e1bc4a9df14lsa' },
   { id: 'multipurpose', name: 'ศาลาพระประจำวัน', deviceId: 'a3a95d6030b8bc9a02idhq' },
   { id: 'solar', name: 'พลังงานโซล่าเซลล์', deviceId: 'e08cfe96bc38', isSolar: true, type: 'shelly' },
   { id: 'b1', name: 'อาคาร 1', deviceId: '' },
