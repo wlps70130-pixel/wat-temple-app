@@ -70,7 +70,9 @@ export default function DhammaMenu({ onSelectCategory }) {
               }}
             >
               <div style={{ 
-                width: '100px', 
+                width: '100%',
+                maxWidth: '100px',
+                flexShrink: 0,
                 background: cat.bgGradient,
                 display: 'flex',
                 alignItems: 'center',
@@ -81,6 +83,7 @@ export default function DhammaMenu({ onSelectCategory }) {
               </div>
               <div style={{ 
                 flex: 1, 
+                minWidth: 0,
                 padding: '1.25rem 1rem', 
                 background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
                 display: 'flex',
@@ -88,10 +91,10 @@ export default function DhammaMenu({ onSelectCategory }) {
                 justifyContent: 'center',
                 position: 'relative'
               }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-main)', marginBottom: '0.2rem' }}>
+                <h3 style={{ fontSize: 'clamp(1rem, 4vw, 1.1rem)', fontWeight: '600', color: 'var(--text-main)', marginBottom: '0.2rem', wordBreak: 'break-word' }}>
                   {cat.title}
                 </h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <p style={{ fontSize: 'clamp(0.7rem, 3vw, 0.8rem)', color: 'var(--text-muted)', wordBreak: 'break-word' }}>
                   {cat.subtitle}
                 </p>
                 <div style={{ position: 'absolute', right: '1rem', bottom: '1rem', opacity: 0.1 }}>

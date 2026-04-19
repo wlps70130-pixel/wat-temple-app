@@ -110,10 +110,10 @@ export default function SanghaChart() {
   const viceAbbot = data.viceAbbots[0]; // Take first for the dashboard card
 
   return (
-    <div style={{ background: '#f4f5f7', minHeight: '100vh', paddingBottom: '80px', fontFamily: '"Inter", "Prompt", sans-serif', marginLeft: '-1rem', marginRight: '-1rem' }}>
+    <div style={{ background: '#f4f5f7', minHeight: '100vh', paddingBottom: '80px', fontFamily: '"Inter", "Prompt", sans-serif', marginLeft: 'calc(-1 * var(--content-pad))', marginRight: 'calc(-1 * var(--content-pad))' }}>
       
       {/* Top spacing instead of App Bar */}
-      <div style={{ padding: '1.5rem 1.25rem 1.25rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
+      <div style={{ padding: '1.5rem var(--content-pad) 1.25rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
         
         {/* Golden Banner */}
         <div style={{ 
@@ -138,7 +138,7 @@ export default function SanghaChart() {
         </div>
 
         {/* Bento Row 1: Leadership & Deputy */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
           
           {/* Leadership Card */}
           <div 
@@ -148,16 +148,16 @@ export default function SanghaChart() {
             <div style={{ width: '100%', textAlign: 'left', fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', letterSpacing: '1.5px', marginBottom: '1.25rem' }}>ระดับบริหาร</div>
             {abbot ? (
               <>
-                <div style={{ width: '100px', height: '100px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 8px 20px -4px rgba(0,0,0,0.2)' }}>
+                <div style={{ width: '100%', maxWidth: '100px', aspectRatio: '1/1', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 8px 20px -4px rgba(0,0,0,0.2)' }}>
                    <MonkAvatar src={abbot.image} alt={abbot.name} size={100} style={{ width: '100%', height: '100%', objectFit: 'cover', border: 'none' }} />
                 </div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#1e293b', marginTop: '1.25rem' }}>เจ้าอาวาส</div>
+                <div style={{ fontSize: 'clamp(0.95rem, 4vw, 1.1rem)', fontWeight: '800', color: '#1e293b', marginTop: '1.25rem', textAlign: 'center' }}>เจ้าอาวาส</div>
                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', textAlign:'center', lineHeight:1.2, height:'32px', overflow:'hidden' }}>{abbot.name}</div>
               </>
             ) : (
               <div style={{ flex: 1, display:'flex', alignItems:'center', justifyContent:'center' }}><p style={{color:'#94a3b8'}}>N/A</p></div>
             )}
-            <div style={{ width: '100%', background: '#fffbeb', padding: '0.85rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: '800', color: '#b45309', marginTop: 'auto', alignSelf: 'stretch', marginLeft: '-1.25rem', marginRight: '-1.25rem', width: 'calc(100% + 2.5rem)' }}>
+            <div style={{ width: '100%', background: '#fffbeb', padding: '0.85rem 0.5rem', textAlign: 'center', fontSize: 'clamp(0.65rem, 3vw, 0.75rem)', fontWeight: '800', color: '#b45309', marginTop: 'auto', alignSelf: 'stretch', marginLeft: '-1.25rem', marginRight: '-1.25rem', width: 'calc(100% + 2.5rem)', boxSizing: 'border-box' }}>
               เจ้าสำนักปฏิบัติธรรม
             </div>
           </div>
@@ -170,13 +170,13 @@ export default function SanghaChart() {
             >
               <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#636366', letterSpacing: '1.5px', marginBottom: '1rem' }}>รองเจ้าอาวาส</div>
               {viceAbbot ? (
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                  <div style={{ width: '52px', height: '52px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ width: '100%', maxWidth: '52px', aspectRatio: '1/1', borderRadius: '16px', overflow: 'hidden', flexShrink: 0 }}>
                     <MonkAvatar src={viceAbbot.image} alt={viceAbbot.name} size={52} style={{ width: '100%', height: '100%', objectFit: 'cover', border: 'none' }} />
                   </div>
-                  <div style={{ overflow: 'hidden' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: '800', color: 'white' }}>รองเจ้าอาวาส</div>
-                    <div style={{ fontSize: '0.65rem', color: '#a1a1aa', marginTop: '0.1rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{viceAbbot.name}</div>
+                  <div style={{ overflow: 'hidden', flex: '1 1 min-content' }}>
+                    <div style={{ fontSize: 'clamp(0.85rem, 3vw, 0.9rem)', fontWeight: '800', color: 'white' }}>รองเจ้าอาวาส</div>
+                    <div style={{ fontSize: 'clamp(0.6rem, 2.5vw, 0.65rem)', color: '#a1a1aa', marginTop: '0.1rem', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{viceAbbot.name}</div>
                   </div>
                 </div>
               ) : (
@@ -234,7 +234,7 @@ export default function SanghaChart() {
           </div>
           
           {/* Dot Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '0.65rem', marginBottom: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(28px, 1fr))', gap: '0.65rem', marginBottom: '2rem' }}>
             {data.monks.map((monk, i) => (
               <div 
                 key={i} 

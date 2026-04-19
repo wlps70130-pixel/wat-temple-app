@@ -46,7 +46,7 @@ export default function Header({ onBack }) {
         />
         <span style={{ display: 'none', fontSize: '1.6rem', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>🛕</span>
       </div>
-      <div className="header-text">
+      <div className="header-text" style={{ flex: 1, minWidth: 0 }}>
         <link rel="stylesheet" href={elegantFontLink} />
         <h1 style={{
           fontFamily: "'Sarabun', 'Prompt', sans-serif",
@@ -62,11 +62,14 @@ export default function Header({ onBack }) {
         <p style={{
           fontFamily: "'Sarabun', sans-serif",
           fontWeight: 500,
-          fontSize: 'clamp(0.68rem, 2.2vw, 0.85rem)',
+          fontSize: 'clamp(0.68rem, 2.5vw, 0.85rem)',
           letterSpacing: '0.01em',
-          whiteSpace: 'nowrap',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
-          textOverflow: 'ellipsis'
+          wordBreak: 'break-word',
+          lineHeight: 1.3
         }}>สำนักปฏิบัติธรรมประจำจังหวัดราชบุรี แห่งที่ 1</p>
       </div>
     </header>
