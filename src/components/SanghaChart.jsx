@@ -164,74 +164,25 @@ function MonkModal({ monk, onClose }) {
 }
 
 // ─── Monk Card ───────────────────────────────────────────────────
-function MonkCard({ monk, color = '#1e3a8a', titleOverride }) {
+function MonkCard({ monk, avatarSize = 60, nameFontSize = '0.88rem', titleFontSize = '0.72rem', borderColor = '#f59e0b', showRank = false, showTitle = true }) {
   const [open, setOpen] = useState(false);
-  const title = titleOverride || monk.title || monk.role || "ตำแหน่ง";
-  const name = monk.name || "ชื่อ - นามสกุล";
-
+  const rs = getRankStyle(monk.sanghaRank);
   return (
     <>
-      <div 
-        onClick={() => setOpen(true)}
-        style={{ 
-          width: '150px', 
-          background: 'white', 
-          display: 'flex', 
-          flexDirection: 'column',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-          position: 'relative',
-          zIndex: 2,
-          cursor: 'pointer',
-          transition: 'transform 0.2s, box-shadow 0.2s',
-          border: '1px solid #e2e8f0',
-          margin: '0 auto',
-          boxSizing: 'border-box'
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.12)'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1)'; }}
-      >
-        <div style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', color: '#cbd5e1', fontWeight: '800', zIndex: 10 }}>TAP</div>
-        
-        {/* Photo */}
-        <div style={{ width: '100%', height: '160px', background: '#f8fafc', padding: '6px', boxSizing: 'border-box' }}>
-          <MonkAvatar 
-            src={monk.image} 
-            alt={name} 
-            size={100} 
-            borderColor={color}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        </div>
-        
-        {/* Position */}
-        <div style={{ 
-          background: color, 
-          color: 'white', 
-          fontSize: '0.72rem', 
-          fontWeight: '800', 
-          textAlign: 'center', 
-          padding: '6px 4px',
-          whiteSpace: 'nowrap', 
-          overflow: 'hidden', 
-          textOverflow: 'ellipsis' 
-        }}>
-          {title}
-        </div>
-        
-        {/* Name */}
-        <div style={{ 
-          background: 'white', 
-          color: '#1e293b', 
-          fontSize: '0.78rem', 
-          fontWeight: '800', 
-          textAlign: 'center', 
-          padding: '8px 4px',
-          whiteSpace: 'nowrap', 
-          overflow: 'hidden', 
-          textOverflow: 'ellipsis' 
-        }}>
-          {name}
-        </div>
+      <div onClick={() => setOpen(true)} style={{ background:'white', borderRadius:'18px', textAlign:'center', padding:'1rem 0.6rem 0.85rem', borderTop:`3px solid ${borderColor}`, boxShadow:'0 2px 12px rgba(0,0,0,0.07)', cursor:'pointer', transition:'all 0.18s', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem', position:'relative', userSelect:'none', width:'100%', boxSizing:'border-box' }}
+        onMouseEnter={e => { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 10px 24px rgba(0,0,0,0.13)'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='0 2px 12px rgba(0,0,0,0.07)'; }}>
+        <div style={{ position:'absolute', top:'6px', right:'8px', fontSize:'0.5rem', color:'#d1d5db', fontWeight:'700', letterSpacing:'0.5px' }}>TAP</div>
+        <MonkAvatar 
+          src={monk.image} 
+          alt={monk.name} 
+          size={avatarSize} 
+          borderColor={borderColor}
+          style={{ width:`${avatarSize}px`, height:`${avatarSize}px`, borderRadius:'50%', objectFit:'cover', border:`2.5px solid ${borderColor}`, boxShadow:'0 3px 10px rgba(0,0,0,0.12)' }}
+        />
+        {showTitle && monk.title && <div style={{ fontSize:titleFontSize, color:'#b45309', fontWeight:'800', lineHeight:1.2, marginTop:'2px' }}>{monk.title}</div>}
+        <div style={{ fontSize:nameFontSize, color:'#1e293b', fontWeight:'800', lineHeight:1.25, textAlign:'center' }}>{monk.name}</div>
+        {showRank && monk.sanghaRank && <div style={{ fontSize:'0.55rem', color:rs.color, background:rs.bg, padding:'1px 7px', borderRadius:'20px', fontWeight:'700', marginTop:'1px' }}>{monk.sanghaRank}</div>}
       </div>
       {open && <MonkModal monk={monk} onClose={() => setOpen(false)}/>}
     </>
@@ -239,42 +190,20 @@ function MonkCard({ monk, color = '#1e3a8a', titleOverride }) {
 }
 
 // ─── Org Chart Tree Lines ────────────────────────────────────────
-const JunctionDot = () => (
-  <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#1e293b', margin: '0 auto', zIndex: 3, position: 'relative' }} />
-);
-
-function LevelBranch({ nodes, color, defaultTitle, hasNextLevel }) {
-  if (!nodes || nodes.length === 0) return null;
-  const isSingle = nodes.length === 1;
-
+const VLine = ({ height = 28 }) => <div style={{ display:'flex', justifyContent:'center' }}><div style={{ width:'2px', height:`${height}px`, background:'linear-gradient(to bottom,#fbbf24,#fed7aa)' }}/></div>;
+const HBranch = ({ count }) => {
+  if (count <= 1) return null;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', position: 'relative', zIndex: 2 }}>
-      <JunctionDot />
-
-      {/* Spine passing through to the next level */}
-      {hasNextLevel && (
-         <div style={{ position: 'absolute', top: '8px', bottom: '-40px', left: 'calc(50% - 1.5px)', width: '3px', background: '#1e293b', zIndex: 1 }} />
-      )}
-
-      {/* Horizontal line */}
-      {!isSingle && (
-        <div style={{ position: 'relative', width: '100%', height: '3px', marginTop: '-9.5px' }}>
-          <div style={{ position: 'absolute', top: 0, left: `calc(50% / ${nodes.length})`, right: `calc(50% / ${nodes.length})`, height: '3px', background: '#1e293b', zIndex: 1 }} />
+    <div style={{ display:'flex', justifyContent:'center', position:'relative', height:'20px', margin:'-4px 0' }}>
+      <div style={{ position:'absolute', left:'25%', right:'25%', height:'2px', background:'#fed7aa', top:'10px' }}/>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} style={{ flex:1, display:'flex', justifyContent:'center' }}>
+          <div style={{ width:'2px', height:'10px', background:'#fed7aa', marginTop:'10px' }}/>
         </div>
-      )}
-      
-      {/* Nodes */}
-      <div style={{ display: 'grid', gridTemplateColumns: isSingle ? '1fr' : `repeat(${nodes.length}, 1fr)`, width: isSingle ? 'auto' : '100%', paddingTop: isSingle ? '20px' : '6.5px' }}>
-        {nodes.map((node, i) => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', padding: '0 15px' }}>
-            <div style={{ width: '3px', height: isSingle ? '0px' : '25px', background: '#1e293b', zIndex: 1 }} />
-            <MonkCard monk={node} color={color} titleOverride={defaultTitle} />
-          </div>
-        ))}
-      </div>
+      ))}
     </div>
   );
-}
+};
 
 // ─── Main ─────────────────────────────────────────────────────────
 export default function SanghaChart() {
@@ -308,81 +237,80 @@ export default function SanghaChart() {
     </div>
   );
 
-  const hasLevel2 = data.viceAbbots.length > 0;
-  const hasLevel3 = data.assistants.length > 0;
-  const hasLevel4 = data.monks.length > 0;
-
   return (
-    <div style={{ display:'flex', flexDirection:'column' }}>
+    <div style={{ display:'flex', flexDirection:'column', padding:'0 0.25rem' }}>
 
       {/* Header */}
-      <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.5rem', padding:'0 1rem' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.5rem' }}>
         <Users size={22} color="#d97706"/>
         <h2 style={{ margin:0, fontSize:'1.1rem', fontWeight:'800', color:'#1e293b' }}>ผังคณะสงฆ์วัดหลวงพ่อสดฯ</h2>
       </div>
-      <p style={{ textAlign:'left', padding:'0 1rem', fontSize:'0.72rem', color:'#94a3b8', margin:'0 0 1rem', display:'flex', alignItems:'center', gap:'0.25rem' }}>
-        <span>👆</span> เลื่อนซ้าย-ขวา และกดที่การ์ดเพื่อดูข้อมูล
+      <p style={{ textAlign:'center', fontSize:'0.72rem', color:'#94a3b8', margin:'0 0 0.75rem', display:'flex', alignItems:'center', justifyContent:'center', gap:'0.25rem' }}>
+        <span>👆</span> กดที่การ์ดเพื่อดูข้อมูลรายละเอียด
       </p>
 
-      {/* Org Chart Container */}
-      <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: '#f1f5f9', padding: '2.5rem 1rem 3.5rem', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
-        <div style={{ minWidth: 'max-content', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
-          {/* Level 1: Abbot */}
-          {data.abbot && (
-            <div style={{ zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <MonkCard monk={data.abbot} color="#1d4ed8" titleOverride="เจ้าอาวาส" />
-              {/* Spine to next level */}
-              {(hasLevel2 || hasLevel3 || hasLevel4) && (
-                <div style={{ width: '3px', height: '40px', background: '#1e293b', marginBottom: '-8px' }} />
-              )}
-            </div>
-          )}
-
-          {/* Level 2: Vice Abbots */}
-          {hasLevel2 && (
-            <div style={{ width: '100%', zIndex: 2 }}>
-              <LevelBranch 
-                 nodes={data.viceAbbots} 
-                 color="#0ea5e9" 
-                 defaultTitle="รองเจ้าอาวาส" 
-                 hasNextLevel={hasLevel3 || hasLevel4} 
-              />
-            </div>
-          )}
-
-          {/* Level 3: Assistants */}
-          {hasLevel3 && (
-            <div style={{ width: '100%', zIndex: 2, marginTop: hasLevel2 ? '40px' : '0' }}>
-              <LevelBranch 
-                 nodes={data.assistants} 
-                 color="#16a34a" 
-                 defaultTitle="ผู้ช่วยเจ้าอาวาส" 
-                 hasNextLevel={hasLevel4} 
-              />
-            </div>
-          )}
-
-          {/* Level 4: Monks */}
-          {hasLevel4 && (
-            <div style={{ width: '100%', zIndex: 2, marginTop: (hasLevel3 || hasLevel2) ? '40px' : '0' }}>
-              <LevelBranch 
-                 nodes={data.monks} 
-                 color="#ca8a04" 
-                 defaultTitle="พระภิกษุสามเณร" 
-                 hasNextLevel={false} 
-              />
-            </div>
-          )}
-
-          {!data.abbot && !hasLevel2 && !hasLevel3 && !hasLevel4 && (
-            <div style={{ textAlign:'center', padding:'3rem 1rem', color:'#94a3b8' }}>
-              <Users size={48} color="#cbd5e1" style={{ margin:'0 auto 1rem' }}/>
-              <p style={{ fontSize:'0.9rem' }}>ยังไม่มีข้อมูลในระบบ</p>
-            </div>
-          )}
+      {/* Level 1: Abbot — center, wide */}
+      {data.abbot && (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+          <div style={{ textAlign:'center', marginBottom:'0.75rem' }}>
+            <div style={{ fontSize:'1.05rem', fontWeight:'800', color:'#b45309', background:'#fef3c7', display:'inline-block', padding:'4px 18px', borderRadius:'20px', boxShadow:'0 2px 8px rgba(251,191,36,0.2)' }}>เจ้าอาวาส</div>
+          </div>
+          <div style={{ width:'60%', maxWidth:'220px' }}>
+            <MonkCard monk={data.abbot} avatarSize={72} nameFontSize="0.95rem" borderColor="#ca8a04" showRank showTitle={false} />
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Level 2: Vice Abbots */}
+      {data.viceAbbots.length > 0 && (
+        <>
+          <VLine height={24}/>
+          <div style={{ textAlign:'center', marginBottom:'0.75rem' }}>
+            <div style={{ fontSize:'0.95rem', fontWeight:'800', color:'#b45309', background:'#fef3c7', display:'inline-block', padding:'4px 16px', borderRadius:'20px', boxShadow:'0 2px 8px rgba(251,191,36,0.15)' }}>รองเจ้าอาวาส</div>
+          </div>
+          {data.viceAbbots.length > 1 && <HBranch count={data.viceAbbots.length}/>}
+          <div style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(data.viceAbbots.length, 2)}, 1fr)`, gap:'0.65rem' }}>
+            {data.viceAbbots.map((m, i) => <MonkCard key={i} monk={m} avatarSize={60} nameFontSize="0.85rem" borderColor="#f59e0b" showRank showTitle={false}/>)}
+          </div>
+        </>
+      )}
+
+      {/* Level 3: Assistants */}
+      {data.assistants.length > 0 && (
+        <>
+          <VLine height={24}/>
+          <div style={{ textAlign:'center', marginBottom:'0.75rem' }}>
+            <div style={{ fontSize:'0.85rem', fontWeight:'800', color:'#d97706', background:'#fef3c7', display:'inline-block', padding:'3px 14px', borderRadius:'20px', boxShadow:'0 2px 8px rgba(251,191,36,0.1)' }}>ผู้ช่วยเจ้าอาวาส</div>
+          </div>
+          {data.assistants.length > 1 && <HBranch count={Math.min(data.assistants.length, 3)}/>}
+          <div style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(data.assistants.length, 3)}, 1fr)`, gap:'0.55rem' }}>
+            {data.assistants.map((m, i) => <MonkCard key={i} monk={m} avatarSize={50} nameFontSize="0.78rem" borderColor="#fbbf24" showTitle={false}/>)}
+          </div>
+        </>
+      )}
+
+      {/* Level 4: Monks */}
+      {data.monks.length > 0 && (
+        <>
+          <VLine height={24}/>
+          <div style={{ background:'linear-gradient(135deg,#fffbeb,#fef3c7)', borderRadius:'20px', padding:'1.1rem 0.85rem 1.25rem', border:'1px solid #fde68a' }}>
+            <div style={{ textAlign:'center', marginBottom:'1rem' }}>
+              <div style={{ fontSize:'1rem', fontWeight:'800', color:'#92400e' }}>🧡 พระภิกษุสามเณร</div>
+              <div style={{ fontSize:'0.75rem', color:'#b45309', marginTop:'2px' }}>ทั้งหมด {data.monks.length} รูป</div>
+            </div>
+            <div className="sangha-monks-grid" style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'0.6rem' }}>
+              {data.monks.map((m, i) => <MonkCard key={i} monk={m} avatarSize={46} nameFontSize="0.75rem" borderColor="#fcd34d" showTitle={false}/>)}
+            </div>
+          </div>
+        </>
+      )}
+
+      {!data.abbot && !data.viceAbbots.length && !data.assistants.length && !data.monks.length && (
+        <div style={{ textAlign:'center', padding:'3rem 1rem', color:'#94a3b8' }}>
+          <Users size={48} color="#fde68a" style={{ margin:'0 auto 1rem' }}/>
+          <p style={{ fontSize:'0.9rem' }}>ยังไม่มีข้อมูลในระบบ</p>
+        </div>
+      )}
 
       {/* ─── แผนกงาน ─── */}
       <div style={{ marginTop:'1.5rem' }}>
