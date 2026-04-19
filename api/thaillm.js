@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         break;
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apikey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apikey}`;
     
     const body = {
       system_instruction: {
