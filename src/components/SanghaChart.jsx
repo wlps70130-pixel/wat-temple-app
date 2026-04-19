@@ -47,8 +47,8 @@ function MonkAvatar({ src, alt, size, borderColor, style, bg }) {
   // ถ้ารูปโหลดพัง หรือไม่มีรูป ให้แสดงไอคอนแทน
   if (!src || !src.trim() || imgError) {
     return (
-      <div style={{ ...style, background: bg || `${borderColor}20`, display:'flex', alignItems:'center', justifyContent:'center', border: style.border || `2.5px solid ${borderColor}`, boxShadow: style.boxShadow }}>
-        <User size={size * 0.45} color={borderColor === 'white' ? 'white' : (borderColor || '#94a3b8')}/>
+      <div style={{ ...style, background: bg || '#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', border: style.border || `2.5px solid ${borderColor}`, boxShadow: style.boxShadow }}>
+        <User size={size * 0.45} color={borderColor === 'white' ? 'white' : '#94a3b8'}/>
       </div>
     );
   }
