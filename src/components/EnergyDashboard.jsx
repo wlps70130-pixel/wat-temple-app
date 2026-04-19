@@ -501,6 +501,7 @@ export default function EnergyDashboard() {
       `- ค่าไฟเดือน${currentMonth}: ${totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท (${isEstimated ? 'ประมาณ' : 'จากข้อมูลจริง'})`,
     ].join('\n');
 
+    return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
         
         {/* Header Section */}
