@@ -3,7 +3,7 @@ import { Play, Pause, Shuffle, ListMusic, Clock3, Loader2, ChevronDown } from 'l
 import Papa from 'papaparse';
 import AiAssistant from './AiAssistant';
 
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=2048515869&single=true&output=csv';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=29969163&single=true&output=csv';
 
 // ─── EQ Animation Bars ──────────────────────────────────────────
 const EqBars = ({ color = '#1db954' }) => (
@@ -49,23 +49,47 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
   useEffect(() => {
     if (!category) return;
     setLoading(true);
-    Papa.parse(SHEET_URL, {
-      download: true, header: true,
+    // Add cache busting to ensure we get the latest file
+    const urlWithCacheBust = `${SHEET_URL}?t=${new Date().getTime()}`;
+    
+    Papa.parse(urlWithCacheBust, {
+      download: true, 
+      header: true,
+      skipEmptyLines: true,
       complete: (results) => {
+        console.log("Parsed CSV Data:", results.data);
         const filtered = results.data
-          .filter(row => row.categoryId === category.id && row.url)
-          .map((row, i) => ({
-            id: `${category.id}-${i}`,
-            title: row.title || `ไฟล์เสียงธรรม ${i + 1}`,
-            subtitle: row.subtitle || '',
-            duration: row.duration || '-:--',
-            url: row.url,
-          }));
+          .filter(row => {
+            // Check keys defensively in case of BOM (Byte Order Mark) or spaces
+            const catKey = Object.keys(row).find(k => k.replace(/^\uFEFF/, '').trim() === 'categoryId');
+            const urlKey = Object.keys(row).find(k => k.trim() === 'url');
+            
+            if (!catKey || !urlKey) return false;
+            
+            return row[catKey].trim() === category.id && row[urlKey].trim() !== '';
+          })
+          .map((row, i) => {
+            const titleKey = Object.keys(row).find(k => k.replace(/^\uFEFF/, '').trim() === 'title');
+            const subKey = Object.keys(row).find(k => k.trim() === 'subtitle');
+            const durKey = Object.keys(row).find(k => k.trim() === 'duration');
+            const urlKey = Object.keys(row).find(k => k.trim() === 'url');
+
+            return {
+              id: `${category.id}-${i}`,
+              title: (titleKey && row[titleKey]) ? row[titleKey].trim() : `ไฟล์เสียงธรรม ${i + 1}`,
+              subtitle: (subKey && row[subKey]) ? row[subKey].trim() : '',
+              duration: (durKey && row[durKey]) ? row[durKey].trim() : '-:--',
+              url: (urlKey && row[urlKey]) ? row[urlKey].trim() : '',
+            };
+          });
         setTracks(filtered);
         setDisplayTracks(filtered);
         setLoading(false);
       },
-      error: () => setLoading(false),
+      error: (error) => {
+        console.error("Error loading CSV:", error);
+        setLoading(false);
+      },
     });
   }, [category]);
 
