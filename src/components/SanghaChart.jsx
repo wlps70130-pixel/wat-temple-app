@@ -112,17 +112,8 @@ export default function SanghaChart() {
   return (
     <div style={{ background: '#f4f5f7', minHeight: '100vh', paddingBottom: '80px', fontFamily: '"Inter", "Prompt", sans-serif', marginLeft: '-1rem', marginRight: '-1rem' }}>
       
-      {/* Top App Bar */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'1rem 1.25rem', background:'transparent', position:'sticky', top:0, zIndex:10 }}>
-        <ChevronLeft size={24} color="#3b82f6" style={{ cursor: 'pointer' }} />
-        <h1 style={{ margin:0, fontSize:'1.1rem', fontWeight:'700', color:'#1e293b' }}>Org Analytics</h1>
-        <div style={{ display:'flex', gap:'1rem' }}>
-          <GridIcon size={22} color="#3b82f6" style={{ cursor: 'pointer' }} />
-          <Share size={22} color="#3b82f6" style={{ cursor: 'pointer' }} />
-        </div>
-      </div>
-
-      <div style={{ padding: '0.5rem 1.25rem 1.25rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
+      {/* Top spacing instead of App Bar */}
+      <div style={{ padding: '1.5rem 1.25rem 1.25rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
         
         {/* Golden Banner */}
         <div style={{ 
@@ -154,7 +145,7 @@ export default function SanghaChart() {
             onClick={() => abbot && setSelectedMonk(abbot)}
             style={{ background: 'white', borderRadius: '24px', padding: '1.5rem 1.25rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 4px 10px -2px rgba(0,0,0,0.05)', overflow: 'hidden', cursor: 'pointer' }}
           >
-            <div style={{ width: '100%', textAlign: 'left', fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', letterSpacing: '1.5px', marginBottom: '1.25rem' }}>LEADERSHIP</div>
+            <div style={{ width: '100%', textAlign: 'left', fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', letterSpacing: '1.5px', marginBottom: '1.25rem' }}>ระดับบริหาร</div>
             {abbot ? (
               <>
                 <div style={{ width: '100px', height: '100px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 8px 20px -4px rgba(0,0,0,0.2)' }}>
@@ -167,7 +158,7 @@ export default function SanghaChart() {
               <div style={{ flex: 1, display:'flex', alignItems:'center', justifyContent:'center' }}><p style={{color:'#94a3b8'}}>N/A</p></div>
             )}
             <div style={{ width: '100%', background: '#fffbeb', padding: '0.85rem', textAlign: 'center', fontSize: '0.75rem', fontWeight: '800', color: '#b45309', marginTop: 'auto', alignSelf: 'stretch', marginLeft: '-1.25rem', marginRight: '-1.25rem', width: 'calc(100% + 2.5rem)' }}>
-              Chief Executive
+              เจ้าสำนักปฏิบัติธรรม
             </div>
           </div>
 
@@ -177,7 +168,7 @@ export default function SanghaChart() {
               onClick={() => viceAbbot && setSelectedMonk(viceAbbot)}
               style={{ background: '#1c1c1e', borderRadius: '24px', padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 10px -2px rgba(0,0,0,0.1)', cursor: 'pointer' }}
             >
-              <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#636366', letterSpacing: '1.5px', marginBottom: '1rem' }}>DEPUTY</div>
+              <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#636366', letterSpacing: '1.5px', marginBottom: '1rem' }}>รองเจ้าอาวาส</div>
               {viceAbbot ? (
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                   <div style={{ width: '52px', height: '52px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0 }}>
@@ -195,7 +186,7 @@ export default function SanghaChart() {
 
             {/* Total Strength Card */}
             <div style={{ background: '#14b8a6', borderRadius: '24px', padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px -2px rgba(20, 184, 166, 0.3)' }}>
-              <div style={{ fontSize: '0.75rem', color: '#ccfbf1', fontWeight: '600' }}>Total Strength</div>
+              <div style={{ fontSize: '0.75rem', color: '#ccfbf1', fontWeight: '600' }}>รวมบุคลากรทั้งสิ้น</div>
               <div style={{ fontSize: '2.8rem', color: 'white', fontWeight: '800', lineHeight: 1.1, marginTop:'0.25rem' }}>{totalStrength}</div>
               <Users size={22} color="rgba(255,255,255,0.7)" style={{ marginTop: '0.5rem' }} />
             </div>
@@ -205,9 +196,9 @@ export default function SanghaChart() {
         {/* Dept Heads Card */}
         <div style={{ background: '#5b58ef', borderRadius: '24px', padding: '1.25rem', boxShadow: '0 10px 15px -3px rgba(91, 88, 239, 0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#c7d2fe', letterSpacing: '1.5px' }}>DEPT. HEADS</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#c7d2fe', letterSpacing: '1.5px' }}>ระดับผู้ช่วยเจ้าอาวาส</div>
             <div style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '16px', fontSize: '0.65rem', color: 'white', fontWeight: '800' }}>
-              {data.assistants.length} DIVISIONS
+              {data.assistants.length} รูป
             </div>
           </div>
           
@@ -236,7 +227,7 @@ export default function SanghaChart() {
         {/* Monks & Novices Visualizer */}
         <div style={{ background: '#ff6d00', borderRadius: '24px', padding: '1.25rem 1.25rem 1.5rem', boxShadow: '0 10px 15px -3px rgba(255, 109, 0, 0.3)', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'white', letterSpacing: '1px' }}>MONKS & NOVICES</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'white', letterSpacing: '1px' }}>พระภิกษุสามเณร</div>
             <div style={{ background: 'rgba(0,0,0,0.15)', padding: '4px 12px', borderRadius: '16px', fontSize: '0.65rem', color: 'white', fontWeight: '800' }}>
               พระภิกษุสามเณร
             </div>
@@ -267,42 +258,13 @@ export default function SanghaChart() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>Full Community Visualization</div>
+            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>แสดงภาพรวมทั้งหมด</div>
             {/* Mock toggles */}
             <div style={{ display: 'flex' }}>
               <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'rgba(255,255,255,0.4)', marginLeft: '-6px' }} />
               <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'rgba(255,255,255,0.7)', marginLeft: '-6px' }} />
               <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'white', marginLeft: '-6px' }} />
             </div>
-          </div>
-        </div>
-
-        {/* Bottom Cards Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          {/* Support */}
-          <div style={{ background: '#ffe4f2', borderRadius: '24px', padding: '1.25rem' }}>
-             <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#e11d48', letterSpacing: '1.5px', marginBottom: '1.25rem' }}>SUPPORT</div>
-             <div style={{ display:'flex', flexDirection:'column', gap:'0.6rem', marginBottom:'1.5rem' }}>
-               <div style={{ width: '80%', height: '6px', background: '#e11d48', borderRadius: '4px' }} />
-               <div style={{ width: '50%', height: '6px', background: '#e11d48', borderRadius: '4px' }} />
-               <div style={{ width: '90%', height: '6px', background: '#e11d48', borderRadius: '4px' }} />
-             </div>
-             <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#be123c' }}>Administration</div>
-          </div>
-          {/* Trend */}
-          <div style={{ background: '#3b82f6', borderRadius: '24px', padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
-             <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#bfdbfe', letterSpacing: '1.5px', marginBottom: '1.5rem' }}>TREND</div>
-             <div style={{ display:'flex', alignItems:'flex-end', gap:'6px', height:'40px', marginBottom:'0.75rem', position:'relative', zIndex:2 }}>
-                <div style={{ width:'12px', height:'30%', background:'rgba(255,255,255,0.4)', borderRadius:'3px' }}/>
-                <div style={{ width:'12px', height:'50%', background:'rgba(255,255,255,0.6)', borderRadius:'3px' }}/>
-                <div style={{ width:'12px', height:'80%', background:'rgba(255,255,255,0.8)', borderRadius:'3px' }}/>
-                <div style={{ width:'12px', height:'60%', background:'white', borderRadius:'3px' }}/>
-                <div style={{ width:'12px', height:'100%', background:'white', borderRadius:'3px' }}/>
-             </div>
-             <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.9)', fontWeight: '600', position:'relative', zIndex:2 }}>Monthly Growth +12%</div>
-             
-             {/* Wave overlay background */}
-             <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'60%', background:'linear-gradient(to top, rgba(30,58,138,0.3), transparent)', pointerEvents:'none', zIndex:1 }}/>
           </div>
         </div>
 
