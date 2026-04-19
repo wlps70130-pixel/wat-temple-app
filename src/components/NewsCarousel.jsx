@@ -103,8 +103,19 @@ export default function NewsCarousel() {
                     style={{ cursor: item.link ? 'pointer' : 'default' }}>
                     <div className="embla__slide-img-wrapper">
                       {item.image ? (
-                        <img src={item.image} alt={item.title}
-                          onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.style.background = '#fef3c7'; }} />
+                        <img 
+                          src={item.image.startsWith('http://') ? item.image.replace('http://', 'https://') : item.image} 
+                          alt={item.title || "ข่าวประชาสัมพันธ์"}
+                          loading="lazy"
+                          decoding="async"
+                          crossOrigin="anonymous"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
+                          onError={(e) => { 
+                            e.currentTarget.onerror = null; 
+                            e.currentTarget.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='100%25' height='100%25' fill='%23fef3c7'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='40' fill='%23d97706' text-anchor='middle' dy='.3em'%3E🛕%3C/text%3E%3C/svg%3E"; 
+                            e.currentTarget.parentElement.style.background = '#fef3c7'; 
+                          }} 
+                        />
                       ) : (
                         <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#fef3c7,#fde68a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>
                           🛕

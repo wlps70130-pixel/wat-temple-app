@@ -53,12 +53,20 @@ function MonkAvatar({ src, alt, size, borderColor, style, bg }) {
     );
   }
 
+  const finalSrc = getOptimizedUrl(src);
   return (
     <img 
-      src={getOptimizedUrl(src)} 
-      alt={alt} 
+      src={finalSrc.startsWith('http://') ? finalSrc.replace('http://', 'https://') : finalSrc} 
+      alt={alt || "รูปพระภิกษุ"} 
+      loading="lazy"
+      decoding="async"
+      crossOrigin="anonymous"
       style={style} 
-      onError={() => setImgError(true)} 
+      onError={(e) => { 
+        e.currentTarget.onerror = null; 
+        e.currentTarget.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='100%25' height='100%25' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='24' fill='%2394a3b8' text-anchor='middle' dy='.3em'%3Eไม่มีรูปภาพ%3C/text%3E%3C/svg%3E";
+        setImgError(true); 
+      }} 
     />
   );
 }
