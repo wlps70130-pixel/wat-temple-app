@@ -590,154 +590,60 @@ export default function EnergyDashboard() {
            );
         })()}
 
-        {/* Hourly Chart Card (White) */}
+        {/* Hourly Chart Card */}
         <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: theme.textMain, width: '50%' }}>ปริมาณการใช้ไฟรายชั่วโมง</h3>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>ปริมาณการใช้ไฟรายชั่วโมง</h3>
               <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: theme.textSub }}>
                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fde047' }}></div>On-Peak</div>
                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3e635' }}></div>Off-Peak</div>
               </div>
            </div>
-           
            <div style={{ height: '160px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '3px', paddingBottom: '0.5rem', borderBottom: `1px solid ${theme.border}` }}>
-              {[...Array(24)].map((_, i) => {
-                 let isPeak = i >= 9 && i <= 21; // 9:00-22:00
-                 let height = 15 + Math.random() * 20;
-                 if (isPeak) {
-                    let distance = Math.abs(15 - i);
-                    height = 85 - (distance * 8) + Math.random() * 15;
-                 }
-                 return (
-                   <div key={i} style={{ flex: 1, background: isPeak ? '#fde047' : '#a3e635', height: `${Math.max(5, Math.min(100, height))}%`, borderRadius: '2px 2px 0 0' }}></div>
-                 );
+              {[10,12,15,18,14,12,15,20,25,55,65,72,80,85,78,70,65,60,55,50,35,25,18,12].map((h, i) => {
+                 const isPeak = i >= 9 && i <= 21;
+                 return <div key={i} style={{ flex: 1, background: isPeak ? '#fde047' : '#a3e635', height: `${h}%`, borderRadius: '2px 2px 0 0', transition: 'height 0.3s' }}></div>;
               })}
            </div>
            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.7rem', color: theme.textSub }}>
-              <span>00:00</span>
-              <span>06:00</span>
-              <span>12:00</span>
-              <span>18:00</span>
-              <span>24:00</span>
+              <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
            </div>
         </div>
 
 
-        {/* EFT Inspired Widgets */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-           
-           {/* Energy Flow Gauge */}
-           <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, position: 'relative' }}>
-              <div style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.05rem', fontWeight: '800', color: theme.textMain }}>Energy Flow</div>
-              
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                 <div style={{ position: 'relative', width: '220px', height: '110px', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', top: 0, left: 0, width: '220px', height: '220px', borderRadius: '50%', background: `conic-gradient(from 270deg, #fcd34d 0%, #fcd34d ${prodPercent/2}%, #0ea5e9 ${prodPercent/2}%, #0ea5e9 50%, transparent 50%)` }}>
-                       {/* Inner cutout */}
-                       <div style={{ position: 'absolute', top: '15px', left: '15px', width: '190px', height: '190px', background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '50%' }}></div>
-                    </div>
-                    {/* Center indicator line */}
-                    <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '2px', height: '15px', background: isDarkMode ? '#cbd5e1' : '#64748b' }}></div>
-                    <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.75rem', color: theme.textSub, fontWeight: '700' }}>kW</div>
+        {/* Energy Distribution Card */}
+        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+           <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>การกระจายพลังงาน</h3>
+           <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#f1f5f9', borderRadius: '12px', marginBottom: '1rem' }}>
+              <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', borderRight: `1px solid ${theme.border}` }}>
+                 <div style={{ fontSize: '0.8rem', color: '#65a30d', fontWeight: '700' }}>🌱 พลังงานทดแทน</div>
+                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain }}>{solarKw.toFixed(1)}</span>
+                    <span style={{ fontSize: '0.75rem', color: theme.textSub }}>kW</span>
                  </div>
+                 <div style={{ fontSize: '0.75rem', color: '#65a30d', fontWeight: '700' }}>▲ {prodPercent.toFixed(0)}%</div>
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', marginTop: '0.5rem' }}>
-                 <div style={{ textAlign: 'center' }}>
-                    <div style={{ color: '#fcd34d', fontSize: '1.8rem', fontWeight: '800', lineHeight: '1' }}>{solarKw.toFixed(1)}</div>
-                    <div style={{ color: theme.textSub, fontSize: '0.8rem', fontWeight: '600', marginTop: '0.3rem' }}>Production</div>
+              <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                 <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: '700' }}>⚡ PEA Grid</div>
+                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain }}>{globalKw.toFixed(1)}</span>
+                    <span style={{ fontSize: '0.75rem', color: theme.textSub }}>kW</span>
                  </div>
-                 <div style={{ textAlign: 'center' }}>
-                    <div style={{ color: '#0ea5e9', fontSize: '1.8rem', fontWeight: '800', lineHeight: '1' }}>{globalKw.toFixed(1)}</div>
-                    <div style={{ color: theme.textSub, fontSize: '0.8rem', fontWeight: '600', marginTop: '0.3rem' }}>Consumption</div>
-                 </div>
-              </div>
-              
-              <div style={{ display: 'flex', borderTop: `1px solid ${theme.border}`, marginTop: '1.5rem', paddingTop: '1.25rem' }}>
-                 {/* Left Column */}
-                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '0.25rem', padding: '0 0.25rem' }}>
-                    <div style={{ fontSize: '1.4rem', color: prodPercent >= 80 ? '#a3e635' : prodPercent >= 50 ? '#fbbf24' : theme.danger, fontWeight: '800', lineHeight: 1 }}>{prodPercent.toFixed(1)}<span style={{fontSize: '0.9rem'}}>%</span></div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600', lineHeight: 1.2 }}>พึ่งพาพลังงานทดแทน</div>
-                 </div>
-                 {/* Middle Column */}
-                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '0.25rem', padding: '0 0.25rem' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: '600', padding: '0.15rem 0.5rem', borderRadius: '12px', background: 'transparent', border: `1px solid ${touStatus === 'ON_PEAK' ? theme.danger : theme.success}`, color: touStatus === 'ON_PEAK' ? theme.danger : theme.success }}>
-                       {touStatus === 'ON_PEAK' ? '🔴 On-Peak' : '🟢 Off-Peak'}
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600', lineHeight: 1.2 }}>ช่วงเวลาปัจจุบัน</div>
-                 </div>
-                 {/* Right Column */}
-                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '0.25rem', padding: '0 0.25rem' }}>
-                    <div style={{ fontSize: '1.4rem', color: netGrid <= 0 ? '#a3e635' : theme.danger, fontWeight: '800', lineHeight: 1 }}>{netGrid > 0 ? '+' : ''}{netGrid.toFixed(1)} <span style={{fontSize: '0.9rem'}}>kW</span></div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600', lineHeight: 1.2 }}>{netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออกไป PEA'}</div>
-                 </div>
+                 <div style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: '700' }}>▼ {(100-prodPercent).toFixed(0)}%</div>
               </div>
            </div>
-
-           {/* Production by Source & Top Loads */}
-           <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-              <div style={{ fontSize: '1.05rem', fontWeight: '800', color: theme.textMain, marginBottom: '1.25rem' }}>Energy Distribution</div>
-              
-              <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#e2e8f0', borderRadius: '16px', marginBottom: '1.5rem', padding: '0.25rem 0' }}>
-                 {/* Left: Renewable */}
-                 <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderRight: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: '#65a30d', fontWeight: '700', lineHeight: 1 }}>
-                       <span style={{ fontSize: '1rem' }}>🌱</span> Renewable
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                       <span style={{ fontSize: '1.5rem', fontWeight: '800', color: theme.textMain, lineHeight: 1 }}>{solarKw.toFixed(1)}</span>
-                       <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>kW</span>
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: '#65a30d', fontWeight: '700', lineHeight: 1 }}>
-                       ▲ {prodPercent.toFixed(0)}%
-                    </div>
-                 </div>
-                 {/* Right: PEA Grid */}
-                 <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: '#0284c7', fontWeight: '700', lineHeight: 1 }}>
-                       <span style={{ fontSize: '1rem' }}>⚡</span> PEA Grid
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                       <span style={{ fontSize: '1.5rem', fontWeight: '800', color: theme.textMain, lineHeight: 1 }}>{globalKw.toFixed(1)}</span>
-                       <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>kW</span>
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: '700', lineHeight: 1 }}>
-                       ▼ {(100-prodPercent).toFixed(0)}%
-                    </div>
-                 </div>
+           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderTop: `1px solid ${theme.border}`, fontSize: '0.85rem' }}>
+              <div style={{ textAlign: 'center', flex: 1 }}>
+                 <div style={{ fontSize: '1.2rem', color: prodPercent >= 50 ? '#65a30d' : theme.danger, fontWeight: '800' }}>{prodPercent.toFixed(1)}%</div>
+                 <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>พึ่งพาทดแทน</div>
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: '140px', paddingTop: '1rem', borderTop: `1px solid ${theme.border}` }}>
-                 {/* Solar Bar */}
-                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '50px' }}>
-                    <div style={{ width: '100%', height: `${Math.max((solarKw / Math.max(solarKw, globalKw, 1)) * 100, 5)}%`, background: 'linear-gradient(to top, #ca8a04, #fde047)', borderRadius: '8px', boxShadow: '0 4px 10px rgba(253,224,71,0.1)' }}></div>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#fde047', marginTop: '0.5rem' }}></div>
-                    <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.25rem', fontWeight: '700' }}>Solar</div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: '800', color: theme.textMain }}>{solarKw.toFixed(1)}</div>
-                 </div>
-
-                 {/* Top 3 Loads */}
-                 {BUILDINGS.filter(b => b.deviceId && !b.isSolar && parsedBuildingData[b.id]?.isOnline)
-                    .map(b => ({ name: b.name.replace('ศาลา','').replace('สำนักงาน',''), kw: parseFloat(parsedBuildingData[b.id].totalKw) }))
-                    .sort((a, b) => b.kw - a.kw)
-                    .slice(0, 3)
-                    .map((b, i) => {
-                       const gradients = [
-                          'linear-gradient(to top, #0284c7, #38bdf8)',
-                          'linear-gradient(to top, #6366f1, #818cf8)',
-                          'linear-gradient(to top, #0f766e, #2dd4bf)'
-                       ];
-                       const dots = ['#38bdf8', '#818cf8', '#2dd4bf'];
-                       return (
-                         <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '50px' }}>
-                            <div style={{ width: '100%', height: `${Math.max((b.kw / Math.max(solarKw, globalKw, 1)) * 100, 5)}%`, background: gradients[i], borderRadius: '8px' }}></div>
-                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: dots[i], marginTop: '0.5rem' }}></div>
-                            <div style={{ fontSize: '0.65rem', color: theme.textSub, marginTop: '0.25rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '50px' }}>{b.name}</div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: theme.textMain }}>{b.kw.toFixed(1)}</div>
-                         </div>
-                       );
-                    })
-                 }
+              <div style={{ textAlign: 'center', flex: 1 }}>
+                 <div style={{ fontSize: '0.75rem', fontWeight: '600', padding: '0.15rem 0.5rem', borderRadius: '12px', border: `1px solid ${touStatus === 'ON_PEAK' ? theme.danger : theme.success}`, color: touStatus === 'ON_PEAK' ? theme.danger : theme.success, display: 'inline-block' }}>{touStatus === 'ON_PEAK' ? 'On-Peak' : 'Off-Peak'}</div>
+                 <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>ช่วงเวลา</div>
+              </div>
+              <div style={{ textAlign: 'center', flex: 1 }}>
+                 <div style={{ fontSize: '1.2rem', color: netGrid <= 0 ? '#65a30d' : theme.danger, fontWeight: '800' }}>{netGrid > 0 ? '+' : ''}{netGrid.toFixed(1)} kW</div>
+                 <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>{netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออก PEA'}</div>
               </div>
            </div>
         </div>
@@ -753,7 +659,7 @@ export default function EnergyDashboard() {
         />
 
         {/* Graph Section */}
-        <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain, fontWeight: '700' }}>สถิติการใช้งาน</h3>
           </div>
@@ -777,15 +683,15 @@ export default function EnergyDashboard() {
         {/* List of Panels */}
         <div style={{ marginTop: '0.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0 0.5rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1.2rem', color: theme.textMain, fontWeight: '800' }}>Panels</h3>
-            <span style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '500' }}>Total {BUILDINGS.length}</span>
+            <h3 style={{ margin: 0, fontSize: '1.2rem', color: theme.textMain, fontWeight: '800' }}>รายการอาคาร</h3>
+            <span style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '500' }}>ทั้งหมด {BUILDINGS.length}</span>
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {Object.keys(buildingData).length === 0 ? (
               // Skeleton Loaders
               [1, 2, 3, 4, 5].map(i => (
-                <div key={i} style={{ background: theme.cardBg, borderRadius: '20px', padding: '1.1rem 1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div key={i} style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.1rem 1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: isDarkMode ? '#1e293b' : '#e2e8f0', animation: 'pulse-dot 1.5s infinite' }}></div>
                   <div style={{ flex: 1 }}>
                     <div style={{ height: '16px', background: isDarkMode ? '#1e293b' : '#e2e8f0', borderRadius: '4px', width: '60%', marginBottom: '8px', animation: 'pulse-dot 1.5s infinite' }}></div>
@@ -808,7 +714,7 @@ export default function EnergyDashboard() {
               }
               
               return (
-                <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: theme.cardBg, borderRadius: '20px', padding: '1.1rem 1.25rem', cursor: 'pointer', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem', transition: 'transform 0.1s' }}>
+                <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.1rem 1.25rem', cursor: 'pointer', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem', transition: 'transform 0.1s' }}>
                   
                   {/* Icon */}
                   <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: isSolar ? (isDarkMode ? '#451a03' : '#fef3c7') : (isDarkMode ? '#1e293b' : '#f1f5f9'), border: `1px solid ${isSolar ? '#fde68a' : theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
