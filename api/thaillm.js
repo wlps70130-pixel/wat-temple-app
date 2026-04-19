@@ -10,7 +10,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Context is required' });
     }
 
-    const apikey = process.env.THAILLM_API_KEY || 'tp96fQjhqBLcvN3qanCI1aoRV5Siv7bC';
+    // ใช้ Gemini API Key จาก Environment Variables
+    const apikey = process.env.GEMINI_API_KEY;
+
+    if (!apikey) {
+      console.error('GEMINI_API_KEY is missing');
+      throw new Error('GEMINI_API_KEY is not configured');
+    }
 
     let systemPrompt = 'คุณคือผู้ช่วย AI ให้คำแนะนำสั้นๆ กระชับ เข้าใจง่าย ตอบคำถามอย่างสุภาพและเป็นมิตร ตอบเป็นภาษาไทยเสมอ';
 
@@ -26,66 +32,51 @@ export default async function handler(req, res) {
         break;
     }
 
-    // ลองทีละ endpoint
-    const endpoints = [
-      {
-        url: 'https://thaillm.or.th/api/typhoon/v1/chat/completions',
-        headers: { 'Content-Type': 'application/json', 'apikey': apikey },
-        body: { model: 'typhoon-s-thaillm-8b-instruct', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: context }], max_tokens: 400, temperature: 0.5 }
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apikey}`;
+    
+    const body = {
+      system_instruction: {
+        parts: { text: systemPrompt }
       },
-      {
-        url: 'https://thaillm.or.th/api/typhoon/v1/chat/completions',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apikey}` },
-        body: { model: 'typhoon-s-thaillm-8b-instruct', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: context }], max_tokens: 400, temperature: 0.5 }
+      contents: {
+        parts: { text: context }
       },
-      {
-        url: 'https://api.opentyphoon.ai/v1/chat/completions',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apikey}` },
-        body: { model: 'typhoon-v2-8b-instruct', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: context }], max_tokens: 400, temperature: 0.5 }
+      generationConfig: {
+        temperature: 0.5,
+        maxOutputTokens: 400
       }
-    ];
+    };
 
-    let lastError = null;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-    for (const endpoint of endpoints) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
 
-        const response = await fetch(endpoint.url, {
-          method: 'POST',
-          headers: endpoint.headers,
-          body: JSON.stringify(endpoint.body),
-          signal: controller.signal,
-        });
+    clearTimeout(timeout);
 
-        clearTimeout(timeout);
-
-        if (!response.ok) {
-          const errText = await response.text();
-          console.error(`[${endpoint.url}] Error ${response.status}:`, errText);
-          lastError = `HTTP ${response.status}`;
-          continue; // ลอง endpoint ต่อไป
-        }
-
-        const data = await response.json();
-        const reply = data?.choices?.[0]?.message?.content || null;
-
-        if (!reply) {
-          lastError = 'Empty response from API';
-          continue;
-        }
-
-        return res.status(200).json({ success: true, reply });
-
-      } catch (err) {
-        console.error(`[${endpoint.url}] Fetch error:`, err.message);
-        lastError = err.message;
-        continue;
-      }
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`Gemini API Error ${response.status}:`, errText);
+      throw new Error(`HTTP ${response.status}`);
     }
 
-    // ทุก endpoint ล้มเหลว — ส่ง fallback message
+    const data = await response.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!reply) {
+      throw new Error('Empty response from API');
+    }
+
+    return res.status(200).json({ success: true, reply });
+
+  } catch (error) {
+    console.error('Unhandled API Error:', error);
+    
     const fallbackReplies = {
       energy: 'ขณะนี้ระบบวิเคราะห์ AI ชั่วคราวไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบการใช้ไฟฟ้าจากกราฟด้านบนโดยตรงครับ',
       dhamma: 'อาตมาขออภัย ระบบตอบคำถามชั่วคราวไม่สามารถเชื่อมต่อได้ ขอให้โยมพิจารณาธรรมะด้วยตนเองก่อนนะครับ',
@@ -95,12 +86,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      reply: fallbackReplies[mode] || fallbackReplies.general,
+      reply: fallbackReplies[req.body?.mode] || fallbackReplies.general,
       fallback: true
     });
-
-  } catch (error) {
-    console.error('Unhandled API Error:', error);
-    return res.status(500).json({ success: false, error: error.message });
   }
 }

@@ -678,7 +678,7 @@ export default function EnergyDashboard() {
           mode="energy"
           contextData={aiContextData}
           title="AI Energy Analyst"
-          subtitle="ขับเคลื่อนโดย Typhoon (ThaiLLM)"
+          subtitle="ขับเคลื่อนโดย Gemini (Google AI)"
           icon="⚡"
           themeColor={isDarkMode ? '#6366f1' : '#22c55e'}
           isDarkMode={isDarkMode}

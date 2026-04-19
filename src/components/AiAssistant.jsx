@@ -4,7 +4,7 @@ export default function AiAssistant({
   mode = 'general', 
   contextData = '', 
   title = 'AI Assistant', 
-  subtitle = 'Powered by Typhoon (ThaiLLM)', 
+  subtitle = 'Powered by Gemini (Google AI)', 
   icon = '🪄',
   themeColor = '#4f46e5',
   buttonText = 'วิเคราะห์ข้อมูล',
