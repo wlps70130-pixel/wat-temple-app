@@ -157,7 +157,7 @@ function MonkModal({ monk, onClose }) {
 }
 
 // ─── Monk Card ───────────────────────────────────────────────────
-function MonkCard({ monk, avatarSize = 60, nameFontSize = '0.88rem', titleFontSize = '0.72rem', borderColor = '#f59e0b', showRank = false }) {
+function MonkCard({ monk, avatarSize = 60, nameFontSize = '0.88rem', titleFontSize = '0.72rem', borderColor = '#f59e0b', showRank = false, showTitle = true }) {
   const [open, setOpen] = useState(false);
   const rs = getRankStyle(monk.sanghaRank);
   return (
@@ -173,7 +173,7 @@ function MonkCard({ monk, avatarSize = 60, nameFontSize = '0.88rem', titleFontSi
           borderColor={borderColor}
           style={{ width:`${avatarSize}px`, height:`${avatarSize}px`, borderRadius:'50%', objectFit:'cover', border:`2.5px solid ${borderColor}`, boxShadow:'0 3px 10px rgba(0,0,0,0.12)' }}
         />
-        {monk.title && <div style={{ fontSize:titleFontSize, color:'#b45309', fontWeight:'800', lineHeight:1.2, marginTop:'2px' }}>{monk.title}</div>}
+        {showTitle && monk.title && <div style={{ fontSize:titleFontSize, color:'#b45309', fontWeight:'800', lineHeight:1.2, marginTop:'2px' }}>{monk.title}</div>}
         <div style={{ fontSize:nameFontSize, color:'#1e293b', fontWeight:'800', lineHeight:1.25, textAlign:'center' }}>{monk.name}</div>
         {showRank && monk.sanghaRank && <div style={{ fontSize:'0.55rem', color:rs.color, background:rs.bg, padding:'1px 7px', borderRadius:'20px', fontWeight:'700', marginTop:'1px' }}>{monk.sanghaRank}</div>}
       </div>
@@ -244,9 +244,12 @@ export default function SanghaChart() {
 
       {/* Level 1: Abbot — center, wide */}
       {data.abbot && (
-        <div style={{ display:'flex', justifyContent:'center' }}>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+          <div style={{ textAlign:'center', marginBottom:'0.75rem' }}>
+            <div style={{ fontSize:'1.05rem', fontWeight:'800', color:'#b45309', background:'#fef3c7', display:'inline-block', padding:'4px 18px', borderRadius:'20px', boxShadow:'0 2px 8px rgba(251,191,36,0.2)' }}>เจ้าอาวาส</div>
+          </div>
           <div style={{ width:'60%', maxWidth:'220px' }}>
-            <MonkCard monk={data.abbot} avatarSize={72} nameFontSize="0.95rem" titleFontSize="0.78rem" borderColor="#ca8a04" showRank />
+            <MonkCard monk={data.abbot} avatarSize={72} nameFontSize="0.95rem" borderColor="#ca8a04" showRank showTitle={false} />
           </div>
         </div>
       )}
@@ -255,9 +258,12 @@ export default function SanghaChart() {
       {data.viceAbbots.length > 0 && (
         <>
           <VLine height={24}/>
+          <div style={{ textAlign:'center', marginBottom:'0.75rem' }}>
+            <div style={{ fontSize:'0.95rem', fontWeight:'800', color:'#b45309', background:'#fef3c7', display:'inline-block', padding:'4px 16px', borderRadius:'20px', boxShadow:'0 2px 8px rgba(251,191,36,0.15)' }}>รองเจ้าอาวาส</div>
+          </div>
           {data.viceAbbots.length > 1 && <HBranch count={data.viceAbbots.length}/>}
           <div style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(data.viceAbbots.length, 2)}, 1fr)`, gap:'0.65rem' }}>
-            {data.viceAbbots.map((m, i) => <MonkCard key={i} monk={m} avatarSize={60} nameFontSize="0.85rem" titleFontSize="0.7rem" borderColor="#f59e0b" showRank/>)}
+            {data.viceAbbots.map((m, i) => <MonkCard key={i} monk={m} avatarSize={60} nameFontSize="0.85rem" borderColor="#f59e0b" showRank showTitle={false}/>)}
           </div>
         </>
       )}
@@ -266,9 +272,12 @@ export default function SanghaChart() {
       {data.assistants.length > 0 && (
         <>
           <VLine height={24}/>
+          <div style={{ textAlign:'center', marginBottom:'0.75rem' }}>
+            <div style={{ fontSize:'0.85rem', fontWeight:'800', color:'#d97706', background:'#fef3c7', display:'inline-block', padding:'3px 14px', borderRadius:'20px', boxShadow:'0 2px 8px rgba(251,191,36,0.1)' }}>ผู้ช่วยเจ้าอาวาส</div>
+          </div>
           {data.assistants.length > 1 && <HBranch count={Math.min(data.assistants.length, 3)}/>}
           <div style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(data.assistants.length, 3)}, 1fr)`, gap:'0.55rem' }}>
-            {data.assistants.map((m, i) => <MonkCard key={i} monk={m} avatarSize={50} nameFontSize="0.78rem" titleFontSize="0.65rem" borderColor="#fbbf24"/>)}
+            {data.assistants.map((m, i) => <MonkCard key={i} monk={m} avatarSize={50} nameFontSize="0.78rem" borderColor="#fbbf24" showTitle={false}/>)}
           </div>
         </>
       )}
@@ -283,7 +292,7 @@ export default function SanghaChart() {
               <div style={{ fontSize:'0.75rem', color:'#b45309', marginTop:'2px' }}>ทั้งหมด {data.monks.length} รูป</div>
             </div>
             <div className="sangha-monks-grid" style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'0.6rem' }}>
-              {data.monks.map((m, i) => <MonkCard key={i} monk={m} avatarSize={46} nameFontSize="0.75rem" titleFontSize="0.62rem" borderColor="#fcd34d"/>)}
+              {data.monks.map((m, i) => <MonkCard key={i} monk={m} avatarSize={46} nameFontSize="0.75rem" borderColor="#fcd34d" showTitle={false}/>)}
             </div>
           </div>
         </>
