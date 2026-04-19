@@ -1003,18 +1003,18 @@ export default function EnergyDashboard() {
                      <div style={{ fontSize: '0.85rem', color: p.color, fontWeight: '800', background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.3rem 0.8rem', borderRadius: '10px' }}>{p.label}</div>
                    </div>
 
-                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', position: 'relative', zIndex: 1 }}>
-                     <div style={{ background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '1rem', borderRadius: '16px' }}>
-                       <div style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>Voltage</div>
-                       <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem' }}>{p.data.v}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px', color:theme.textSub}}>V</span></div>
+                   <div style={{ display: 'flex', gap: '0.5rem', position: 'relative', zIndex: 1, width: '100%' }}>
+                     <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', boxSizing: 'border-box' }}>
+                       <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Voltage</div>
+                       <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.v}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px', color:theme.textSub}}>V</span></div>
                      </div>
-                     <div style={{ background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '1rem', borderRadius: '16px' }}>
-                       <div style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>Current</div>
-                       <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem' }}>{p.data.a}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px', color:theme.textSub}}>A</span></div>
+                     <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', boxSizing: 'border-box' }}>
+                       <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Current</div>
+                       <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.a}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px', color:theme.textSub}}>A</span></div>
                      </div>
-                     <div style={{ background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '1rem', borderRadius: '16px', border: `1px solid ${p.color}40` }}>
-                       <div style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>Power</div>
-                       <div style={{ fontSize: '1.2rem', fontWeight: '800', color: p.color, marginTop: '0.2rem' }}>{p.data.kw}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px'}}>kW</span></div>
+                     <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', border: `1px solid ${p.color}40`, boxSizing: 'border-box' }}>
+                       <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Power</div>
+                       <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: p.color, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.kw}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px'}}>kW</span></div>
                      </div>
                    </div>
 
