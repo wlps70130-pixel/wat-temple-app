@@ -29,6 +29,40 @@ const getRankStyle = (rank) => {
   return { color: '#64748b', bg: '#f1f5f9' };
 };
 
+// ─── Image Avatar Component (แก้ปัญหารูปไม่ขึ้นบนบางเครื่อง/Safari) ───
+function MonkAvatar({ src, alt, size, borderColor, style, bg }) {
+  const [imgError, setImgError] = useState(false);
+
+  const getOptimizedUrl = (url) => {
+    if (!url) return '';
+    const s = url.trim();
+    // ถ้าเป็น Google Drive URL ให้แปลงเป็น Thumbnail API เพื่อลดปัญหา Cookie/Cross-Origin บนมือถือ
+    const match = s.match(/id=([a-zA-Z0-9_-]+)/) || s.match(/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1] && s.includes('drive.google.com')) {
+      return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400-h400`;
+    }
+    return s;
+  };
+
+  // ถ้ารูปโหลดพัง หรือไม่มีรูป ให้แสดงไอคอนแทน
+  if (!src || !src.trim() || imgError) {
+    return (
+      <div style={{ ...style, background: bg || `${borderColor}20`, display:'flex', alignItems:'center', justifyContent:'center', border: style.border || `2.5px solid ${borderColor}`, boxShadow: style.boxShadow }}>
+        <User size={size * 0.45} color={borderColor === 'white' ? 'white' : (borderColor || '#94a3b8')}/>
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={getOptimizedUrl(src)} 
+      alt={alt} 
+      style={style} 
+      onError={() => setImgError(true)} 
+    />
+  );
+}
+
 // ─── Modal ──────────────────────────────────────────────────────
 function MonkModal({ monk, onClose }) {
   const [tab, setTab] = useState('info');
@@ -59,8 +93,14 @@ function MonkModal({ monk, onClose }) {
         <div style={{ display:'flex', justifyContent:'center', padding:'0.6rem 0 0' }}><div style={{ width:'36px', height:'4px', borderRadius:'2px', background:'#e2e8f0' }} /></div>
         <div style={{ background:'linear-gradient(135deg,#78350f,#d97706 60%,#fbbf24)', padding:'1.1rem 1rem 1rem', display:'flex', alignItems:'center', gap:'1rem', position:'relative' }}>
           <button onClick={onClose} style={{ position:'absolute', top:'0.7rem', right:'0.7rem', background:'rgba(255,255,255,0.2)', border:'none', cursor:'pointer', borderRadius:'50%', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', color:'white' }}><X size={15} /></button>
-          {monk.image && monk.image.trim() ? <img src={monk.image} alt={monk.name} style={{ width:'76px', height:'76px', borderRadius:'50%', objectFit:'cover', border:'3px solid rgba(255,255,255,0.85)', flexShrink:0 }} />
-            : <div style={{ width:'76px', height:'76px', borderRadius:'50%', background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', border:'3px solid rgba(255,255,255,0.5)', flexShrink:0 }}><User size={34} color="white" /></div>}
+          <MonkAvatar 
+            src={monk.image} 
+            alt={monk.name} 
+            size={76} 
+            borderColor="white"
+            bg="rgba(255,255,255,0.15)"
+            style={{ width:'76px', height:'76px', borderRadius:'50%', objectFit:'cover', border:'3px solid rgba(255,255,255,0.85)', flexShrink:0 }} 
+          />
           <div style={{ flex:1, minWidth:0 }}>
             {monk.royalTitle && <div style={{ fontSize:'0.68rem', color:'rgba(255,255,255,0.85)', fontWeight:'700', marginBottom:'2px' }}>{monk.royalTitle}</div>}
             <div style={{ fontSize:'1.05rem', color:'white', fontWeight:'800', lineHeight:1.2 }}>{monk.name}</div>
@@ -126,9 +166,13 @@ function MonkCard({ monk, avatarSize = 60, nameFontSize = '0.88rem', titleFontSi
         onMouseEnter={e => { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 10px 24px rgba(0,0,0,0.13)'; }}
         onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='0 2px 12px rgba(0,0,0,0.07)'; }}>
         <div style={{ position:'absolute', top:'6px', right:'8px', fontSize:'0.5rem', color:'#d1d5db', fontWeight:'700', letterSpacing:'0.5px' }}>TAP</div>
-        {monk.image && monk.image.trim()
-          ? <img src={monk.image} alt={monk.name} style={{ width:`${avatarSize}px`, height:`${avatarSize}px`, borderRadius:'50%', objectFit:'cover', border:`2.5px solid ${borderColor}`, boxShadow:'0 3px 10px rgba(0,0,0,0.12)' }}/>
-          : <div style={{ width:`${avatarSize}px`, height:`${avatarSize}px`, borderRadius:'50%', background:`${borderColor}20`, display:'flex', alignItems:'center', justifyContent:'center', border:`2.5px solid ${borderColor}` }}><User size={avatarSize*0.42} color={borderColor}/></div>}
+        <MonkAvatar 
+          src={monk.image} 
+          alt={monk.name} 
+          size={avatarSize} 
+          borderColor={borderColor}
+          style={{ width:`${avatarSize}px`, height:`${avatarSize}px`, borderRadius:'50%', objectFit:'cover', border:`2.5px solid ${borderColor}`, boxShadow:'0 3px 10px rgba(0,0,0,0.12)' }}
+        />
         {monk.title && <div style={{ fontSize:titleFontSize, color:'#b45309', fontWeight:'800', lineHeight:1.2, marginTop:'2px' }}>{monk.title}</div>}
         <div style={{ fontSize:nameFontSize, color:'#1e293b', fontWeight:'800', lineHeight:1.25, textAlign:'center' }}>{monk.name}</div>
         {showRank && monk.sanghaRank && <div style={{ fontSize:'0.55rem', color:rs.color, background:rs.bg, padding:'1px 7px', borderRadius:'20px', fontWeight:'700', marginTop:'1px' }}>{monk.sanghaRank}</div>}
@@ -304,9 +348,14 @@ export default function SanghaChart() {
                   </div>
                 ) : members.map((m, i) => (
                   <div key={i} style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.65rem 0', borderBottom:'1px solid #f8fafc' }}>
-                    {m.image?.trim()
-                      ? <img src={m.image} alt={m.name} style={{ width:'40px', height:'40px', borderRadius:'50%', objectFit:'cover', border:`2px solid ${activeDept.color}`, flexShrink:0 }}/>
-                      : <div style={{ width:'40px', height:'40px', borderRadius:'50%', background:activeDept.bg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><User size={18} color={activeDept.color}/></div>}
+                    <MonkAvatar 
+                      src={m.image} 
+                      alt={m.name} 
+                      size={40} 
+                      borderColor={activeDept.color}
+                      bg={activeDept.bg}
+                      style={{ width:'40px', height:'40px', borderRadius:'50%', objectFit:'cover', border:`2px solid ${activeDept.color}`, flexShrink:0 }}
+                    />
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontWeight:'700', fontSize:'0.85rem', color:'#1e293b', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.name}</div>
                       <div style={{ fontSize:'0.7rem', color:'#94a3b8', marginTop:'1px' }}>{m.title || m.role}</div>
