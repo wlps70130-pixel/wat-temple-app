@@ -598,18 +598,23 @@ export default function EnergyDashboard() {
                  </div>
               </div>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${theme.border}`, marginTop: '1.5rem', paddingTop: '1.25rem' }}>
-                 <div>
-                    <div style={{ fontSize: '1.2rem', color: prodPercent >= 80 ? '#a3e635' : prodPercent >= 50 ? '#fbbf24' : theme.danger, fontWeight: '800' }}>{prodPercent.toFixed(1)}%</div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>พึ่งพาพลังงานทดแทน</div>
+              <div style={{ display: 'flex', borderTop: `1px solid ${theme.border}`, marginTop: '1.5rem', paddingTop: '1.25rem' }}>
+                 {/* Left Column */}
+                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '0.25rem', padding: '0 0.25rem' }}>
+                    <div style={{ fontSize: '1.4rem', color: prodPercent >= 80 ? '#a3e635' : prodPercent >= 50 ? '#fbbf24' : theme.danger, fontWeight: '800', lineHeight: 1 }}>{prodPercent.toFixed(1)}<span style={{fontSize: '0.9rem'}}>%</span></div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600', lineHeight: 1.2 }}>พึ่งพาพลังงานทดแทน</div>
                  </div>
-                 <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: '700', padding: '0.2rem 0.75rem', borderRadius: '10px', background: touStatus === 'ON_PEAK' ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)', color: touStatus === 'ON_PEAK' ? theme.danger : theme.success }}>{touStatus === 'ON_PEAK' ? '🔴 On-Peak' : '🟢 Off-Peak'}</div>
-                    <div style={{ fontSize: '0.65rem', color: theme.textSub, fontWeight: '500', marginTop: '4px' }}>ช่วงเวลาปัจจุบัน</div>
+                 {/* Middle Column */}
+                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '0.25rem', padding: '0 0.25rem' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '600', padding: '0.15rem 0.5rem', borderRadius: '12px', background: 'transparent', border: `1px solid ${touStatus === 'ON_PEAK' ? theme.danger : theme.success}`, color: touStatus === 'ON_PEAK' ? theme.danger : theme.success }}>
+                       {touStatus === 'ON_PEAK' ? '🔴 On-Peak' : '🟢 Off-Peak'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600', lineHeight: 1.2 }}>ช่วงเวลาปัจจุบัน</div>
                  </div>
-                 <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.2rem', color: netGrid <= 0 ? '#a3e635' : theme.danger, fontWeight: '800' }}>{netGrid > 0 ? '+' : ''}{netGrid.toFixed(1)} kW</div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>{netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออกไป PEA'}</div>
+                 {/* Right Column */}
+                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '0.25rem', padding: '0 0.25rem' }}>
+                    <div style={{ fontSize: '1.4rem', color: netGrid <= 0 ? '#a3e635' : theme.danger, fontWeight: '800', lineHeight: 1 }}>{netGrid > 0 ? '+' : ''}{netGrid.toFixed(1)} <span style={{fontSize: '0.9rem'}}>kW</span></div>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600', lineHeight: 1.2 }}>{netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออกไป PEA'}</div>
                  </div>
               </div>
            </div>
@@ -618,23 +623,31 @@ export default function EnergyDashboard() {
            <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
               <div style={{ fontSize: '1.05rem', fontWeight: '800', color: theme.textMain, marginBottom: '1.25rem' }}>Energy Distribution</div>
               
-              <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#e2e8f0', borderRadius: '16px', overflow: 'hidden', marginBottom: '1.5rem' }}>
-                 <div style={{ flex: 1, padding: '1rem', borderRight: `1px solid ${theme.border}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#a3e635', fontWeight: '700' }}>
-                       <span style={{ fontSize: '1.1rem' }}>🌱</span> Renewable
+              <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#e2e8f0', borderRadius: '16px', marginBottom: '1.5rem', padding: '0.25rem 0' }}>
+                 {/* Left: Renewable */}
+                 <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderRight: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: '#65a30d', fontWeight: '700', lineHeight: 1 }}>
+                       <span style={{ fontSize: '1rem' }}>🌱</span> Renewable
                     </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textMain, marginTop: '0.25rem' }}>
-                       {solarKw.toFixed(1)} <span style={{fontSize:'0.75rem', color:theme.textSub, fontWeight:'600'}}>kW</span>
-                       <span style={{fontSize:'0.8rem', color:'#a3e635', marginLeft:'0.5rem'}}>▲ {prodPercent.toFixed(0)}%</span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                       <span style={{ fontSize: '1.5rem', fontWeight: '800', color: theme.textMain, lineHeight: 1 }}>{solarKw.toFixed(1)}</span>
+                       <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>kW</span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#65a30d', fontWeight: '700', lineHeight: 1 }}>
+                       ▲ {prodPercent.toFixed(0)}%
                     </div>
                  </div>
-                 <div style={{ flex: 1, padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#0ea5e9', fontWeight: '700' }}>
-                       <span style={{ fontSize: '1.1rem' }}>⚡</span> PEA Grid
+                 {/* Right: PEA Grid */}
+                 <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: '#0284c7', fontWeight: '700', lineHeight: 1 }}>
+                       <span style={{ fontSize: '1rem' }}>⚡</span> PEA Grid
                     </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textMain, marginTop: '0.25rem' }}>
-                       {globalKw.toFixed(1)} <span style={{fontSize:'0.75rem', color:theme.textSub, fontWeight:'600'}}>kW</span>
-                       <span style={{fontSize:'0.8rem', color:'#0ea5e9', marginLeft:'0.5rem'}}>▼ {(100-prodPercent).toFixed(0)}%</span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                       <span style={{ fontSize: '1.5rem', fontWeight: '800', color: theme.textMain, lineHeight: 1 }}>{globalKw.toFixed(1)}</span>
+                       <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>kW</span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: '700', lineHeight: 1 }}>
+                       ▼ {(100-prodPercent).toFixed(0)}%
                     </div>
                  </div>
               </div>
