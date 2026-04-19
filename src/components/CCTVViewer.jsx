@@ -41,11 +41,10 @@ function CameraCard({ cam, onExpand }) {
             </div>
           )}
           <img
-            src={cam.url.startsWith('http://') ? cam.url.replace('http://', 'https://') : cam.url}
+            src={cam.url && cam.url.startsWith('http://') ? cam.url.replace('http://', 'https://') : cam.url}
             alt={cam.name || "กล้องวงจรปิด"}
             loading="lazy"
             decoding="async"
-            crossOrigin="anonymous"
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: loaded ? 'block' : 'none' }}
             onLoad={() => setLoaded(true)}
             onError={(e) => { 
@@ -126,11 +125,10 @@ function FullscreenCamera({ cam, onClose }) {
           </div>
         ) : (
           <img 
-            src={cam.url.startsWith('http://') ? cam.url.replace('http://', 'https://') : cam.url} 
+            src={cam.url && cam.url.startsWith('http://') ? cam.url.replace('http://', 'https://') : cam.url} 
             alt={cam.name || "กล้องวงจรปิด"} 
             loading="lazy"
             decoding="async"
-            crossOrigin="anonymous"
             style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: '12px', objectFit: 'contain' }} 
             onError={(e) => { 
               e.currentTarget.onerror = null; 

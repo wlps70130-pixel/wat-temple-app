@@ -56,11 +56,10 @@ function MonkAvatar({ src, alt, size, borderColor, style, bg }) {
   const finalSrc = getOptimizedUrl(src);
   return (
     <img 
-      src={finalSrc.startsWith('http://') ? finalSrc.replace('http://', 'https://') : finalSrc} 
+      src={finalSrc && finalSrc.startsWith('http://') ? finalSrc.replace('http://', 'https://') : finalSrc} 
       alt={alt || "รูปพระภิกษุ"} 
       loading="lazy"
       decoding="async"
-      crossOrigin="anonymous"
       style={style} 
       onError={(e) => { 
         e.currentTarget.onerror = null; 

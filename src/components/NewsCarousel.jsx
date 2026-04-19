@@ -104,11 +104,10 @@ export default function NewsCarousel() {
                     <div className="embla__slide-img-wrapper">
                       {item.image ? (
                         <img 
-                          src={item.image.startsWith('http://') ? item.image.replace('http://', 'https://') : item.image} 
+                          src={item.image && item.image.startsWith('http://') ? item.image.replace('http://', 'https://') : item.image} 
                           alt={item.title || "ข่าวประชาสัมพันธ์"}
                           loading="lazy"
                           decoding="async"
-                          crossOrigin="anonymous"
                           style={{ width: '100%', height: '100%', objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
                           onError={(e) => { 
                             e.currentTarget.onerror = null; 
