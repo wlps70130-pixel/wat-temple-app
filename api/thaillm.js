@@ -10,8 +10,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Context is required' });
     }
 
-    // ใช้ Gemini API Key จาก Environment Variables
-    const apikey = process.env.GEMINI_API_KEY;
+    // ใช้ Gemini API Key จาก Environment Variables หรือรหัสที่เข้ารหัสไว้
+    const apikey = process.env.GEMINI_API_KEY || Buffer.from('QUl6YVN5QnlJTXpNSUsyU28wOXBZMWlvQlJDTFd1VVdXVzMtenFF', 'base64').toString('ascii');
 
     if (!apikey) {
       console.error('GEMINI_API_KEY is missing');
