@@ -61,31 +61,29 @@ export default function DateTimeWeather() {
   const pmStatus = getPMStatus(weather.pm25);
 
   return (
-    <div className="weather-widget glass">
-      <div className="date-time">
-        <span className="date-text">
-          {formatThaiDate(time)}
-        </span>
-        <span className="time-text">
-          {time.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
-        </span>
+    <div className="weather-widget glass" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 0 }}>
+      {/* วันที่ */}
+      <div className="date-text" style={{ fontSize: 'clamp(0.8rem, 3vw, 0.9rem)', color: 'var(--primary-color)', marginBottom: '0.5rem', fontWeight: '500' }}>
+        {formatThaiDate(time)}
       </div>
-      
-      <div className="weather-stats">
-        <div className="stat-item">
-          <span className="stat-label">อุณหภูมิ</span>
-          <span className="stat-value text-white">
-            <ThermometerSun size={18} color="#eab308" />
-            {weather.temp}°
-          </span>
+
+      {/* แถวล่าง: เวลา + อากาศ */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* ซ้าย: เวลา */}
+        <div style={{ flex: 1 }}>
+          <div className="time-text" style={{ color: 'var(--text-main)', lineHeight: '1.1' }}>
+            {time.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
+          </div>
         </div>
-        <div className="stat-item">
-          <span className="stat-label">PM 2.5</span>
-          <span className={`stat-value ${pmStatus.className}`}>
-            <Wind size={18} />
-            {weather.pm25}
-          </span>
-          <span style={{fontSize: '10px', color: 'var(--text-muted)'}}>{pmStatus.text}</span>
+
+        {/* ขวา: อุณหภูมิ + PM2.5 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+          <div style={{ fontSize: 'clamp(1rem, 4vw, 1.15rem)', color: '#f59e0b', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <ThermometerSun size={18} /> {weather.temp}°
+          </div>
+          <div className={pmStatus.className} style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1rem)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Wind size={18} /> {weather.pm25} <span style={{fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--text-muted)'}}>{pmStatus.text}</span>
+          </div>
         </div>
       </div>
     </div>
