@@ -36,11 +36,14 @@ export default async function handler(req, res) {
     
     const body = {
       system_instruction: {
-        parts: { text: systemPrompt }
+        parts: [{ text: systemPrompt }]
       },
-      contents: {
-        parts: { text: context }
-      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: context }]
+        }
+      ],
       generationConfig: {
         temperature: 0.5,
         maxOutputTokens: 400
