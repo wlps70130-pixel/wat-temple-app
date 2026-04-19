@@ -55,20 +55,35 @@ export function MonkAvatar({ src, alt, size = 60, borderColor = '#e2e8f0', bg, s
 function MonkModal({ monk, onClose }) {
   if (!monk) return null;
   const rs = getRankStyle(monk.sanghaRank);
+  const displayName = monk.fullName || monk.name;
+  const displayTitle = monk.royalTitle || monk.title || monk.name;
+  const positionsStr = (monk.positions || '').replace(/;/g, '\n');
   return (
     <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.6)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }} onClick={onClose}>
-      <div style={{ background:'white', borderRadius:'24px', width:'100%', maxWidth:'360px', padding:'2rem 1.5rem', position:'relative', textAlign:'center', boxShadow:'0 20px 25px -5px rgba(0,0,0,0.1)' }} onClick={e => e.stopPropagation()}>
+      <div style={{ background:'white', borderRadius:'24px', width:'100%', maxWidth:'360px', padding:'2rem 1.5rem', position:'relative', textAlign:'center', boxShadow:'0 20px 25px -5px rgba(0,0,0,0.1)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
         <button onClick={onClose} style={{ position:'absolute', top:'1rem', right:'1rem', background:'#f1f5f9', border:'none', width:'32px', height:'32px', borderRadius:'50%', fontSize:'1.2rem', cursor:'pointer', color:'#64748b', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
         <div style={{ width: '110px', height: '110px', margin: '0 auto 1rem', borderRadius: '50%', overflow: 'hidden', border: '3px solid #f59e0b', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
-          <MonkAvatar src={monk.image} alt={monk.name} size={110} style={{ width: '100%', height: '100%', objectFit: 'cover', border: 'none' }}/>
+          <MonkAvatar src={monk.image} alt={displayName} size={110} style={{ width: '100%', height: '100%', objectFit: 'cover', border: 'none' }}/>
         </div>
-        <h3 style={{ margin:'0 0 0.25rem', fontSize:'1.2rem', color:'#1e293b', fontWeight:'800' }}>{monk.name}</h3>
-        <p style={{ margin:'0 0 0.5rem', color:'#f59e0b', fontWeight:'700', fontSize:'0.95rem' }}>{monk.title || monk.role}</p>
+        <h3 style={{ margin:'0 0 0.25rem', fontSize:'1.1rem', color:'#1e293b', fontWeight:'800' }}>{displayName}</h3>
+        {monk.royalTitle && <p style={{ margin:'0 0 0.25rem', color:'#7c3aed', fontWeight:'700', fontSize:'0.9rem' }}>{monk.royalTitle}</p>}
+        {monk.dharmaName && <p style={{ margin:'0 0 0.5rem', color:'#64748b', fontSize:'0.85rem' }}>ฉายา: {monk.dharmaName}</p>}
         {monk.sanghaRank && <div style={{ display:'inline-block', background:rs.bg, color:rs.color, padding:'4px 12px', borderRadius:'20px', fontSize:'0.8rem', fontWeight:'700', marginBottom:'1rem' }}>{monk.sanghaRank}</div>}
+        
         <div style={{ background:'#f8fafc', borderRadius:'16px', padding:'1rem', textAlign:'left', marginTop:'0.5rem' }}>
-          <div style={{ fontSize:'0.8rem', color:'#64748b', marginBottom:'0.25rem' }}>ข้อมูลเพิ่มเติม</div>
-          <div style={{ fontSize:'0.9rem', color:'#334155' }}>ฝ่าย: {monk.department || '-'}</div>
-          {monk.education && <div style={{ fontSize:'0.9rem', color:'#334155', marginTop:'0.25rem' }}>วุฒิการศึกษา: {monk.education}</div>}
+          {positionsStr && <div style={{ fontSize:'0.85rem', color:'#334155', marginBottom:'0.5rem', whiteSpace:'pre-line' }}><strong>ตำแหน่ง:</strong> {positionsStr}</div>}
+          {monk.duty && <div style={{ fontSize:'0.85rem', color:'#334155', marginBottom:'0.25rem' }}><strong>หน้าที่:</strong> {monk.duty}</div>}
+          {monk.nikaya && <div style={{ fontSize:'0.85rem', color:'#334155', marginBottom:'0.25rem' }}><strong>นิกาย:</strong> {monk.nikaya}</div>}
+          {monk.temple && <div style={{ fontSize:'0.85rem', color:'#334155', marginBottom:'0.25rem' }}><strong>วัด:</strong> {monk.temple}</div>}
+          {(monk.naktham || monk.pali || monk.secular) && (
+            <div style={{ borderTop:'1px dashed #e2e8f0', marginTop:'0.5rem', paddingTop:'0.5rem' }}>
+              <div style={{ fontSize:'0.8rem', color:'#94a3b8', marginBottom:'0.25rem', fontWeight:'600' }}>การศึกษา</div>
+              {monk.naktham && <div style={{ fontSize:'0.85rem', color:'#334155' }}>นักธรรม: {monk.naktham}</div>}
+              {monk.pali && <div style={{ fontSize:'0.85rem', color:'#334155' }}>เปรียญธรรม: ป.ธ. {monk.pali}</div>}
+              {monk.secular && <div style={{ fontSize:'0.85rem', color:'#334155' }}>สามัญ: {monk.secular}</div>}
+            </div>
+          )}
+          {monk.birthDate && <div style={{ fontSize:'0.8rem', color:'#94a3b8', marginTop:'0.5rem' }}>วันเกิด: {monk.birthDate}</div>}
         </div>
       </div>
     </div>
@@ -85,7 +100,7 @@ export default function SanghaChart() {
     Papa.parse(SHEET_URL, {
       download: true, header: true,
       complete: (r) => {
-        const rows = r.data.filter(row => row.role && row.name);
+        const rows = r.data.filter(row => row.role && (row.name || row.fullName));
         setData({
           abbot: rows.find(r => r.role==='abbot')||null,
           viceAbbots: rows.filter(r => r.role==='viceAbbot'),
@@ -152,7 +167,7 @@ export default function SanghaChart() {
                    <MonkAvatar src={abbot.image} alt={abbot.name} size={100} style={{ width: '100%', height: '100%', objectFit: 'cover', border: 'none' }} />
                 </div>
                 <div style={{ fontSize: 'clamp(0.95rem, 4vw, 1.1rem)', fontWeight: '800', color: '#1e293b', marginTop: '1.25rem', textAlign: 'center' }}>เจ้าอาวาส</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', textAlign:'center', lineHeight:1.2, height:'32px', overflow:'hidden' }}>{abbot.name}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', textAlign:'center', lineHeight:1.2, height:'32px', overflow:'hidden' }}>{abbot.royalTitle || abbot.fullName || abbot.name}</div>
               </>
             ) : (
               <div style={{ flex: 1, display:'flex', alignItems:'center', justifyContent:'center' }}><p style={{color:'#94a3b8'}}>N/A</p></div>
@@ -176,7 +191,7 @@ export default function SanghaChart() {
                   </div>
                   <div style={{ overflow: 'hidden', flex: '1 1 min-content' }}>
                     <div style={{ fontSize: 'clamp(0.85rem, 3vw, 0.9rem)', fontWeight: '800', color: 'white' }}>รองเจ้าอาวาส</div>
-                    <div style={{ fontSize: 'clamp(0.6rem, 2.5vw, 0.65rem)', color: '#a1a1aa', marginTop: '0.1rem', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{viceAbbot.name}</div>
+                    <div style={{ fontSize: 'clamp(0.6rem, 2.5vw, 0.65rem)', color: '#a1a1aa', marginTop: '0.1rem', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{viceAbbot.fullName || viceAbbot.name}</div>
                   </div>
                 </div>
               ) : (
@@ -229,7 +244,7 @@ export default function SanghaChart() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'white', letterSpacing: '1px' }}>พระภิกษุสามเณร</div>
             <div style={{ background: 'rgba(0,0,0,0.15)', padding: '4px 12px', borderRadius: '16px', fontSize: '0.65rem', color: 'white', fontWeight: '800' }}>
-              พระภิกษุสามเณร
+              {data.monks.length} รูป
             </div>
           </div>
           
