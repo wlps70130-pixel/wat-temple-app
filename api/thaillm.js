@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -47,12 +49,12 @@ export default async function handler(req, res) {
       ],
       generationConfig: {
         temperature: 0.5,
-        maxOutputTokens: 2048
+        maxOutputTokens: 8000
       }
     };
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 55000);
 
     const response = await fetch(url, {
       method: 'POST',
