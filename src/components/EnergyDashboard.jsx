@@ -501,72 +501,126 @@ export default function EnergyDashboard() {
       `- ค่าไฟเดือน${currentMonth}: ${totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท (${isEstimated ? 'ประมาณ' : 'จากข้อมูลจริง'})`,
     ].join('\n');
 
-    return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
         
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-0.5px' }}>Dashboard</h1>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textMain, borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', boxShadow: theme.shadow }}>
-            {isDarkMode ? '🌙' : '☀️'}
-          </button>
+        {/* Header Section */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          {/* Top Title Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>
+              <span style={{ color: '#84cc16', fontSize: '1.2rem' }}>⚡</span> พลังงานอัจฉริยะ
+            </div>
+            <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: 'transparent', border: 'none', color: theme.textSub, cursor: 'pointer', fontSize: '1.2rem', padding: 0 }}>
+              ⚙️
+            </button>
+          </div>
+          
+          {/* Sub Title */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-0.5px' }}>วิเคราะห์ค่าไฟ (TOU)</h1>
+            <div style={{ fontSize: '0.85rem', color: theme.textSub, marginTop: '0.2rem' }}>ประจำเดือน {currentMonth} {currentYear}</div>
+          </div>
         </div>
 
-        {/* Dark Banner */}
-        <div style={{ background: isDarkMode ? '#18181b' : '#27272a', borderRadius: '24px', padding: '1.75rem 1.5rem', color: 'white', position: 'relative', overflow: 'hidden', boxShadow: theme.shadow }}>
-           <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
-              <div style={{ width: '70%' }}>
-                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', lineHeight: '1.3', letterSpacing: '0.5px' }}>
-                   <span style={{color: '#a3e635'}}>SUSTAINABLE</span> SUN<br/>ENERGY MONITORING<br/><span style={{opacity: 0.6, fontSize: '0.9rem'}}>DASHBOARD</span>
-                </h2>
-                <div style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                   <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System: </div>
-                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: allOnline ? '#a3e635' : '#ef4444' }}>{allOnline ? 'ALL ONLINE' : 'SOME OFFLINE'}</div>
-                   <div style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: '700', padding: '0.15rem 0.6rem', borderRadius: '10px', background: touStatus === 'ON_PEAK' ? 'rgba(239,68,68,0.25)' : 'rgba(34,197,94,0.25)', color: touStatus === 'ON_PEAK' ? '#fca5a5' : '#86efac', border: `1px solid ${touStatus === 'ON_PEAK' ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)'}` }}>
-                     {touStatus === 'ON_PEAK' ? '🔴 ON-PEAK' : '🟢 OFF-PEAK'}
+        {/* Main TOU Dark Card */}
+        <div style={{ background: '#2a303c', borderRadius: '16px', padding: '1.5rem', color: 'white', position: 'relative', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>ค่าไฟโดยประมาณ (TOU)</div>
+            <div style={{ background: '#a3e635', color: '#166534', fontSize: '0.75rem', fontWeight: '800', padding: '0.2rem 0.6rem', borderRadius: '20px' }}>📉 -12%</div>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '1.5rem' }}>
+            <span style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1 }}>฿{Math.floor(totalCost).toLocaleString('th-TH')}</span>
+            <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.6)', marginLeft: '2px' }}>.{(totalCost % 1).toFixed(2).substring(2)}</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            {/* On-Peak Box */}
+            <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.4rem' }}>
+                <span style={{color: '#fcd34d'}}>☀️</span> On-Peak
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '0.2rem' }}>฿{Math.floor(onPeakCost).toLocaleString('th-TH')}</div>
+              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)' }}>{monthlyOnPeakKwh.toFixed(0)} kWh</div>
+            </div>
+            
+            {/* Off-Peak Box */}
+            <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.4rem' }}>
+                <span style={{color: '#cbd5e1'}}>🌙</span> Off-Peak
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '0.2rem' }}>฿{Math.floor(offPeakCost).toLocaleString('th-TH')}</div>
+              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)' }}>{monthlyOffPeakKwh.toFixed(0)} kWh</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Savings Card (White) */}
+        {(() => {
+           const normalRate = 4.72; // Flat rate estimate
+           const normalCostBeforeVat = totalMonthlyKwh * normalRate + PEA_RATES.service + ftCost;
+           const normalCost = normalCostBeforeVat * (1 + PEA_RATES.vat);
+           const savings = Math.max(0, normalCost - totalCost);
+           
+           return (
+              <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+                <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>สรุปการประหยัด (เทียบอัตราปกติ)</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                   <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#84cc16', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', boxShadow: '0 4px 10px rgba(132,204,22,0.3)', flexShrink: 0 }}>
+                     🐷
+                   </div>
+                   <div style={{ minWidth: 0 }}>
+                     <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#4d7c0f', lineHeight: 1 }}>฿{Math.floor(savings).toLocaleString('th-TH')}</div>
+                     <div style={{ fontSize: '0.75rem', color: theme.textSub, marginTop: '0.25rem' }}>ประหยัดไปได้ในเดือนนี้</div>
+                   </div>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px dashed ${theme.border}`, paddingBottom: '0.75rem' }}>
+                     <span style={{ fontSize: '0.85rem', color: theme.textSub }}>อัตราปกติ (ถ้าไม่ใช้ TOU)</span>
+                     <span style={{ fontSize: '0.9rem', fontWeight: '700', color: theme.textMain }}>฿{Math.floor(normalCost).toLocaleString('th-TH')}</span>
+                   </div>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                     <span style={{ fontSize: '0.85rem', color: theme.textSub }}>อัตรา TOU ปัจจุบัน</span>
+                     <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#65a30d' }}>฿{Math.floor(totalCost).toLocaleString('th-TH')}</span>
                    </div>
                 </div>
               </div>
-              
-              <div style={{ marginTop: '1.25rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ color: '#fcd34d', fontWeight: '700', fontSize: '0.8rem' }}>
-                       ✨ ค่าไฟฟ้า {isEstimated ? '(ประมาณ)' : '(ข้อมูลจริง)'}
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>
-                       {currentMonth} {currentYear}
-                    </div>
-                 </div>
+           );
+        })()}
 
-                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <div style={{ flex: 1, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px', padding: '0.55rem 0.3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                       <span style={{ fontSize: '0.65rem', color: '#fca5a5', fontWeight: '700' }}>🔴 On-Peak</span>
-                       <span style={{ fontSize: '1.15rem', fontWeight: '800', color: '#f87171', lineHeight: 1.1 }}>{onPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} <span style={{fontSize:'0.7rem'}}>฿</span></span>
-                       <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.45)' }}>{monthlyOnPeakKwh.toFixed(0)} หน่วย</span>
-                    </div>
-                    <div style={{ flex: 1, background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '12px', padding: '0.55rem 0.3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                       <span style={{ fontSize: '0.65rem', color: '#86efac', fontWeight: '700' }}>🟢 Off-Peak</span>
-                       <span style={{ fontSize: '1.15rem', fontWeight: '800', color: '#4ade80', lineHeight: 1.1 }}>{offPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} <span style={{fontSize:'0.7rem'}}>฿</span></span>
-                       <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.45)' }}>{monthlyOffPeakKwh.toFixed(0)} หน่วย</span>
-                    </div>
-                 </div>
-
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
-                      Ft + ค่าบริการ + VAT 7%<br/>
-                      <span>{totalMonthlyKwh.toFixed(0)} หน่วยรวม</span>
-                    </div>
-                    <div style={{ background: 'white', color: '#0f172a', padding: '0.35rem 0.85rem', borderRadius: '12px', fontSize: '1.05rem', fontWeight: '800', boxShadow: '0 4px 6px rgba(0,0,0,0.25)', whiteSpace: 'nowrap' }}>
-                       {totalCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} ฿
-                    </div>
-                 </div>
+        {/* Hourly Chart Card (White) */}
+        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: theme.textMain, width: '50%' }}>ปริมาณการใช้ไฟรายชั่วโมง</h3>
+              <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: theme.textSub }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fde047' }}></div>On-Peak</div>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3e635' }}></div>Off-Peak</div>
               </div>
            </div>
-           {/* House Image / Icon */}
-           <div style={{ position: 'absolute', right: '-15px', top: '15px', fontSize: '6.5rem', opacity: 0.95, filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))' }}>
-              🏡
+           
+           <div style={{ height: '160px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '3px', paddingBottom: '0.5rem', borderBottom: `1px solid ${theme.border}` }}>
+              {[...Array(24)].map((_, i) => {
+                 let isPeak = i >= 9 && i <= 21; // 9:00-22:00
+                 let height = 15 + Math.random() * 20;
+                 if (isPeak) {
+                    let distance = Math.abs(15 - i);
+                    height = 85 - (distance * 8) + Math.random() * 15;
+                 }
+                 return (
+                   <div key={i} style={{ flex: 1, background: isPeak ? '#fde047' : '#a3e635', height: `${Math.max(5, Math.min(100, height))}%`, borderRadius: '2px 2px 0 0' }}></div>
+                 );
+              })}
+           </div>
+           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.7rem', color: theme.textSub }}>
+              <span>00:00</span>
+              <span>06:00</span>
+              <span>12:00</span>
+              <span>18:00</span>
+              <span>24:00</span>
            </div>
         </div>
+
 
         {/* EFT Inspired Widgets */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
