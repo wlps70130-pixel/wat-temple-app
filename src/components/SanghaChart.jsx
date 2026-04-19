@@ -1,9 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Users, ChevronLeft, Share, Grid as GridIcon } from 'lucide-react';
+import { Users, ChevronLeft, Share, Grid as GridIcon, User } from 'lucide-react';
 import Papa from 'papaparse';
-import { SHEET_URL } from '../api/config';
-import { getRankStyle } from '../utils/rankUtils';
-import MonkAvatar from './MonkAvatar';
+
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/11hBRfyMG6g2qhhSSPceu1_LvmBTrp0aOkmjculEM-r0/export?format=csv';
+
+const getRankStyle = (rank) => {
+  if (!rank) return { color: '#64748b', bg: '#f1f5f9' };
+  if (rank.includes('สมเด็จ')) return { color: '#7c3aed', bg: '#ede9fe' };
+  if (rank.includes('พระราชาคณะ')) return { color: '#1d4ed8', bg: '#dbeafe' };
+  if (rank.includes('พระครูสัญญาบัตร')) return { color: '#92400e', bg: '#fef3c7' };
+  if (rank.includes('พระครู')) return { color: '#b45309', bg: '#fefce8' };
+  if (rank.includes('เปรียญ')) return { color: '#0f766e', bg: '#ccfbf1' };
+  return { color: '#64748b', bg: '#f1f5f9' };
+};
+
+export function MonkAvatar({ src, alt, size = 60, borderColor = '#e2e8f0', bg, style = {} }) {
+  const [imgError, setImgError] = useState(false);
+  const getOptimizedUrl = (url) => {
+    if (!url) return null;
+    const s = url.trim();
+    const match = s.match(/id=([a-zA-Z0-9_-]+)/) || s.match(/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1] && s.includes('drive.google.com')) {
+      return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400-h400`;
+    }
+    return s;
+  };
+
+  if (!src || !src.trim() || imgError) {
+    return (
+      <div style={{ ...style, background: bg || '#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', border: style.border || `2.5px solid ${borderColor}`, boxShadow: style.boxShadow }}>
+        <User size={size * 0.45} color={borderColor === 'white' ? 'white' : '#94a3b8'}/>
+      </div>
+    );
+  }
+
+  const finalSrc = getOptimizedUrl(src);
+  return (
+    <img 
+      src={finalSrc && finalSrc.startsWith('http://') ? finalSrc.replace('http://', 'https://') : finalSrc} 
+      alt={alt || "รูปพระภิกษุ"} 
+      loading="lazy"
+      decoding="async"
+      style={style} 
+      onError={(e) => { 
+        e.currentTarget.onerror = null; 
+        e.currentTarget.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='100%25' height='100%25' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='24' fill='%2394a3b8' text-anchor='middle' dy='.3em'%3Eไม่มีรูปภาพ%3C/text%3E%3C/svg%3E";
+        setImgError(true); 
+      }} 
+    />
+  );
+}
 
 // ─── Modal ────────────────────────────────────────────────────────
 function MonkModal({ monk, onClose }) {
