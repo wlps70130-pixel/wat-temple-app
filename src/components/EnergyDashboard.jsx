@@ -181,7 +181,7 @@ export default function EnergyDashboard() {
       const fullLabel = graphFilter === 'day' ? timeLabel : `${datePart} ${timeLabel}`;
       
       if (!grouped[fullLabel]) {
-        grouped[fullLabel] = { displayTime: timeLabel, buildings: {} };
+        grouped[fullLabel] = { displayTime: timeLabel, fullTime: fullLabel, buildings: {} };
       }
       
       const bName = item.building;
@@ -216,7 +216,7 @@ export default function EnergyDashboard() {
       
       return {
         time: g.displayTime,
-        fullTime: fullLabel,
+        fullTime: g.fullTime,
         totalKw: parseFloat(valLoad.toFixed(2)),
         solarKw: parseFloat(valSolar.toFixed(2))
       };
