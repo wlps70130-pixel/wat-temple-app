@@ -197,16 +197,28 @@ export default function EnergyDashboard() {
     const activeSolarDevices = BUILDINGS.filter(b => b.deviceId && b.isSolar).length || 1;
 
     const chartData = Object.values(grouped).map(g => {
-      const timestampsCountLoad = g.countLoad / activeLoadDevices;
-      const avgKwLoad = timestampsCountLoad > 0 ? (g.sumKwLoad / timestampsCountLoad) : 0;
-      
-      const timestampsCountSolar = g.countSolar / activeSolarDevices;
-      const avgKwSolar = timestampsCountSolar > 0 ? (g.sumKwSolar / timestampsCountSolar) : 0;
+      let valLoad = 0;
+      let valSolar = 0;
+
+      if (graphFilter === 'day') {
+        // For daily filter, show total energy (kWh)
+        // Each entry represents 15 mins (0.25 hours) of power
+        // Total energy = sum of all power readings * 0.25
+        valLoad = g.sumKwLoad * 0.25;
+        valSolar = g.sumKwSolar * 0.25;
+      } else {
+        // For other filters, show average power (kW)
+        const timestampsCountLoad = g.countLoad / activeLoadDevices;
+        valLoad = timestampsCountLoad > 0 ? (g.sumKwLoad / timestampsCountLoad) : 0;
+        
+        const timestampsCountSolar = g.countSolar / activeSolarDevices;
+        valSolar = timestampsCountSolar > 0 ? (g.sumKwSolar / timestampsCountSolar) : 0;
+      }
       
       return {
         time: g.displayTime,
-        totalKw: parseFloat(avgKwLoad.toFixed(2)),
-        solarKw: parseFloat(avgKwSolar.toFixed(2))
+        totalKw: parseFloat(valLoad.toFixed(2)),
+        solarKw: parseFloat(valSolar.toFixed(2))
       };
     });
 
@@ -324,13 +336,18 @@ export default function EnergyDashboard() {
       );
     }
 
+    const isDaily = filter === 'day';
+    const unit = isDaily ? 'kWh' : 'kW';
+    const nameTotal = isDaily ? 'พลังงานใช้จริงรวม (kWh)' : 'กำลังไฟใช้จริงรวม (kW)';
+    const nameSolar = isDaily ? 'พลังงานโซล่าเซลล์ (kWh)' : 'โซล่าเซลล์ผลิตได้ (kW)';
+
     return (
       <div style={{ width: '100%', height: 250, marginTop: '1.5rem', marginLeft: '-15px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={historicalData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={theme.border} vertical={false} />
             <XAxis dataKey="time" stroke={theme.textSub} fontSize={11} tickMargin={10} minTickGap={30} />
-            <YAxis stroke={theme.textSub} fontSize={11} tickFormatter={(val) => `${val}kW`} width={50} />
+            <YAxis stroke={theme.textSub} fontSize={11} tickFormatter={(val) => `${val}${unit}`} width={50} />
             <Tooltip 
               contentStyle={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '12px', color: theme.textMain, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
               itemStyle={{ color: theme.primary, fontWeight: 'bold' }}
@@ -339,14 +356,14 @@ export default function EnergyDashboard() {
             />
             <Bar 
               dataKey="totalKw" 
-              name="กำลังไฟใช้จริงรวม (kW)" 
+              name={nameTotal} 
               fill={theme.primary} 
               radius={[4, 4, 0, 0]}
               animationDuration={1500}
             />
             <Bar 
               dataKey="solarKw" 
-              name="โซล่าเซลล์ผลิตได้ (kW)" 
+              name={nameSolar} 
               fill="#f59e0b" 
               radius={[4, 4, 0, 0]}
               animationDuration={1500}
