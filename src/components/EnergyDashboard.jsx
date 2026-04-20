@@ -181,20 +181,17 @@ export default function EnergyDashboard() {
       const fullLabel = graphFilter === 'day' ? timeLabel : `${datePart} ${timeLabel}`;
       
       if (!grouped[fullLabel]) {
-        grouped[fullLabel] = { displayTime: timeLabel, sumKwLoad: 0, countLoad: 0, sumKwSolar: 0, countSolar: 0 };
+        grouped[fullLabel] = { displayTime: timeLabel, buildings: {} };
       }
       
-      if (item.building === 'พลังงานโซล่าเซลล์') {
-        grouped[fullLabel].sumKwSolar += parseFloat(item.totalKw || 0);
-        grouped[fullLabel].countSolar += 1;
-      } else {
-        grouped[fullLabel].sumKwLoad += parseFloat(item.totalKw || 0);
-        grouped[fullLabel].countLoad += 1;
+      const bName = item.building;
+      if (!grouped[fullLabel].buildings[bName]) {
+        grouped[fullLabel].buildings[bName] = { sum: 0, count: 0, isSolar: bName === 'พลังงานโซล่าเซลล์' };
       }
+      
+      grouped[fullLabel].buildings[bName].sum += parseFloat(item.totalKw || 0);
+      grouped[fullLabel].buildings[bName].count += 1;
     });
-
-    const activeLoadDevices = BUILDINGS.filter(b => b.deviceId && !b.isSolar).length || 1;
-    const activeSolarDevices = BUILDINGS.filter(b => b.deviceId && b.isSolar).length || 1;
 
     const chartData = Object.values(grouped).map(g => {
       let valLoad = 0;
@@ -202,17 +199,19 @@ export default function EnergyDashboard() {
 
       if (graphFilter === 'day') {
         // For daily filter, show total energy (kWh)
-        // Each entry represents 15 mins (0.25 hours) of power
-        // Total energy = sum of all power readings * 0.25
-        valLoad = g.sumKwLoad * 0.25;
-        valSolar = g.sumKwSolar * 0.25;
+        // Energy = sum of (power * 0.25) across all readings
+        Object.values(g.buildings).forEach(b => {
+          if (b.isSolar) valSolar += b.sum * 0.25;
+          else valLoad += b.sum * 0.25;
+        });
       } else {
         // For other filters, show average power (kW)
-        const timestampsCountLoad = g.countLoad / activeLoadDevices;
-        valLoad = timestampsCountLoad > 0 ? (g.sumKwLoad / timestampsCountLoad) : 0;
-        
-        const timestampsCountSolar = g.countSolar / activeSolarDevices;
-        valSolar = timestampsCountSolar > 0 ? (g.sumKwSolar / timestampsCountSolar) : 0;
+        // Average power = Sum of average power of each building
+        Object.values(g.buildings).forEach(b => {
+          const avgPower = b.count > 0 ? (b.sum / b.count) : 0;
+          if (b.isSolar) valSolar += avgPower;
+          else valLoad += avgPower;
+        });
       }
       
       return {
