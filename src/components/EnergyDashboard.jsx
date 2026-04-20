@@ -216,6 +216,7 @@ export default function EnergyDashboard() {
       
       return {
         time: g.displayTime,
+        fullTime: fullLabel,
         totalKw: parseFloat(valLoad.toFixed(2)),
         solarKw: parseFloat(valSolar.toFixed(2))
       };
@@ -694,6 +695,71 @@ export default function EnergyDashboard() {
           </div>
 
           <AmrGraph filter={graphFilter} />
+        </div>
+
+        {/* Load Profile Data Table (PEA AMR Standard) */}
+        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain, fontWeight: '700' }}>ตารางข้อมูลสถิติไฟฟ้า (PEA Load Profile)</h3>
+            <span style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', background: isDarkMode ? '#334155' : '#e2e8f0', color: theme.textSub, fontWeight: 'bold' }}>AMR Standard</span>
+          </div>
+          
+          <div style={{ overflowX: 'auto', maxHeight: '350px', overflowY: 'auto', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead style={{ position: 'sticky', top: 0, background: isDarkMode ? '#1e293b' : '#f8fafc', zIndex: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                <tr style={{ color: theme.textSub, textAlign: 'left', whiteSpace: 'nowrap' }}>
+                  <th style={{ padding: '0.75rem 1rem', borderBottom: `2px solid ${theme.border}` }}>วัน-เวลา</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>Demand (kW)</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>Energy (kWh)</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>Solar (kWh)</th>
+                  {graphFilter !== 'day' && <th style={{ padding: '0.75rem 1rem', textAlign: 'center', borderBottom: `2px solid ${theme.border}` }}>TOU (Est.)</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {[...historicalData].reverse().map((row, idx) => {
+                  let kwh = 0;
+                  let kw = 0;
+                  let solarKwh = 0;
+                  
+                  if (graphFilter === 'day') {
+                    kwh = row.totalKw;
+                    kw = "-"; 
+                    solarKwh = row.solarKw;
+                  } else {
+                    kw = row.totalKw;
+                    const multiplier = graphFilter === '15min' ? 0.25 : graphFilter === '30min' ? 0.5 : 1;
+                    kwh = parseFloat((row.totalKw * multiplier).toFixed(2));
+                    solarKwh = parseFloat((row.solarKw * multiplier).toFixed(2));
+                  }
+
+                  let touBadge = null;
+                  if (graphFilter !== 'day') {
+                    const timeMatch = row.fullTime.match(/(\d{2}):/);
+                    const hour = timeMatch ? parseInt(timeMatch[1], 10) : 0;
+                    const isPeakHour = hour >= 9 && hour < 22;
+                    touBadge = isPeakHour ? 
+                      <span style={{ background: '#fef08a', color: '#854d0e', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>On-Peak</span> : 
+                      <span style={{ background: '#bbf7d0', color: '#166534', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>Off-Peak</span>;
+                  }
+
+                  return (
+                    <tr key={idx} style={{ borderBottom: `1px solid ${theme.border}`, background: idx % 2 === 0 ? 'transparent' : (isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)') }}>
+                      <td style={{ padding: '0.75rem 1rem', color: theme.textMain, fontWeight: '600', whiteSpace: 'nowrap' }}>{row.fullTime}</td>
+                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: theme.textSub, fontWeight: '500' }}>{kw}</td>
+                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: theme.primary, fontWeight: '700' }}>{kwh}</td>
+                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: '#f59e0b', fontWeight: '600' }}>{solarKwh}</td>
+                      {graphFilter !== 'day' && <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>{touBadge}</td>}
+                    </tr>
+                  );
+                })}
+                {historicalData.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: theme.textSub }}>กำลังโหลดข้อมูล...</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* List of Panels */}
