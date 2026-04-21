@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, UserCircle, Mic2, PlayCircle, Headphones } from 'lucide-react';
+import { BookOpen, UserCircle, Mic2, PlayCircle, Headphones, ChevronLeft } from 'lucide-react';
 
 const DHAMMA_CATEGORIES = [
   {
@@ -8,7 +8,7 @@ const DHAMMA_CATEGORIES = [
     subtitle: 'เสียงอ่านพระไตรปิฎก',
     icon: BookOpen,
     color: '#3b82f6', // blue
-    bgGradient: 'linear-gradient(135deg, #1e3a8a, #3b82f6)'
+    bgGradient: 'linear-gradient(135deg, #1e3a8a, #0f172a)'
   },
   {
     id: 'luangpu',
@@ -16,15 +16,15 @@ const DHAMMA_CATEGORIES = [
     subtitle: 'หลวงปู่วัดปากน้ำ ภาษีเจริญ',
     icon: UserCircle,
     color: '#f59e0b', // amber
-    bgGradient: 'linear-gradient(135deg, #b45309, #f59e0b)'
+    bgGradient: 'linear-gradient(135deg, #b45309, #451a03)'
   },
   {
     id: 'luangpor-veera',
     title: 'พระราชพรหมเถร',
     subtitle: 'หลวงพ่อวีระ ธีรงฺกุโร',
     icon: Mic2,
-    color: '#ec4899', // pink/magenta
-    bgGradient: 'linear-gradient(135deg, #be185d, #ec4899)'
+    color: '#ec4899', // pink
+    bgGradient: 'linear-gradient(135deg, #9d174d, #4c0519)'
   },
   {
     id: 'luangpor-soemchai',
@@ -32,74 +32,99 @@ const DHAMMA_CATEGORIES = [
     subtitle: 'หลวงป๋า เสริมชัย ชยมงฺคโล',
     icon: Mic2,
     color: '#8b5cf6', // purple
-    bgGradient: 'linear-gradient(135deg, #5b21b6, #8b5cf6)'
+    bgGradient: 'linear-gradient(135deg, #5b21b6, #2e1065)'
   },
   {
     id: 'chanting',
     title: 'บทสวดมนต์',
-    subtitle: 'เสียงนำสวด ทำวัตรเช้า-เย็น',
+    subtitle: 'ทำวัตรเช้า-เย็น',
     icon: BookOpen,
     color: '#10b981', // emerald
-    bgGradient: 'linear-gradient(135deg, #047857, #10b981)'
+    bgGradient: 'linear-gradient(135deg, #047857, #022c22)'
   }
 ];
 
-export default function DhammaMenu({ onSelectCategory }) {
+export default function DhammaMenu({ onSelectCategory, onBack }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
-      <h2 className="section-title" style={{ paddingLeft: '0.5rem' }}>
-        <Headphones size={24} color="#f472b6" />
-        หมวดหมู่เสียงธรรม
-      </h2>
+    <div style={{
+      background: '#030303', // YTM Dark pitch black
+      color: '#ffffff',
+      margin: 'calc(-1 * var(--content-pad))',
+      padding: 'var(--content-pad)',
+      paddingTop: '3rem',
+      minHeight: '100vh',
+      fontFamily: "'Roboto', 'Prompt', sans-serif",
+      paddingBottom: '100px'
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+        {onBack && (
+          <button 
+            onClick={onBack}
+            style={{
+              background: 'transparent', border: 'none', color: 'white',
+              cursor: 'pointer', display: 'flex', alignItems: 'center'
+            }}
+          >
+            <ChevronLeft size={28} />
+          </button>
+        )}
+        <h2 style={{ fontSize: '1.8rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.75rem', margin: 0 }}>
+          <Headphones size={28} color="#f472b6" />
+          ฟังธรรม
+        </h2>
+      </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+        gap: '1rem'
+      }}>
         {DHAMMA_CATEGORIES.map((cat) => {
           const Icon = cat.icon;
           return (
             <div 
               key={cat.id}
               onClick={() => onSelectCategory(cat)}
-              className="glass glass-card"
               style={{ 
-                padding: '0', 
-                overflow: 'hidden', 
                 cursor: 'pointer',
                 display: 'flex',
-                border: 'none',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
+                flexDirection: 'column',
+                gap: '0.75rem',
+                transition: 'transform 0.2s ease',
               }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             >
               <div style={{ 
                 width: '100%',
-                maxWidth: '100px',
-                flexShrink: 0,
+                aspectRatio: '1',
+                borderRadius: '8px',
                 background: cat.bgGradient,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white'
+                color: 'white',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                position: 'relative',
+                overflow: 'hidden'
               }}>
-                <Icon size={40} strokeWidth={1.5} />
+                <Icon size={64} strokeWidth={1} opacity={0.9} />
+                <div style={{ 
+                  position: 'absolute', right: '8px', bottom: '8px', 
+                  background: 'rgba(0,0,0,0.4)', borderRadius: '50%', padding: '4px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <PlayCircle size={20} color="white" />
+                </div>
               </div>
-              <div style={{ 
-                flex: 1, 
-                minWidth: 0,
-                padding: '1.25rem 1rem', 
-                background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                position: 'relative'
-              }}>
-                <h3 style={{ fontSize: 'clamp(1rem, 4vw, 1.1rem)', fontWeight: '600', color: 'var(--text-main)', marginBottom: '0.2rem', wordBreak: 'break-word' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#ffffff', marginBottom: '2px', lineHeight: 1.2 }}>
                   {cat.title}
                 </h3>
-                <p style={{ fontSize: 'clamp(0.7rem, 3vw, 0.8rem)', color: 'var(--text-muted)', wordBreak: 'break-word' }}>
+                <p style={{ fontSize: '0.8rem', color: '#aaaaaa', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {cat.subtitle}
                 </p>
-                <div style={{ position: 'absolute', right: '1rem', bottom: '1rem', opacity: 0.1 }}>
-                  <PlayCircle size={48} color={cat.color} />
-                </div>
               </div>
             </div>
           );

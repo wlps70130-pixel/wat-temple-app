@@ -32,7 +32,7 @@ export default function AudioPlayer({ track, isPlaying, onTogglePlay }) {
       transform: 'translateX(-50%)',
       width: '100%',
       maxWidth: '480px', // var(--app-max-width)
-      background: 'rgba(30, 41, 59, 0.95)', // Deep dark slate
+      background: '#212121', // YTM Player Dark Grey
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
       borderTop: '1px solid rgba(255,255,255,0.1)',

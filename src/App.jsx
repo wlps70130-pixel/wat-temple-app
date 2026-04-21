@@ -63,9 +63,16 @@ function App() {
     }
   };
 
+  const isDhammaView = currentView === 'dhamma' || currentView === 'dhammaplaylist';
+
   return (
-    <div className="app-wrapper" style={{ paddingBottom: currentTrack ? '100px' : '6rem' }}>
-      <Header onBack={currentView !== 'dashboard' ? handleBack : undefined} />
+    <div className="app-wrapper" style={{ 
+      padding: isDhammaView ? '0' : 'var(--content-pad)',
+      paddingBottom: currentTrack ? '100px' : (isDhammaView ? '0' : '6rem'),
+      background: isDhammaView ? '#030303' : 'transparent',
+      minHeight: '100vh'
+    }}>
+      {!isDhammaView && <Header onBack={currentView !== 'dashboard' ? handleBack : undefined} />}
       
       {currentView === 'dashboard' ? (
         <>
@@ -79,16 +86,20 @@ function App() {
       ) : currentView === 'energy' ? (
         <EnergyDashboard />
       ) : currentView === 'dhamma' ? (
-        <DhammaMenu onSelectCategory={(cat) => {
-          setSelectedCategory(cat);
-          setCurrentView('dhammaplaylist');
-        }} />
+        <DhammaMenu 
+          onBack={handleBack}
+          onSelectCategory={(cat) => {
+            setSelectedCategory(cat);
+            setCurrentView('dhammaplaylist');
+          }} 
+        />
       ) : currentView === 'dhammaplaylist' ? (
         <DhammaPlaylist 
           category={selectedCategory} 
           currentTrack={currentTrack}
           isPlaying={isPlaying}
           onPlayTrack={playTrack}
+          onBack={handleBack}
         />
       ) : currentView === 'amulet' ? (
         <AmuletViewer />

@@ -1,46 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, Shuffle, ListMusic, Clock3, Loader2, ChevronDown } from 'lucide-react';
+import { Play, Pause, Shuffle, ListMusic, Clock3, Loader2, MoreVertical, Share2, Download, ChevronLeft } from 'lucide-react';
 import Papa from 'papaparse';
 import AiAssistant from './AiAssistant';
 
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=29969163&single=true&output=csv';
 
-// ─── EQ Animation Bars ──────────────────────────────────────────
-const EqBars = ({ color = '#1db954' }) => (
-  <div style={{ display: 'flex', gap: '2px', height: '16px', alignItems: 'flex-end' }}>
-    {[1, 0.5, 0.8, 0.3, 0.9].map((h, i) => (
+// ─── YTM EQ Animation Bars ──────────────────────────────────────
+const EqBars = ({ color = '#ffffff' }) => (
+  <div style={{ display: 'flex', gap: '2px', height: '14px', alignItems: 'flex-end', justifyContent: 'center', width: '24px' }}>
+    {[1, 0.5, 0.8].map((h, i) => (
       <div key={i} style={{
-        width: '3px', borderRadius: '2px',
+        width: '3px', borderRadius: '1px',
         background: color,
         height: `${h * 100}%`,
-        animation: `eq${i + 1} ${0.6 + i * 0.15}s ease-in-out infinite alternate`,
+        animation: `eqYTM${i + 1} ${0.5 + i * 0.1}s ease-in-out infinite alternate`,
         transformOrigin: 'bottom'
       }} />
     ))}
     <style>{`
-      @keyframes eq1{from{height:20%}to{height:100%}}
-      @keyframes eq2{from{height:60%}to{height:30%}}
-      @keyframes eq3{from{height:80%}to{height:40%}}
-      @keyframes eq4{from{height:30%}to{height:90%}}
-      @keyframes eq5{from{height:70%}to{height:20%}}
+      @keyframes eqYTM1{0%{height:30%}100%{height:100%}}
+      @keyframes eqYTM2{0%{height:100%}100%{height:40%}}
+      @keyframes eqYTM3{0%{height:50%}100%{height:90%}}
     `}</style>
   </div>
 );
 
-// ─── Album Art Placeholder ───────────────────────────────────────
-const AlbumArt = ({ emoji, gradient, size = 48, isPlaying, color }) => (
+// ─── Square Album Art ───────────────────────────────────────
+const AlbumArt = ({ icon: Icon, gradient, size = 48 }) => (
   <div style={{
-    width: `${size}px`, height: `${size}px`, borderRadius: '8px',
+    width: `${size}px`, height: `${size}px`, borderRadius: '4px', // YTM uses slightly rounded squares
     background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: `${size * 0.45}px`, flexShrink: 0, position: 'relative',
-    boxShadow: isPlaying ? `0 0 0 2px ${color}, 0 4px 16px rgba(0,0,0,0.3)` : '0 2px 8px rgba(0,0,0,0.15)',
-    transition: 'box-shadow 0.3s'
+    color: 'white', flexShrink: 0
   }}>
-    {emoji}
+    <Icon size={size * 0.5} />
   </div>
 );
 
-export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPlayTrack }) {
+export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPlayTrack, onBack }) {
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isShuffled, setIsShuffled] = useState(false);
@@ -49,7 +45,6 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
   useEffect(() => {
     if (!category) return;
     setLoading(true);
-    // Add cache busting to ensure we get the latest file
     const urlWithCacheBust = `${SHEET_URL}&t=${new Date().getTime()}`;
     
     Papa.parse(urlWithCacheBust, {
@@ -57,10 +52,8 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        console.log("Parsed CSV Data:", results.data);
         const filtered = results.data
           .filter(row => {
-            // Check keys defensively in case of BOM (Byte Order Mark) or spaces
             const catKey = Object.keys(row).find(k => k.replace(/^\uFEFF/, '').trim() === 'categoryId');
             const urlKey = Object.keys(row).find(k => k.trim() === 'url');
             
@@ -77,8 +70,8 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
             return {
               id: `${category.id}-${i}`,
               title: (titleKey && typeof row[titleKey] === 'string' && row[titleKey].trim()) ? row[titleKey].trim() : `ไฟล์เสียงธรรม ${i + 1}`,
-              subtitle: (subKey && typeof row[subKey] === 'string') ? row[subKey].trim() : '',
-              duration: (durKey && typeof row[durKey] === 'string') ? row[durKey].trim() : '-:--',
+              subtitle: (subKey && typeof row[subKey] === 'string') ? row[subKey].trim() : category.title,
+              duration: (durKey && typeof row[durKey] === 'string') ? row[durKey].trim() : '',
               url: (urlKey && typeof row[urlKey] === 'string') ? row[urlKey].trim() : '',
             };
           });
@@ -94,204 +87,197 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
   }, [category]);
 
   const handleShuffle = () => {
-    const shuffled = [...displayTracks].sort(() => Math.random() - 0.5);
-    setDisplayTracks(shuffled);
-    setIsShuffled(!isShuffled);
+    if (isShuffled) {
+      setDisplayTracks(tracks);
+      setIsShuffled(false);
+    } else {
+      const shuffled = [...tracks].sort(() => Math.random() - 0.5);
+      setDisplayTracks(shuffled);
+      setIsShuffled(true);
+    }
   };
-
-  const totalDuration = tracks.length;
 
   if (!category) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <div style={{ 
+      background: '#030303', // YTM pitch black
+      color: '#ffffff',
+      margin: 'calc(-1 * var(--content-pad))',
+      minHeight: '100vh',
+      fontFamily: "'Roboto', 'Prompt', sans-serif",
+      paddingBottom: '100px'
+    }}>
 
-      {/* ─── Spotify-style Hero Header ─────────────────────── */}
+      {/* ─── YTM Hero Header ─────────────────────── */}
       <div style={{
-        background: category.bgGradient,
-        borderRadius: '20px',
-        padding: '2rem 1.5rem 1.5rem',
-        color: 'white',
-        marginBottom: '0',
         position: 'relative',
-        overflow: 'hidden',
+        padding: '3rem 1.5rem 1.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        overflow: 'hidden'
       }}>
-        {/* Subtle noise texture overlay */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.4))', borderRadius: '20px' }} />
+        {/* Back Button */}
+        <button
+          onClick={onBack}
+          style={{
+            position: 'absolute', top: '1rem', left: '1rem', zIndex: 10,
+            background: 'rgba(0,0,0,0.4)', border: 'none', borderRadius: '50%',
+            width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', cursor: 'pointer', backdropFilter: 'blur(10px)'
+          }}
+        >
+          <ChevronLeft size={24} />
+        </button>
 
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Ambient Blurred Background */}
+        <div style={{ 
+          position: 'absolute', inset: 0, 
+          background: category.bgGradient,
+          opacity: 0.3, filter: 'blur(60px)', 
+          transform: 'scale(1.5)', zIndex: 0 
+        }} />
+        
+        {/* Gradient Fade to Black */}
+        <div style={{ 
+          position: 'absolute', inset: 0, 
+          background: 'linear-gradient(to bottom, transparent 20%, #030303 95%)',
+          zIndex: 0 
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {/* Large Album Art */}
           <div style={{
-            width: '110px', height: '110px', borderRadius: '16px',
-            background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)',
+            width: '240px', height: '240px', borderRadius: '8px',
+            background: category.bgGradient,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '3.5rem', marginBottom: '1rem',
-            boxShadow: '0 16px 40px rgba(0,0,0,0.3)',
-            border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+            marginBottom: '1.5rem'
           }}>
-            <category.icon size={52} />
+            <category.icon size={100} color="white" strokeWidth={1} />
           </div>
 
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', letterSpacing: '1.5px', opacity: 0.8, textTransform: 'uppercase', marginBottom: '0.3rem' }}>
-            PLAYLIST
-          </div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: '800', lineHeight: 1.2, marginBottom: '0.4rem', textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: '800', lineHeight: 1.2, marginBottom: '0.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
             {category.title}
           </h2>
-          <p style={{ fontSize: '0.85rem', opacity: 0.85, marginBottom: '1rem' }}>{category.subtitle}</p>
+          <p style={{ fontSize: '1rem', color: '#aaaaaa', marginBottom: '1.5rem' }}>
+            วัดหลวงพ่อสดฯ • {tracks.length} รายการ
+          </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', opacity: 0.8 }}>
-            <span>🛕 วัดหลวงพ่อสดฯ</span>
-            <span>•</span>
-            <span>{totalDuration} เพลง</span>
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: '1rem', width: '100%', maxWidth: '300px' }}>
+            <button
+              onClick={() => displayTracks.length > 0 && onPlayTrack(displayTracks[0])}
+              style={{
+                flex: 1, height: '48px', borderRadius: '24px',
+                background: '#ffffff', color: '#030303',
+                border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                fontSize: '0.95rem', fontWeight: '600', transition: 'transform 0.1s'
+              }}
+              onActive={e => e.currentTarget.style.transform = 'scale(0.96)'}
+            >
+              <Play size={20} fill="#030303" /> ฟังเลย
+            </button>
+            <button
+              onClick={handleShuffle}
+              style={{
+                flex: 1, height: '48px', borderRadius: '24px',
+                background: 'rgba(255,255,255,0.1)', color: '#ffffff',
+                border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                fontSize: '0.95rem', fontWeight: '600'
+              }}
+            >
+              <Shuffle size={20} color={isShuffled ? category.color : '#ffffff'} /> สุ่ม
+            </button>
           </div>
         </div>
       </div>
-
-      {/* ─── Controls Bar ───────────────────────────────────── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '1rem',
-        padding: '1.25rem 0.5rem 0.75rem',
-        borderBottom: '1px solid #f1f5f9',
-      }}>
-        {/* Play All Button */}
-        <button
-          onClick={() => displayTracks.length > 0 && onPlayTrack(displayTracks[0])}
-          style={{
-            width: '52px', height: '52px', borderRadius: '50%',
-            background: `linear-gradient(135deg, ${category.color}, ${category.color}cc)`,
-            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `0 4px 20px ${category.color}55`,
-            transition: 'all 0.2s ease', flexShrink: 0,
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.08)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-        >
-          <Play size={22} color="white" fill="white" style={{ marginLeft: '2px' }} />
-        </button>
-
-        {/* Shuffle */}
-        <button
-          onClick={handleShuffle}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem',
-            color: isShuffled ? category.color : '#94a3b8',
-            transition: 'color 0.2s', borderRadius: '50%',
-          }}
-          title="สุ่มเพลง"
-        >
-          <Shuffle size={20} />
-        </button>
-
-        <div style={{ flex: 1 }} />
-
-        {/* Track count */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#94a3b8', fontSize: '0.78rem' }}>
-          <ListMusic size={14} />
-          <span>{totalDuration} รายการ</span>
-        </div>
-      </div>
-
-      {/* ─── AI Assistant ───────────────────────────────────── */}
-      {currentTrack && (
-        <div style={{ margin: '0.75rem 0' }}>
-          <AiAssistant
-            mode="dhamma"
-            contextData={`กำลังฟัง: "${currentTrack.title}" (${currentTrack.subtitle || ''})`}
-            title="พระอาจารย์ AI"
-            subtitle="ผู้ช่วยอธิบายธรรมะ"
-            icon="🧘‍♂️"
-            themeColor={category.color}
-            buttonText="ขอคำอธิบายเพิ่มเติม"
-          />
-        </div>
-      )}
 
       {/* ─── Track List ─────────────────────────────────────── */}
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {/* Column Headers */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '28px 1fr auto',
-          gap: '0.75rem', padding: '0.5rem 0.75rem',
-          borderBottom: '1px solid #f1f5f9',
-          fontSize: '0.7rem', fontWeight: '700', color: '#94a3b8',
-          letterSpacing: '0.5px', textTransform: 'uppercase',
-          alignItems: 'center',
-        }}>
-          <span style={{ textAlign: 'center' }}>#</span>
-          <span>ชื่อเพลง</span>
-          <Clock3 size={13} />
-        </div>
-
+      <div style={{ padding: '0 1rem', position: 'relative', zIndex: 1 }}>
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem 0', gap: '0.75rem' }}>
-            <Loader2 size={28} color={category.color} style={{ animation: 'spin 1s linear infinite' }} />
-            <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>กำลังโหลดรายการ...</p>
-            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem 0', gap: '1rem' }}>
+            <Loader2 size={32} color={category.color || "#fff"} style={{ animation: 'spin 1s linear infinite' }} />
           </div>
         ) : displayTracks.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#94a3b8' }}>
-            <ListMusic size={40} style={{ opacity: 0.3, margin: '0 auto 0.75rem', display: 'block' }} />
-            <p style={{ fontSize: '0.9rem' }}>ยังไม่มีรายการในหมวดนี้</p>
+          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#aaaaaa' }}>
+            <p>ไม่มีรายการ</p>
           </div>
         ) : (
           displayTracks.map((track, index) => {
             const isSelected = currentTrack?.id === track.id;
             const isThisPlaying = isSelected && isPlaying;
+            
             return (
               <div
                 key={track.id}
                 onClick={() => onPlayTrack(track)}
                 style={{
-                  display: 'grid', gridTemplateColumns: '28px 1fr auto',
-                  gap: '0.75rem', padding: '0.7rem 0.75rem',
-                  alignItems: 'center', cursor: 'pointer',
-                  borderRadius: '10px', margin: '0 -0.25rem',
-                  background: isSelected ? `${category.color}12` : 'transparent',
-                  transition: 'background 0.15s ease',
+                  display: 'flex', alignItems: 'center', gap: '1rem',
+                  padding: '0.75rem 0.5rem', cursor: 'pointer',
+                  borderRadius: '8px',
+                  background: isSelected ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  transition: 'background 0.2s',
                 }}
-                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#f8fafc'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = isSelected ? `${category.color}12` : 'transparent'; }}
               >
-                {/* Track Number / EQ */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '20px' }}>
-                  {isThisPlaying
-                    ? <EqBars color={category.color} />
-                    : <span style={{ fontSize: '0.82rem', fontWeight: '600', color: isSelected ? category.color : '#94a3b8' }}>{index + 1}</span>}
+                {/* Album Art / EQ */}
+                <div style={{ position: 'relative', width: '48px', height: '48px', flexShrink: 0 }}>
+                  <AlbumArt icon={category.icon} gradient={category.bgGradient} size={48} />
+                  {isThisPlaying && (
+                    <div style={{
+                      position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px'
+                    }}>
+                      <EqBars color="#ffffff" />
+                    </div>
+                  )}
                 </div>
 
-                {/* Album Art + Title */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
-                  <AlbumArt
-                    emoji={<category.icon size={20} color={isSelected ? category.color : '#94a3b8'} />}
-                    gradient={isSelected ? `${category.color}22` : '#f1f5f9'}
-                    size={44}
-                    isPlaying={isThisPlaying}
-                    color={category.color}
-                  />
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{
-                      fontSize: '0.88rem', fontWeight: isSelected ? '700' : '600',
-                      color: isSelected ? category.color : '#1e293b',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {track.title}
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {track.subtitle}
-                    </div>
+                {/* Title & Subtitle */}
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{
+                    fontSize: '0.95rem', fontWeight: isSelected ? '600' : '500',
+                    color: isSelected ? '#ffffff' : '#f1f1f1',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    marginBottom: '2px'
+                  }}>
+                    {track.title}
+                  </div>
+                  <div style={{ 
+                    fontSize: '0.8rem', color: '#aaaaaa', 
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' 
+                  }}>
+                    {track.subtitle} {track.duration ? `• ${track.duration}` : ''}
                   </div>
                 </div>
 
-                {/* Duration */}
-                <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>
-                  {track.duration}
+                {/* Options Icon */}
+                <div style={{ padding: '0.5rem', color: '#aaaaaa' }}>
+                  <MoreVertical size={20} />
                 </div>
               </div>
             );
           })
         )}
       </div>
+
+      {/* ─── AI Assistant (Dark Mode Theme) ─────────────────── */}
+      {currentTrack && (
+        <div style={{ padding: '1rem', margin: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
+          <AiAssistant
+            mode="dhamma"
+            contextData={`กำลังฟัง: "${currentTrack.title}" (${currentTrack.subtitle || ''})`}
+            title="พระอาจารย์ AI"
+            subtitle="ผู้ช่วยอธิบายธรรมะ"
+            icon="✨"
+            themeColor={category.color}
+            buttonText="ขอคำอธิบายเพิ่มเติม"
+          />
+        </div>
+      )}
     </div>
   );
 }
