@@ -63,7 +63,7 @@ export default function AudioPlayer({ track, isPlaying, onTogglePlay, audioRef, 
           style={{
             position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
             width: '100%', maxWidth: 'var(--app-max-width)',
-            background: '#1f1f1f',
+            background: '#282828',
             borderTop: '1px solid rgba(255,255,255,0.08)',
             zIndex: 200,
             paddingBottom: 'env(safe-area-inset-bottom)',
@@ -71,7 +71,7 @@ export default function AudioPlayer({ track, isPlaying, onTogglePlay, audioRef, 
         >
           {/* Thin Progress Line */}
           <div style={{ height: '2px', background: 'rgba(255,255,255,0.15)', position: 'relative', cursor: 'pointer' }} onClick={seek}>
-            <div style={{ position: 'absolute', left: 0, top: 0, height: '2px', width: `${progress}%`, background: '#ffffff', transition: 'width 0.3s linear' }} />
+            <div style={{ position: 'absolute', left: 0, top: 0, height: '2px', width: `${progress}%`, background: '#1db954', transition: 'width 0.3s linear' }} />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', padding: '0.6rem 1rem', gap: '0.75rem' }}>

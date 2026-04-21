@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, Shuffle, ListMusic, Loader2, MoreVertical, ChevronLeft, Heart } from 'lucide-react';
+import { Play, Shuffle, ListMusic, Loader2, MoreVertical, ChevronLeft, Heart } from 'lucide-react';
 import Papa from 'papaparse';
 import AiAssistant from './AiAssistant';
 
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=29969163&single=true&output=csv';
 
-// ─── EQ Bars ──────────────────────────────────────────
+// ─── Spotify-style EQ Bars (green) ─────────────────────────────
 const EqBars = () => (
   <div style={{ display: 'flex', gap: '2px', height: '14px', alignItems: 'flex-end', width: '20px' }}>
-    {[1, 0.5, 0.8].map((h, i) => (
+    {[1, 0.5, 0.8].map((_, i) => (
       <div key={i} style={{
-        width: '3px', borderRadius: '1px', background: '#fff',
-        height: `${h * 100}%`,
-        animation: `ytmEq${i} ${0.5 + i * 0.15}s ease-in-out infinite alternate`,
+        width: '3px', borderRadius: '1px', background: '#1db954',
+        animation: `sEq${i} ${0.5 + i * 0.15}s ease-in-out infinite alternate`,
+        transformOrigin: 'bottom'
       }} />
     ))}
     <style>{`
-      @keyframes ytmEq0{0%{height:25%}100%{height:100%}}
-      @keyframes ytmEq1{0%{height:100%}100%{height:35%}}
-      @keyframes ytmEq2{0%{height:55%}100%{height:90%}}
+      @keyframes sEq0{0%{height:25%}100%{height:100%}}
+      @keyframes sEq1{0%{height:100%}100%{height:35%}}
+      @keyframes sEq2{0%{height:55%}100%{height:90%}}
     `}</style>
   </div>
 );
@@ -67,183 +67,174 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
   }, [category]);
 
   const handleShuffle = () => {
-    if (isShuffled) {
-      setDisplayTracks(tracks);
-      setIsShuffled(false);
-    } else {
-      setDisplayTracks([...tracks].sort(() => Math.random() - 0.5));
-      setIsShuffled(true);
-    }
+    if (isShuffled) { setDisplayTracks(tracks); setIsShuffled(false); }
+    else { setDisplayTracks([...tracks].sort(() => Math.random() - 0.5)); setIsShuffled(true); }
   };
 
-  const handlePlayTrack = (track) => {
-    onPlayTrack(track, displayTracks);
-  };
+  const handlePlayTrack = (track) => onPlayTrack(track, displayTracks);
 
   if (!category) return null;
 
   return (
     <div style={{
-      background: '#030303',
-      color: '#ffffff',
-      margin: 'calc(-1 * var(--content-pad))',
-      minHeight: '100vh',
-      fontFamily: "'Roboto', 'Prompt', sans-serif",
-      paddingBottom: '120px'
+      background: '#121212', color: '#ffffff',
+      margin: 'calc(-1 * var(--content-pad))', minHeight: '100vh',
+      fontFamily: "'Prompt', sans-serif", paddingBottom: '140px', overflowX: 'hidden',
     }}>
 
-      {/* ── Hero ── */}
-      <div style={{ position: 'relative', padding: '0 0 2rem', textAlign: 'center', overflow: 'hidden' }}>
-        
-        {/* Ambient glow BG */}
-        <div style={{ position: 'absolute', inset: 0, background: category.bgGradient, opacity: 0.35, filter: 'blur(80px)', transform: 'scale(1.8)', zIndex: 0 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 30%, #030303 90%)', zIndex: 0 }} />
+      {/* ── Hero with gradient bleed ── */}
+      <div style={{ position: 'relative', paddingBottom: '1.5rem' }}>
+        <div style={{ position: 'absolute', inset: 0, background: category.bgGradient, zIndex: 0 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 40%, #121212 100%)', zIndex: 0 }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           {/* Back Button */}
-          <div style={{ display: 'flex', alignItems: 'center', padding: '1rem 1rem 0' }}>
-            <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.4rem', display: 'flex' }}>
+          <div style={{ padding: '1rem 1.2rem 0' }}>
+            <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', padding: 0 }}>
               <ChevronLeft size={28} />
             </button>
           </div>
 
-          {/* Album Art */}
-          <div style={{
-            width: '220px', height: '220px', borderRadius: '8px',
-            background: category.bgGradient,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '1rem auto 1.5rem',
-            boxShadow: '0 16px 60px rgba(0,0,0,0.7)',
-          }}>
-            <category.icon size={90} color="white" strokeWidth={1} />
+          {/* Album art + Info (Spotify side-by-side on small screens) */}
+          <div style={{ padding: '0.5rem 1.2rem 1.5rem', display: 'flex', gap: '1.2rem', alignItems: 'flex-end' }}>
+            <div style={{
+              width: '130px', height: '130px', borderRadius: '4px', flexShrink: 0,
+              background: category.bgGradient,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+            }}>
+              <category.icon size={60} color="white" strokeWidth={1.2} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0, paddingBottom: '0.25rem' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'rgba(255,255,255,0.65)', marginBottom: '0.3rem' }}>Playlist</div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '900', color: '#fff', lineHeight: 1.2, marginBottom: '0.35rem', wordBreak: 'break-word' }}>{category.title}</h2>
+              <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.65)', marginBottom: '0.15rem' }}>{category.subtitle}</p>
+              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>
+                🛕 วัดหลวงพ่อสดฯ &nbsp;•&nbsp; {tracks.length} รายการ
+              </p>
+            </div>
           </div>
 
-          <h2 style={{ fontSize: '1.6rem', fontWeight: '800', padding: '0 1.5rem', marginBottom: '0.3rem' }}>{category.title}</h2>
-          <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '0.25rem' }}>{category.subtitle}</p>
-          <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '1.5rem' }}>วัดหลวงพ่อสดฯ • {tracks.length} รายการ</p>
-
-          {/* Action Row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', padding: '0 1.5rem' }}>
-            <button style={{ background: 'none', border: 'none', color: isShuffled ? category.color : '#aaa', cursor: 'pointer', display: 'flex', transition: 'color 0.2s' }} onClick={handleShuffle}>
+          {/* Controls Row */}
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0 1.2rem', gap: '1rem' }}>
+            <button onClick={() => {}} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b3b3b3', display: 'flex', padding: '0.25rem' }}>
+              <Heart size={28} />
+            </button>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b3b3b3', display: 'flex', padding: '0.25rem' }}>
+              <MoreVertical size={28} />
+            </button>
+            <div style={{ flex: 1 }} />
+            {/* Shuffle */}
+            <button onClick={handleShuffle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: isShuffled ? '#1db954' : '#b3b3b3', display: 'flex', padding: '0.25rem', transition: 'color 0.2s' }}>
               <Shuffle size={24} />
             </button>
-            
-            {/* Big Play Button */}
+            {/* Spotify Green Play */}
             <button
               onClick={() => displayTracks.length > 0 && handlePlayTrack(displayTracks[0])}
               style={{
-                width: '60px', height: '60px', borderRadius: '50%',
-                background: '#ffffff', border: 'none', color: '#030303',
+                width: '56px', height: '56px', borderRadius: '50%',
+                background: '#1db954', border: 'none', color: '#000',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', boxShadow: '0 4px 24px rgba(255,255,255,0.3)',
-                transition: 'transform 0.15s',
+                cursor: 'pointer', boxShadow: '0 6px 20px rgba(29,185,84,0.5)',
+                transition: 'transform 0.15s, background 0.15s',
               }}
-              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.92)'}
-              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1ed760'; e.currentTarget.style.transform = 'scale(1.06)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#1db954'; e.currentTarget.style.transform = 'scale(1)'; }}
             >
-              <Play size={26} fill="#030303" style={{ marginLeft: '3px' }} />
-            </button>
-
-            <button style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', display: 'flex' }}>
-              <MoreVertical size={24} />
+              <Play size={24} fill="#000" style={{ marginLeft: '3px' }} />
             </button>
           </div>
         </div>
       </div>
 
       {/* ── Track List ── */}
-      <div style={{ padding: '0 0.75rem' }}>
-
-        {/* "Songs" Label */}
-        <div style={{ padding: '0 0.5rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '0.25rem' }}>
-          <span style={{ fontSize: '0.7rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', color: '#888' }}>
-            <ListMusic size={13} style={{ display: 'inline', marginRight: '0.4rem', verticalAlign: 'middle' }} />
-            เพลง
-          </span>
-        </div>
-
+      <div style={{ padding: '0.5rem 0' }}>
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', flexDirection: 'column', gap: '1rem' }}>
-            <Loader2 size={32} color={category.color} style={{ animation: 'spin 1s linear infinite' }} />
-            <span style={{ color: '#666', fontSize: '0.85rem' }}>กำลังโหลด...</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4rem 0', gap: '1rem' }}>
+            <Loader2 size={32} color="#1db954" style={{ animation: 'spin 1s linear infinite' }} />
+            <span style={{ color: '#b3b3b3', fontSize: '0.85rem' }}>กำลังโหลด...</span>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : displayTracks.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#555' }}>
-            <p>ยังไม่มีรายการ</p>
+            <ListMusic size={48} style={{ display: 'block', margin: '0 auto 1rem', opacity: 0.3 }} />
+            <p>ยังไม่มีรายการในหมวดนี้</p>
           </div>
-        ) : (
-          displayTracks.map((track, idx) => {
-            const isSelected = currentTrack?.id === track.id;
-            const isThisPlaying = isSelected && isPlaying;
+        ) : displayTracks.map((track, idx) => {
+          const isSelected = currentTrack?.id === track.id;
+          const isThisPlaying = isSelected && isPlaying;
+          return (
+            <div
+              key={track.id}
+              onClick={() => handlePlayTrack(track)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                padding: '0.5rem 1.2rem', cursor: 'pointer',
+                background: isSelected ? 'rgba(29,185,84,0.08)' : 'transparent',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(29,185,84,0.08)' : 'transparent'; }}
+            >
+              {/* # or EQ */}
+              <div style={{ width: '20px', textAlign: 'center', flexShrink: 0 }}>
+                {isThisPlaying
+                  ? <EqBars />
+                  : <span style={{ fontSize: '0.88rem', color: isSelected ? '#1db954' : '#b3b3b3' }}>{idx + 1}</span>
+                }
+              </div>
 
-            return (
-              <div
-                key={track.id}
-                onClick={() => handlePlayTrack(track)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '0.85rem',
-                  padding: '0.6rem 0.5rem', borderRadius: '6px', cursor: 'pointer',
-                  background: isSelected ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(255,255,255,0.08)' : 'transparent'; }}
-              >
-                {/* Thumbnail */}
-                <div style={{ position: 'relative', width: '50px', height: '50px', flexShrink: 0 }}>
-                  <div style={{
-                    width: '50px', height: '50px', borderRadius: '4px',
-                    background: isSelected ? category.bgGradient : 'rgba(255,255,255,0.08)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
-                    transition: 'background 0.2s'
-                  }}>
-                    {!isThisPlaying && <category.icon size={22} color={isSelected ? 'white' : '#555'} />}
-                    {isThisPlaying && <EqBars />}
-                  </div>
-                </div>
+              {/* Thumbnail */}
+              <div style={{
+                width: '42px', height: '42px', borderRadius: '4px', flexShrink: 0,
+                background: category.bgGradient,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <category.icon size={18} color="white" />
+              </div>
 
-                {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: '0.9rem', fontWeight: isSelected ? '600' : '400',
-                    color: isSelected ? '#ffffff' : '#e1e1e1',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    marginBottom: '2px'
-                  }}>{track.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {track.subtitle}{track.duration ? ` • ${track.duration}` : ''}
-                  </div>
-                </div>
-
-                {/* Like + More */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', flexShrink: 0 }}>
-                  <button
-                    onClick={e => { e.stopPropagation(); setLiked(p => ({ ...p, [track.id]: !p[track.id] })); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: liked[track.id] ? '#ff4e6a' : 'transparent', padding: '0.4rem', display: 'flex' }}
-                  >
-                    <Heart size={16} fill={liked[track.id] ? '#ff4e6a' : 'none'} color={liked[track.id] ? '#ff4e6a' : '#555'} />
-                  </button>
-                  <button style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', padding: '0.4rem', display: 'flex' }}>
-                    <MoreVertical size={18} />
-                  </button>
+              {/* Title + Artist */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: '0.92rem', fontWeight: '500',
+                  color: isSelected ? '#1db954' : '#ffffff',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px'
+                }}>{track.title}</div>
+                <div style={{ fontSize: '0.75rem', color: '#b3b3b3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {track.subtitle}
                 </div>
               </div>
-            );
-          })
-        )}
+
+              {/* Like + Duration + More */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                <button
+                  onClick={e => { e.stopPropagation(); setLiked(p => ({ ...p, [track.id]: !p[track.id] })); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.3rem', display: 'flex' }}
+                >
+                  <Heart size={16} fill={liked[track.id] ? '#1db954' : 'none'} color={liked[track.id] ? '#1db954' : '#666'} />
+                </button>
+                {track.duration && (
+                  <span style={{ fontSize: '0.75rem', color: '#b3b3b3', minWidth: '30px', textAlign: 'right' }}>{track.duration}</span>
+                )}
+                <button style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', padding: '0.3rem', display: 'flex' }}>
+                  <MoreVertical size={16} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* ── AI Assistant ── */}
       {currentTrack && (
-        <div style={{ margin: '1.5rem 1rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ margin: '1rem 1.2rem', background: '#282828', borderRadius: '8px', overflow: 'hidden' }}>
           <AiAssistant
             mode="dhamma"
             contextData={`กำลังฟัง: "${currentTrack.title}" (${currentTrack.subtitle || ''})`}
             title="พระอาจารย์ AI"
             subtitle="ผู้ช่วยอธิบายธรรมะ"
             icon="✨"
-            themeColor={category.color}
+            themeColor="#1db954"
             buttonText="ขอคำอธิบายเพิ่มเติม"
           />
         </div>
