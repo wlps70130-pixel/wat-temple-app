@@ -50,7 +50,7 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
     if (!category) return;
     setLoading(true);
     // Add cache busting to ensure we get the latest file
-    const urlWithCacheBust = `${SHEET_URL}?t=${new Date().getTime()}`;
+    const urlWithCacheBust = `${SHEET_URL}&t=${new Date().getTime()}`;
     
     Papa.parse(urlWithCacheBust, {
       download: true, 
@@ -64,7 +64,7 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
             const catKey = Object.keys(row).find(k => k.replace(/^\uFEFF/, '').trim() === 'categoryId');
             const urlKey = Object.keys(row).find(k => k.trim() === 'url');
             
-            if (!catKey || !urlKey) return false;
+            if (!catKey || !urlKey || typeof row[catKey] !== 'string' || typeof row[urlKey] !== 'string') return false;
             
             return row[catKey].trim() === category.id && row[urlKey].trim() !== '';
           })
@@ -76,10 +76,10 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
 
             return {
               id: `${category.id}-${i}`,
-              title: (titleKey && row[titleKey]) ? row[titleKey].trim() : `ไฟล์เสียงธรรม ${i + 1}`,
-              subtitle: (subKey && row[subKey]) ? row[subKey].trim() : '',
-              duration: (durKey && row[durKey]) ? row[durKey].trim() : '-:--',
-              url: (urlKey && row[urlKey]) ? row[urlKey].trim() : '',
+              title: (titleKey && typeof row[titleKey] === 'string' && row[titleKey].trim()) ? row[titleKey].trim() : `ไฟล์เสียงธรรม ${i + 1}`,
+              subtitle: (subKey && typeof row[subKey] === 'string') ? row[subKey].trim() : '',
+              duration: (durKey && typeof row[durKey] === 'string') ? row[durKey].trim() : '-:--',
+              url: (urlKey && typeof row[urlKey] === 'string') ? row[urlKey].trim() : '',
             };
           });
         setTracks(filtered);
