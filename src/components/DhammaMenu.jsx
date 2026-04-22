@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, UserCircle, Mic2, Headphones, Home, Search, Library, Bell, Clock, Settings, ChevronRight } from 'lucide-react';
+import { BookOpen, UserCircle, Mic2, Headphones, Home, Search, Library, Bell, Clock, Settings, ChevronRight, Sparkles, Sun, Book, Play } from 'lucide-react';
 
 const DHAMMA_CATEGORIES = [
   { id: 'tripitaka',        title: 'พระไตรปิฎก',       icon: BookOpen,    color: '#5038a0', bg: 'linear-gradient(135deg,#5038a0,#2d1b6b)' },
@@ -33,10 +33,10 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
 
   // "Top Mixes" for horizontal scroll section
   const mixes = [
-    { id: 'mix1', title: 'Daily Dhamma Mix',     subtitle: 'หลวงปู่ หลวงพ่อ รวมธรรมะ',  color: '#e63946', bg: 'linear-gradient(145deg,#e63946,#9b1d1d)' },
-    { id: 'mix2', title: 'Morning Chants',        subtitle: 'ทำวัตรเช้า สวดมนต์',          color: '#2a9d8f', bg: 'linear-gradient(145deg,#2a9d8f,#115c55)' },
-    { id: 'mix3', title: 'Meditation Playlist',   subtitle: 'กัมมัฏฐาน ภาวนา',             color: '#e9c46a', bg: 'linear-gradient(145deg,#9c7a00,#e9c46a)' },
-    { id: 'mix4', title: 'Tripitaka Readings',    subtitle: 'พระไตรปิฎก บาลี',             color: '#6a4c93', bg: 'linear-gradient(145deg,#6a4c93,#2d1f40)' },
+    { id: 'mix1', title: 'รวมธรรมะประจำวัน',     subtitle: 'หลวงปู่ หลวงพ่อ รวมธรรมะ',  icon: Sparkles, color: '#e63946', bg: 'linear-gradient(145deg,#e63946,#9b1d1d)' },
+    { id: 'mix2', title: 'บทสวดมนต์ทำวัตรเช้า',    subtitle: 'ทำวัตรเช้า สวดมนต์',          icon: Sun,      color: '#2a9d8f', bg: 'linear-gradient(145deg,#2a9d8f,#115c55)' },
+    { id: 'mix3', title: 'เสียงนำนั่งสมาธิ',      subtitle: 'กัมมัฏฐาน ภาวนา',             icon: Headphones, color: '#e9c46a', bg: 'linear-gradient(145deg,#9c7a00,#e9c46a)' },
+    { id: 'mix4', title: 'เสียงอ่านพระไตรปิฎก',    subtitle: 'พระไตรปิฎก บาลี',             icon: Book,     color: '#6a4c93', bg: 'linear-gradient(145deg,#6a4c93,#2d1f40)' },
   ];
 
   return (
@@ -116,15 +116,21 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
           <span style={{ fontSize: '0.8rem', color: '#b3b3b3', cursor: 'pointer', fontWeight: '600' }}>ดูทั้งหมด</span>
         </div>
         <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', padding: '0 1.2rem', scrollbarWidth: 'none' }}>
-          {mixes.map(mix => (
-            <div key={mix.id} style={{ flexShrink: 0, width: '155px', cursor: 'pointer' }}>
-              <div style={{ width: '155px', height: '155px', borderRadius: '8px', background: mix.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', fontSize: '3rem' }}>
-                🛕
+          {mixes.map(mix => {
+            const MixIcon = mix.icon;
+            return (
+              <div key={mix.id} style={{ flexShrink: 0, width: '155px', cursor: 'pointer', position: 'relative' }}>
+                <div style={{ width: '155px', height: '155px', borderRadius: '8px', background: mix.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', position: 'relative', overflow: 'hidden' }}>
+                  <MixIcon size={64} color="rgba(255,255,255,0.8)" strokeWidth={1.5} />
+                  <div style={{ position: 'absolute', bottom: '8px', right: '8px', width: '36px', height: '36px', borderRadius: '50%', background: '#1db954', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                    <Play size={18} fill="#000" color="#000" style={{ marginLeft: '2px' }} />
+                  </div>
+                </div>
+                <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#fff', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mix.title}</div>
+                <div style={{ fontSize: '0.75rem', color: '#b3b3b3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mix.subtitle}</div>
               </div>
-              <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#fff', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mix.title}</div>
-              <div style={{ fontSize: '0.75rem', color: '#b3b3b3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mix.subtitle}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -149,7 +155,7 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '0.95rem', fontWeight: '600', color: '#fff', marginBottom: '2px' }}>{cat.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#b3b3b3' }}>Playlist</div>
+                  <div style={{ fontSize: '0.75rem', color: '#b3b3b3' }}>รายการเสียงธรรม</div>
                 </div>
                 <ChevronRight size={18} color="#555" />
               </div>
