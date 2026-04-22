@@ -4,7 +4,7 @@ import { Camera, Maximize2, X, RefreshCw, Wifi, WifiOff, Settings, ChevronRight,
 // ─── ตั้งค่ากล้องที่นี่ ─────────────────────────────────────────
 // รองรับ: URL รูป MJPEG, iframe URL ของระบบ NVR, หรือ HLS stream
 const CAMERAS = [
-  { id: 1, name: 'VIGI C340S',             url: 'http://192.168.1.207', type: 'iframe', location: 'หน้าวัด (ทดสอบ)' },
+  { id: 1, name: 'VIGI C340S',             url: 'http://192.168.1.207', type: 'iframe', location: 'หน้าวัด' },
   { id: 2, name: 'ศาลาสมเด็จ',             url: '', type: 'mjpeg', location: 'ด้านหน้าศาลา' },
   { id: 3, name: 'อาคารอเนกประสงค์',       url: '', type: 'mjpeg', location: 'ทางเข้าอาคาร' },
   { id: 4, name: 'ลานจอดรถ',               url: '', type: 'mjpeg', location: 'ด้านหลังวัด' },
