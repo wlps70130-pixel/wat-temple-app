@@ -4,7 +4,7 @@ import { Camera, Maximize2, X, RefreshCw, Wifi, WifiOff, Settings, ChevronRight,
 // ─── ตั้งค่ากล้องที่นี่ ─────────────────────────────────────────
 // รองรับ: URL รูป MJPEG, iframe URL ของระบบ NVR, หรือ HLS stream
 const CAMERAS = [
-  { id: 1, name: 'VIGI C340S',             url: 'http://admin:Wlps70130$@192.168.1.207/stream/snapshot.jpg', type: 'mjpeg', location: 'หน้าวัด (ทดสอบ)' },
+  { id: 1, name: 'VIGI C340S',             url: 'http://192.168.1.207', type: 'iframe', location: 'หน้าวัด (ทดสอบ)' },
   { id: 2, name: 'ศาลาสมเด็จ',             url: '', type: 'mjpeg', location: 'ด้านหน้าศาลา' },
   { id: 3, name: 'อาคารอเนกประสงค์',       url: '', type: 'mjpeg', location: 'ทางเข้าอาคาร' },
   { id: 4, name: 'ลานจอดรถ',               url: '', type: 'mjpeg', location: 'ด้านหลังวัด' },
@@ -40,9 +40,18 @@ function CameraCard({ cam, onExpand }) {
               <div style={{ width: '20px', height: '20px', border: '2px solid #3b82f6', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             </div>
           )}
-          <img
-            src={cam.url && cam.url.startsWith('http://') ? cam.url.replace('http://', 'https://') : cam.url}
-            alt={cam.name || "กล้องวงจรปิด"}
+          {cam.type === 'iframe' ? (
+            <iframe
+              src={cam.url}
+              title={cam.name}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              onLoad={() => setLoaded(true)}
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <img
+              src={cam.url}
+              alt={cam.name || "กล้องวงจรปิด"}
             loading="lazy"
             decoding="async"
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: loaded ? 'block' : 'none' }}
@@ -53,6 +62,7 @@ function CameraCard({ cam, onExpand }) {
               setImgError(true); 
             }}
           />
+          )}
         </>
       ) : (
         // Offline / Not configured placeholder
@@ -123,9 +133,15 @@ function FullscreenCamera({ cam, onClose }) {
             <p style={{ fontSize: '0.85rem' }}>ไม่สามารถแสดงภาพกล้องได้</p>
             <p style={{ fontSize: '0.72rem', marginTop: '0.25rem' }}>ตรวจสอบ URL ในไฟล์ CCTVViewer.jsx</p>
           </div>
+        ) : cam.type === 'iframe' ? (
+          <iframe
+            src={cam.url}
+            title={cam.name}
+            style={{ width: '100%', height: '100%', minHeight: '300px', border: 'none', borderRadius: '12px' }}
+          />
         ) : (
           <img 
-            src={cam.url && cam.url.startsWith('http://') ? cam.url.replace('http://', 'https://') : cam.url} 
+            src={cam.url} 
             alt={cam.name || "กล้องวงจรปิด"} 
             loading="lazy"
             decoding="async"
