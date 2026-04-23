@@ -99,7 +99,7 @@ export default function EnergyDashboard() {
   
   const [rawHistory, setRawHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=2048515869&single=true&output=csv";
+  const HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQNzQ7frtMJMwnqyXuqMjU_Jx59iApoXM0KYwfsfqIh6Q_wCKF6lCV3q0qov-dpzxJLabPdZFk31gyi/pub?output=csv";
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
