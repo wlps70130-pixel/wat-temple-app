@@ -573,7 +573,7 @@ export default function EnergyDashboard() {
           </div>
         </div>
 
-        {/* Savings Card (White) */}
+         {/* Savings Card (White) */}
         {(() => {
            const normalRate = 4.72; // Flat rate estimate
            const normalCostBeforeVat = totalMonthlyKwh * normalRate + PEA_RATES.service + ftCost;
@@ -607,25 +607,96 @@ export default function EnergyDashboard() {
            );
         })()}
 
-        {/* Hourly Chart Card */}
-        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>ปริมาณการใช้ไฟรายชั่วโมง</h3>
-              <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: theme.textSub }}>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fde047' }}></div>On-Peak</div>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3e635' }}></div>Off-Peak</div>
-              </div>
-           </div>
-           <div style={{ height: '160px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '3px', paddingBottom: '0.5rem', borderBottom: `1px solid ${theme.border}` }}>
-              {[10,12,15,18,14,12,15,20,25,55,65,72,80,85,78,70,65,60,55,50,35,25,18,12].map((h, i) => {
-                 const isPeak = i >= 9 && i <= 21;
-                 return <div key={i} style={{ flex: 1, background: isPeak ? '#fde047' : '#a3e635', height: `${h}%`, borderRadius: '2px 2px 0 0', transition: 'height 0.3s' }}></div>;
-              })}
-           </div>
-           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.7rem', color: theme.textSub }}>
-              <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
-           </div>
-        </div>
+        {(() => {
+          // เตรียมข้อมูลสำหรับกราฟรายชั่วโมงของวันนี้
+          const todayStr = `${String(currentTime.getDate()).padStart(2, '0')}/${String(currentTime.getMonth()+1).padStart(2, '0')}/${currentTime.getFullYear()}`;
+          const isWeekday = currentTime.getDay() >= 1 && currentTime.getDay() <= 5;
+          const isHoliday = THAI_HOLIDAYS_2568.has(`${currentTime.getFullYear()}-${String(currentTime.getMonth()+1).padStart(2, '0')}-${String(currentTime.getDate()).padStart(2, '0')}`);
+          
+          let hasRealData = false;
+          const hourlyData = Array(24).fill(0).map((_, i) => {
+            const isPeakTime = i >= 9 && i <= 21;
+            const isPeak = isWeekday && !isHoliday && isPeakTime;
+            return { hour: `${String(i).padStart(2, '0')}:00`, sum: 0, count: 0, isPeak };
+          });
+
+          rawHistory.forEach(r => {
+             if (!r.timestamp || r.building === 'พลังงานโซล่าเซลล์') return;
+             let dPart = "", hPart = "";
+             if (r.timestamp.includes('T')) {
+                const match = r.timestamp.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):/);
+                if (match) { dPart = `${match[3]}/${match[2]}/${match[1]}`; hPart = match[4]; }
+             } else if (r.timestamp.includes('/')) {
+                const parts = r.timestamp.split(' ');
+                if (parts.length >= 2) {
+                   const dParts = parts[0].split('/');
+                   if (dParts.length === 3) { dPart = `${dParts[0].padStart(2, '0')}/${dParts[1].padStart(2, '0')}/${dParts[2]}`; hPart = parts[1].split(':')[0]; }
+                }
+             }
+             if (dPart === todayStr && hPart) {
+                const hIdx = parseInt(hPart, 10);
+                if (hIdx >= 0 && hIdx < 24) {
+                   hourlyData[hIdx].sum += parseFloat(r.totalKw || 0);
+                   hourlyData[hIdx].count += 1;
+                }
+             }
+          });
+
+          let finalHourly = hourlyData.map(d => {
+             if (d.count > 0) hasRealData = true;
+             return {
+                hour: d.hour,
+                "กำลังไฟ (kW)": d.count > 0 ? parseFloat((d.sum / d.count).toFixed(2)) : 0,
+                fill: d.isPeak ? '#facc15' : '#84cc16'
+             };
+          });
+
+          // ถ้าวันนี้ยังไม่มีข้อมูลเลย ให้ใช้ Mock Data จำลองไปก่อนเพื่อให้กราฟสวยงาม
+          if (!hasRealData) {
+             const mock = [10,12,15,18,14,12,15,20,25,55,65,72,80,85,78,70,65,60,55,50,35,25,18,12];
+             finalHourly = mock.map((val, i) => {
+                const isPeakTime = i >= 9 && i <= 21;
+                const isPeak = isWeekday && !isHoliday && isPeakTime;
+                return {
+                   hour: `${String(i).padStart(2, '0')}:00`,
+                   "กำลังไฟ (kW)": val,
+                   fill: isPeak ? '#facc15' : '#84cc16'
+                };
+             });
+          }
+
+          return (
+            <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                     <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>ปริมาณการใช้ไฟรายชั่วโมง (วันนี้)</h3>
+                     {!hasRealData && <span style={{ fontSize: '0.75rem', color: theme.textSub, marginTop: '2px' }}>(กราฟจำลอง - กำลังรอข้อมูลจริงของวันนี้)</span>}
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: theme.textSub }}>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#facc15' }}></div>On-Peak</div>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#84cc16' }}></div>Off-Peak</div>
+                  </div>
+               </div>
+               
+               <div style={{ width: '100%', height: 200, marginLeft: '-15px' }}>
+                 <ResponsiveContainer width="100%" height="100%">
+                   <BarChart data={finalHourly} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                     <CartesianGrid strokeDasharray="3 3" stroke={theme.border} vertical={false} />
+                     <XAxis dataKey="hour" stroke={theme.textSub} fontSize={10} tickMargin={8} minTickGap={20} />
+                     <YAxis stroke={theme.textSub} fontSize={10} tickFormatter={(val) => `${val}kW`} width={45} />
+                     <Tooltip 
+                       contentStyle={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '12px', color: theme.textMain, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                       itemStyle={{ color: theme.textMain, fontWeight: 'bold' }}
+                       labelStyle={{ color: theme.textSub, marginBottom: '0.25rem', fontSize: '0.85rem' }}
+                       cursor={{ fill: isDarkMode ? '#1e293b' : '#f1f5f9' }}
+                     />
+                     <Bar dataKey="กำลังไฟ (kW)" radius={[4, 4, 0, 0]} animationDuration={1500} />
+                   </BarChart>
+                 </ResponsiveContainer>
+               </div>
+            </div>
+          );
+        })()}
 
 
         {/* Energy Distribution Card */}
