@@ -617,7 +617,7 @@ export default function EnergyDashboard() {
           const hourlyData = Array(24).fill(0).map((_, i) => {
             const isPeakTime = i >= 9 && i <= 21;
             const isPeak = isWeekday && !isHoliday && isPeakTime;
-            return { hour: `${String(i).padStart(2, '0')}:00`, sum: 0, count: 0, isPeak };
+            return { hour: `${String(i).padStart(2, '0')}:00`, isPeak, buildings: {} };
           });
 
           rawHistory.forEach(r => {
@@ -636,17 +636,30 @@ export default function EnergyDashboard() {
              if (dPart === todayStr && hPart) {
                 const hIdx = parseInt(hPart, 10);
                 if (hIdx >= 0 && hIdx < 24) {
-                   hourlyData[hIdx].sum += parseFloat(r.totalKw || 0);
-                   hourlyData[hIdx].count += 1;
+                   if (!hourlyData[hIdx].buildings[r.building]) {
+                      hourlyData[hIdx].buildings[r.building] = { sum: 0, count: 0 };
+                   }
+                   hourlyData[hIdx].buildings[r.building].sum += parseFloat(r.totalKw || 0);
+                   hourlyData[hIdx].buildings[r.building].count += 1;
                 }
              }
           });
 
           let finalHourly = hourlyData.map(d => {
-             if (d.count > 0) hasRealData = true;
+             let totalAvgKw = 0;
+             const buildingNames = Object.keys(d.buildings);
+             if (buildingNames.length > 0) {
+                 hasRealData = true;
+                 buildingNames.forEach(bName => {
+                     const bStat = d.buildings[bName];
+                     if (bStat.count > 0) {
+                         totalAvgKw += (bStat.sum / bStat.count);
+                     }
+                 });
+             }
              return {
                 hour: d.hour,
-                "กำลังไฟ (kW)": d.count > 0 ? parseFloat((d.sum / d.count).toFixed(2)) : 0,
+                "กำลังไฟ (kW)": parseFloat(totalAvgKw.toFixed(2)),
                 fill: d.isPeak ? '#facc15' : '#84cc16'
              };
           });
