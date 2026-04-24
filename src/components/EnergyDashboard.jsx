@@ -490,8 +490,8 @@ export default function EnergyDashboard() {
     }
 
     const totalMonthlyKwh = monthlyOnPeakKwh + monthlyOffPeakKwh;
-    // Peak Demand Charge: kW สูงสุดในช่วง Peak x 210 บาท/kW
-    let peakDemandKw = 0;
+    // Peak Demand Charge: PEA วัดยอด kW รวมทุกอาคาร ณ timestamp เดียวกันช่วง On-Peak
+    const tsKwBucket = {};
     rawHistory.forEach(r => {
       const bname = String(r.building || '').trim();
       if (!r.timestamp || bname === 'พลังงานโซล่าเซลล์') return;
@@ -506,8 +506,10 @@ export default function EnergyDashboard() {
       const tou = String(r.touStatus || '').trim().toUpperCase();
       if (tou !== 'ON_PEAK') return;
       const kw = parseFloat(r.totalKw || 0);
-      if (kw > peakDemandKw) peakDemandKw = kw;
+      const tsKey = ts.slice(0, 16);
+      tsKwBucket[tsKey] = (tsKwBucket[tsKey] || 0) + kw;
     });
+    let peakDemandKw = Object.values(tsKwBucket).reduce((mx, v) => v > mx ? v : mx, 0);
     if (isEstimated && globalKw > 0) peakDemandKw = globalKw;
     const onPeakCost  = monthlyOnPeakKwh * PEA_RATES.onPeak;
     const offPeakCost = monthlyOffPeakKwh * PEA_RATES.offPeak;
@@ -595,34 +597,54 @@ export default function EnergyDashboard() {
 
          {/* Savings Card (White) */}
         {(() => {
-           const normalRate = 4.72; // Flat rate estimate
-           const normalCostBeforeVat = totalMonthlyKwh * normalRate + PEA_RATES.service + ftCost;
-           const normalCost = normalCostBeforeVat * (1 + PEA_RATES.vat);
-           const savings = Math.max(0, normalCost - totalCost);
+           // อัตรา 6.1.3 ไม่ใช้ TOU ไม่มี Demand Charge, ค่าบริการ 20 บาท/เดือน
+           const norm_first10 = Math.min(totalMonthlyKwh, 10) * 2.8013;
+           const norm_above10 = Math.max(0, totalMonthlyKwh - 10) * 3.8919;
+           const norm_ft = totalMonthlyKwh * PEA_RATES.ft;
+           const norm_service = totalMonthlyKwh > 0 ? 20.00 : 0;
+           const normalCostBeforeVat = norm_first10 + norm_above10 + norm_ft + norm_service;
+           const savings = normalCost - totalCost;
            
            return (
               <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>สรุปการประหยัด (เทียบอัตราปกติ)</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                   <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#84cc16', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', boxShadow: '0 4px 10px rgba(132,204,22,0.3)', flexShrink: 0 }}>
-                     🐷
+                 <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>สรุปค่าไฟฟ้าเดือนนี้ (TOU 6.2.3)</h3>
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.75rem', background: isDarkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: '12px', padding: '0.75rem' }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                     <span style={{ color: theme.textSub }}>On-Peak {monthlyOnPeakKwh.toFixed(1)} kWh x {PEA_RATES.onPeak} บาท</span>
+                     <span style={{ fontWeight: '700', color: theme.textMain }}>฿{onPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
                    </div>
-                   <div style={{ minWidth: 0 }}>
-                     <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#4d7c0f', lineHeight: 1 }}>฿{Math.floor(savings).toLocaleString('th-TH')}</div>
-                     <div style={{ fontSize: '0.75rem', color: theme.textSub, marginTop: '0.25rem' }}>ประหยัดไปได้ในเดือนนี้</div>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                     <span style={{ color: theme.textSub }}>Off-Peak {monthlyOffPeakKwh.toFixed(1)} kWh x {PEA_RATES.offPeak} บาท</span>
+                     <span style={{ fontWeight: '700', color: theme.textMain }}>฿{offPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
                    </div>
-                </div>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px dashed ${theme.border}`, paddingBottom: '0.75rem' }}>
-                     <span style={{ fontSize: '0.85rem', color: theme.textSub }}>อัตราปกติ (ถ้าไม่ใช้ TOU)</span>
-                     <span style={{ fontSize: '0.9rem', fontWeight: '700', color: theme.textMain }}>฿{Math.floor(normalCost).toLocaleString('th-TH')}</span>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                     <span style={{ color: theme.textSub }}>Demand {peakDemandKw.toFixed(2)} kW x {PEA_RATES.demand} บาท/kW</span>
+                     <span style={{ fontWeight: '700', color: '#f59e0b' }}>฿{demandCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
                    </div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     <span style={{ fontSize: '0.85rem', color: theme.textSub }}>อัตรา TOU ปัจจุบัน</span>
-                     <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#65a30d' }}>฿{Math.floor(totalCost).toLocaleString('th-TH')}</span>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                     <span style={{ color: theme.textSub }}>Ft {totalMonthlyKwh.toFixed(0)} kWh x {PEA_RATES.ft} + ค่าบริการ {PEA_RATES.service} บาท</span>
+                     <span style={{ fontWeight: '700', color: theme.textMain }}>฿{(ftCost + PEA_RATES.service).toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
                    </div>
-                </div>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                     <span style={{ color: theme.textSub }}>VAT 7%</span>
+                     <span style={{ fontWeight: '700', color: theme.textMain }}>฿{vatAmount.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
+                   </div>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${theme.border}`, paddingTop: '0.5rem', fontSize: '0.88rem' }}>
+                     <span style={{ fontWeight: '800', color: theme.textMain }}>รวมทั้งสิ้น (รวม VAT)</span>
+                     <span style={{ fontWeight: '800', color: theme.primary }}>฿{totalCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                   </div>
+                 </div>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: savings >= 0 ? '#f0fdf4' : '#fef2f2', borderRadius: '12px', padding: '0.6rem 0.75rem' }}>
+                   <div>
+                     <div style={{ fontSize: '0.8rem', fontWeight: '800', color: savings >= 0 ? '#166534' : '#991b1b' }}>
+                       {savings >= 0 ? '🐷 ประหยัดเทียบ 6.1.3 (ไม่ใช้ TOU)' : '⚠️ TOU แพงกว่า 6.1.3 (เพราะ Demand Charge)'}
+                     </div>
+                     <div style={{ fontSize: '0.72rem', color: theme.textSub, marginTop: '2px' }}>6.1.3 = ฿{Math.round(normalCost).toLocaleString('th-TH')} | TOU = ฿{Math.round(totalCost).toLocaleString('th-TH')}</div>
+                   </div>
+                   <div style={{ fontSize: '1.2rem', fontWeight: '800', color: savings >= 0 ? '#166534' : '#991b1b' }}>
+                     {savings >= 0 ? '' : '+'}฿{Math.abs(Math.round(savings)).toLocaleString('th-TH')}
+                   </div>
+                 </div>
               </div>
            );
         })()}
