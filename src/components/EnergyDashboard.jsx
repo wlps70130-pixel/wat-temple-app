@@ -156,10 +156,10 @@ export default function EnergyDashboard() {
           minPart = parseInt(match[5], 10);
         }
       } else {
-        const match = item.timestamp.match(/(\d{2}\/\d{2})\/\d{4} (\d{2}):(\d{2}):/);
+        const match = item.timestamp.match(/(\d{2}\/\d{2})\/\d{4} (\d{1,2}):(\d{1,2}):/);
         if (match) {
           datePart = match[1];
-          hourPart = match[2];
+          hourPart = match[2].padStart(2, '0');
           minPart = parseInt(match[3], 10);
         }
       }
@@ -630,7 +630,7 @@ export default function EnergyDashboard() {
                 const parts = r.timestamp.split(' ');
                 if (parts.length >= 2) {
                    const dParts = parts[0].split('/');
-                   if (dParts.length === 3) { dPart = `${dParts[0].padStart(2, '0')}/${dParts[1].padStart(2, '0')}/${dParts[2]}`; hPart = parts[1].split(':')[0]; }
+                   if (dParts.length === 3) { dPart = `${dParts[0].padStart(2, '0')}/${dParts[1].padStart(2, '0')}/${dParts[2]}`; hPart = parts[1].split(':')[0].padStart(2, '0'); }
                 }
              }
              if (dPart === todayStr && hPart) {
