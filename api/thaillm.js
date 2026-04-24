@@ -12,9 +12,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Context is required' });
     }
 
-    // ใช้ Gemini API Key จาก Environment Variables หรือรหัสที่เข้ารหัสไว้ (Base64 ของ AIzaSyByIMzMIK2So09pY1ioBRCLWuUWWW3-zqE)
-    // การใช้ Base64 ช่วยป้องกันไม่ให้ GitHub แบนคีย์แบบอัตโนมัติ
-    const apikey = process.env.GEMINI_API_KEY || Buffer.from('QUl6YVN5QVdtb3BuQUxVbUs2XzFZdm9lNnBvNGhwSHJHVXNSTldz', 'base64').toString('ascii');
+    // ใช้ Gemini API Key จาก Environment Variables บน Vercel เท่านั้น (ปลอดภัย)
+    // ตั้งค่าที่ Vercel Dashboard > Settings > Environment Variables > GEMINI_API_KEY
+    const apikey = process.env.GEMINI_API_KEY;
 
     if (!apikey) {
       console.error('GEMINI_API_KEY is missing');
