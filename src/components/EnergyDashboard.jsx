@@ -48,12 +48,12 @@ const parseData = (raw) => {
   }
 
   const findCode = (prefix) => {
-     const item = statusArray.find(s => String(s.code).toLowerCase() === prefix);
-     if (item && item.value !== undefined) {
-       const val = Number(item.value);
-       return isNaN(val) ? 0 : val;
-     }
-     return 0;
+    const item = statusArray.find(s => String(s.code).toLowerCase() === prefix);
+    if (item && item.value !== undefined) {
+      const val = Number(item.value);
+      return isNaN(val) ? 0 : val;
+    }
+    return 0;
   };
 
   // Phase A
@@ -63,7 +63,7 @@ const parseData = (raw) => {
   parsed.phases.A.pf = (findCode('powerfactora') / 100).toFixed(2);
   parsed.phases.A.kvar = (findCode('reactivepowera') / 1000).toFixed(3);
   parsed.phases.A.kwh = (findCode('energyconsumeda') / 100).toFixed(2);
-  
+
   // Phase B
   parsed.phases.B.v = (findCode('voltageb') / 10).toFixed(1);
   parsed.phases.B.a = (findCode('currentb') / 1000).toFixed(2);
@@ -71,7 +71,7 @@ const parseData = (raw) => {
   parsed.phases.B.pf = (findCode('powerfactorb') / 100).toFixed(2);
   parsed.phases.B.kvar = (findCode('reactivepowerb') / 1000).toFixed(3);
   parsed.phases.B.kwh = (findCode('energyconsumedb') / 100).toFixed(2);
-  
+
   // Phase C
   parsed.phases.C.v = (findCode('voltagec') / 10).toFixed(1);
   parsed.phases.C.a = (findCode('currentc') / 1000).toFixed(2);
@@ -86,17 +86,17 @@ const parseData = (raw) => {
   parsed.totalKvar = (findCode('reactivepower') / 1000).toFixed(3);
   parsed.frequency = findCode('frequency'); // Tuya usually sends raw 50 for 50Hz
   parsed.temperature = (findCode('temperature') / 10).toFixed(1);
-  
+
   return parsed;
 };
 
 export default function EnergyDashboard() {
-  const [activeTab, setActiveTab] = useState('overview'); 
+  const [activeTab, setActiveTab] = useState('overview');
   const [buildingData, setBuildingData] = useState({});
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [graphFilter, setGraphFilter] = useState('15min'); // '15min', '30min', '1hour', 'day'
   const [currentTime, setCurrentTime] = useState(new Date());
-  
+
   const [rawHistory, setRawHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQNzQ7frtMJMwnqyXuqMjU_Jx59iApoXM0KYwfsfqIh6Q_wCKF6lCV3q0qov-dpzxJLabPdZFk31gyi/pub?output=csv";
@@ -113,12 +113,12 @@ export default function EnergyDashboard() {
         const res = await fetch(HISTORY_URL);
         const csvText = await res.text();
         const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-        
+
         const parsedData = results.data.map(row => {
           let kw = parseFloat(row['กำลังไฟรวม (kW)'] || 0);
           // กรองสัญญาณ sensor ผิดปกติ (Tuya บางครั้งส่ง -6600 หมายถึง offline)
           if (kw < -500 || kw > 1000) kw = 0;
-          
+
           return {
             timestamp: row['วัน-เวลา'],
             building: row['อาคาร'],
@@ -126,9 +126,9 @@ export default function EnergyDashboard() {
             touStatus: row['ช่วงเวลา (TOU)']
           };
         }).filter(r => r.timestamp);
-        
+
         setRawHistory(parsedData);
-      } catch(e) {
+      } catch (e) {
         console.error("Fetch history error", e);
       } finally {
         setIsLoadingHistory(false);
@@ -143,7 +143,7 @@ export default function EnergyDashboard() {
     const grouped = {};
     rawHistory.forEach(item => {
       if (!item.timestamp || typeof item.timestamp !== 'string') return;
-      
+
       let datePart = "";
       let hourPart = "";
       let minPart = 0;
@@ -156,16 +156,16 @@ export default function EnergyDashboard() {
           minPart = parseInt(match[5], 10);
         }
       } else {
-        const match = item.timestamp.match(/(\d{2}\/\d{2})\/\d{4} (\d{1,2}):(\d{1,2}):/);
+        const match = item.timestamp.match(/(\d{2}\/\d{2})\/\d{4} (\d{2}):(\d{2}):/);
         if (match) {
           datePart = match[1];
-          hourPart = match[2].padStart(2, '0');
+          hourPart = match[2];
           minPart = parseInt(match[3], 10);
         }
       }
 
       if (!datePart || !hourPart) return;
-      
+
       let timeLabel = "";
       if (graphFilter === '15min') {
         timeLabel = `${hourPart}:${minPart.toString().padStart(2, '0')}`;
@@ -177,18 +177,18 @@ export default function EnergyDashboard() {
       } else if (graphFilter === 'day') {
         timeLabel = datePart;
       }
-      
+
       const fullLabel = graphFilter === 'day' ? timeLabel : `${datePart} ${timeLabel}`;
-      
+
       if (!grouped[fullLabel]) {
         grouped[fullLabel] = { displayTime: timeLabel, fullTime: fullLabel, buildings: {} };
       }
-      
+
       const bName = item.building;
       if (!grouped[fullLabel].buildings[bName]) {
         grouped[fullLabel].buildings[bName] = { sum: 0, count: 0, isSolar: bName === 'พลังงานโซล่าเซลล์' };
       }
-      
+
       grouped[fullLabel].buildings[bName].sum += parseFloat(item.totalKw || 0);
       grouped[fullLabel].buildings[bName].count += 1;
     });
@@ -213,7 +213,7 @@ export default function EnergyDashboard() {
           else valLoad += avgPower;
         });
       }
-      
+
       return {
         time: g.displayTime,
         fullTime: g.fullTime,
@@ -226,7 +226,7 @@ export default function EnergyDashboard() {
     if (graphFilter === '30min') pointsToKeep = 48;
     if (graphFilter === '1hour') pointsToKeep = 24;
     if (graphFilter === 'day') pointsToKeep = 7;
-    
+
     return chartData.slice(-pointsToKeep);
   }, [rawHistory, graphFilter]);
 
@@ -244,19 +244,19 @@ export default function EnergyDashboard() {
 
   const fetchRealData = async (bldgId, deviceId, type, retry = 3) => {
     if (!deviceId) return;
-    
+
     const url = type === 'shelly' ? `/api/shelly?deviceId=${deviceId}` : `/api/tuya?deviceId=${deviceId}`;
-    
+
     for (let i = 0; i < retry; i++) {
       try {
         const response = await fetch(url, {
           signal: AbortSignal.timeout(5000)
         });
-        
+
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
+
         const apiData = await response.json();
-        
+
         setBuildingData(prev => ({
           ...prev,
           [bldgId]: {
@@ -284,10 +284,10 @@ export default function EnergyDashboard() {
     const fetchAll = () => {
       BUILDINGS.filter(b => b.deviceId).forEach(b => fetchRealData(b.id, b.deviceId, b.type));
     };
-    
+
     fetchAll(); // Fetch immediately on mount
     const interval = setInterval(fetchAll, 30000); // Poll every 30 seconds
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -323,7 +323,7 @@ export default function EnergyDashboard() {
         </div>
       );
     }
-    
+
     if (historicalData.length === 0) {
       return (
         <div style={{ width: '100%', height: '200px', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '12px', border: `1px dashed ${theme.border}` }}>
@@ -348,23 +348,23 @@ export default function EnergyDashboard() {
             <CartesianGrid strokeDasharray="3 3" stroke={theme.border} vertical={false} />
             <XAxis dataKey="time" stroke={theme.textSub} fontSize={11} tickMargin={10} minTickGap={30} />
             <YAxis stroke={theme.textSub} fontSize={11} tickFormatter={(val) => `${val}${unit}`} width={50} />
-            <Tooltip 
+            <Tooltip
               contentStyle={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '12px', color: theme.textMain, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
               itemStyle={{ color: theme.primary, fontWeight: 'bold' }}
               labelStyle={{ color: theme.textSub, marginBottom: '0.25rem', fontSize: '0.85rem' }}
               cursor={{ fill: isDarkMode ? '#1e293b' : '#f1f5f9' }}
             />
-            <Bar 
-              dataKey="totalKw" 
-              name={nameTotal} 
-              fill={theme.primary} 
+            <Bar
+              dataKey="totalKw"
+              name={nameTotal}
+              fill={theme.primary}
               radius={[4, 4, 0, 0]}
               animationDuration={1500}
             />
-            <Bar 
-              dataKey="solarKw" 
-              name={nameSolar} 
-              fill="#f59e0b" 
+            <Bar
+              dataKey="solarKw"
+              name={nameSolar}
+              fill="#f59e0b"
               radius={[4, 4, 0, 0]}
               animationDuration={1500}
             />
@@ -379,7 +379,7 @@ export default function EnergyDashboard() {
     let globalKwh = 0;
     let solarKw = 0;
     let solarKwh = 0;
-    
+
     BUILDINGS.forEach(b => {
       if (b.deviceId) {
         const pd = parsedBuildingData[b.id];
@@ -397,11 +397,10 @@ export default function EnergyDashboard() {
 
     // PEA TOU Rates (Type 6.2 - Non-profit, Low Voltage) อัปเดต 2568
     const PEA_RATES = {
-      onPeak:  4.3297,  // บาท/หน่วย (Peak 6.2.3)
-      offPeak: 2.6369,  // บาท/หน่วย (Off-Peak 6.2.3)
+      onPeak: 4.3888,   // บาท/หน่วย
+      offPeak: 2.6468,  // บาท/หน่วย
       ft: 0.3972,       // ค่า Ft
       service: 312.24,  // ค่าบริการรายเดือน
-      demand:  210.00,  // บาท/kW/เดือน (Demand Charge)
       vat: 0.07
     };
 
@@ -490,34 +489,12 @@ export default function EnergyDashboard() {
     }
 
     const totalMonthlyKwh = monthlyOnPeakKwh + monthlyOffPeakKwh;
-    // Peak Demand Charge: PEA วัดยอด kW รวมทุกอาคาร ณ timestamp เดียวกันช่วง On-Peak
-    const tsKwBucket = {};
-    rawHistory.forEach(r => {
-      const bname = String(r.building || '').trim();
-      if (!r.timestamp || bname === 'พลังงานโซล่าเซลล์') return;
-      const ts = String(r.timestamp).trim();
-      let tsM = 0, tsY = 0;
-      if (ts.indexOf('T') >= 0) { tsY = parseInt(ts.slice(0,4),10); tsM = parseInt(ts.slice(5,7),10); }
-      else if (ts.indexOf('/') >= 0) {
-        const p = ts.split(' ')[0].split('/');
-        if (p.length === 3) { tsM = parseInt(p[1],10); tsY = parseInt(p[2],10); }
-      }
-      if (tsY !== currentYearNum || tsM !== currentMonthNum) return;
-      const tou = String(r.touStatus || '').trim().toUpperCase();
-      if (tou !== 'ON_PEAK') return;
-      const kw = parseFloat(r.totalKw || 0);
-      const tsKey = ts.slice(0, 16);
-      tsKwBucket[tsKey] = (tsKwBucket[tsKey] || 0) + kw;
-    });
-    let peakDemandKw = Object.values(tsKwBucket).reduce((mx, v) => v > mx ? v : mx, 0);
-    if (isEstimated && globalKw > 0) peakDemandKw = globalKw;
-    const onPeakCost  = monthlyOnPeakKwh * PEA_RATES.onPeak;
+    const onPeakCost = monthlyOnPeakKwh * PEA_RATES.onPeak;
     const offPeakCost = monthlyOffPeakKwh * PEA_RATES.offPeak;
-    const demandCost  = peakDemandKw * PEA_RATES.demand;
-    const ftCost      = totalMonthlyKwh * PEA_RATES.ft;
-    const totalBeforeVat = onPeakCost + offPeakCost + demandCost + ftCost + (totalMonthlyKwh > 0 ? PEA_RATES.service : 0);
-    const vatAmount   = totalBeforeVat * PEA_RATES.vat;
-    const totalCost   = totalBeforeVat + vatAmount;
+    const ftCost = totalMonthlyKwh * PEA_RATES.ft;
+    const totalBeforeVat = onPeakCost + offPeakCost + ftCost + (totalMonthlyKwh > 0 ? PEA_RATES.service : 0);
+    const vatAmount = totalBeforeVat * PEA_RATES.vat;
+    const totalCost = totalBeforeVat + vatAmount;
 
     const activeDevicesCount = BUILDINGS.filter(b => b.deviceId && parsedBuildingData[b.id]?.isOnline).length;
     const totalDevicesCount = BUILDINGS.filter(b => b.deviceId).length;
@@ -543,7 +520,7 @@ export default function EnergyDashboard() {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.4s ease-out' }}>
-        
+
         {/* Header Section */}
         <div style={{ marginBottom: '1.25rem' }}>
           {/* Top Title Bar */}
@@ -555,7 +532,7 @@ export default function EnergyDashboard() {
               ⚙️
             </button>
           </div>
-          
+
           {/* Sub Title */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-0.5px' }}>วิเคราะห์ค่าไฟ (TOU)</h1>
@@ -569,230 +546,126 @@ export default function EnergyDashboard() {
             <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>ค่าไฟโดยประมาณ (TOU)</div>
             <div style={{ background: '#a3e635', color: '#166534', fontSize: '0.75rem', fontWeight: '800', padding: '0.2rem 0.6rem', borderRadius: '20px' }}>📉 -12%</div>
           </div>
-          
+
           <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '1.5rem' }}>
-            <span style={{ fontSize: 'clamp(1.8rem, 7vw, 2.5rem)', fontWeight: '800', lineHeight: 1 }}>฿{totalCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1 }}>฿{Math.floor(totalCost).toLocaleString('th-TH')}</span>
+            <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.6)', marginLeft: '2px' }}>.{(totalCost % 1).toFixed(2).substring(2)}</span>
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             {/* On-Peak Box */}
             <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem' }}>
               <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.4rem' }}>
-                <span style={{color: '#fcd34d'}}>☀️</span> On-Peak
+                <span style={{ color: '#fcd34d' }}>☀️</span> On-Peak
               </div>
-              <div style={{ fontSize: 'clamp(0.95rem, 4vw, 1.15rem)', fontWeight: '800', marginBottom: '0.2rem' }}>฿{onPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</div>
-              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>{monthlyOnPeakKwh.toFixed(1)} kWh</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '0.2rem' }}>฿{Math.floor(onPeakCost).toLocaleString('th-TH')}</div>
+              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)' }}>{monthlyOnPeakKwh.toFixed(0)} kWh</div>
             </div>
-            
+
             {/* Off-Peak Box */}
             <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem' }}>
               <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.4rem' }}>
-                <span style={{color: '#cbd5e1'}}>🌙</span> Off-Peak
+                <span style={{ color: '#cbd5e1' }}>🌙</span> Off-Peak
               </div>
-              <div style={{ fontSize: 'clamp(0.95rem, 4vw, 1.15rem)', fontWeight: '800', marginBottom: '0.2rem' }}>฿{offPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</div>
-              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' }}>{monthlyOffPeakKwh.toFixed(1)} kWh</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '0.2rem' }}>฿{Math.floor(offPeakCost).toLocaleString('th-TH')}</div>
+              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)' }}>{monthlyOffPeakKwh.toFixed(0)} kWh</div>
             </div>
           </div>
         </div>
 
-         {/* Savings Card (White) */}
+        {/* Savings Card (White) */}
         {(() => {
-           // อัตรา 6.1.3 ไม่ใช้ TOU ไม่มี Demand Charge, ค่าบริการ 20 บาท/เดือน
-           const norm_first10 = Math.min(totalMonthlyKwh, 10) * 2.8013;
-           const norm_above10 = Math.max(0, totalMonthlyKwh - 10) * 3.8919;
-           const norm_ft = totalMonthlyKwh * PEA_RATES.ft;
-           const norm_service = totalMonthlyKwh > 0 ? 20.00 : 0;
-           const normalCostBeforeVat = norm_first10 + norm_above10 + norm_ft + norm_service;
-           const normalCost = normalCostBeforeVat * (1 + PEA_RATES.vat);
-           const savings = normalCost - totalCost;
-           
-           return (
-              <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                 <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>สรุปค่าไฟฟ้าเดือนนี้ (TOU 6.2.3)</h3>
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.75rem', background: isDarkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: '12px', padding: '0.75rem' }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                     <span style={{ color: theme.textSub }}>On-Peak {monthlyOnPeakKwh.toFixed(1)} kWh x {PEA_RATES.onPeak} บาท</span>
-                     <span style={{ fontWeight: '700', color: theme.textMain }}>฿{onPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
-                   </div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                     <span style={{ color: theme.textSub }}>Off-Peak {monthlyOffPeakKwh.toFixed(1)} kWh x {PEA_RATES.offPeak} บาท</span>
-                     <span style={{ fontWeight: '700', color: theme.textMain }}>฿{offPeakCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
-                   </div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                     <span style={{ color: theme.textSub }}>Demand {peakDemandKw.toFixed(2)} kW x {PEA_RATES.demand} บาท/kW</span>
-                     <span style={{ fontWeight: '700', color: '#f59e0b' }}>฿{demandCost.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
-                   </div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                     <span style={{ color: theme.textSub }}>Ft {totalMonthlyKwh.toFixed(0)} kWh x {PEA_RATES.ft} + ค่าบริการ {PEA_RATES.service} บาท</span>
-                     <span style={{ fontWeight: '700', color: theme.textMain }}>฿{(ftCost + PEA_RATES.service).toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
-                   </div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                     <span style={{ color: theme.textSub }}>VAT 7%</span>
-                     <span style={{ fontWeight: '700', color: theme.textMain }}>฿{vatAmount.toLocaleString('th-TH', { maximumFractionDigits: 0 })}</span>
-                   </div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${theme.border}`, paddingTop: '0.5rem', fontSize: '0.88rem' }}>
-                     <span style={{ fontWeight: '800', color: theme.textMain }}>รวมทั้งสิ้น (รวม VAT)</span>
-                     <span style={{ fontWeight: '800', color: theme.primary }}>฿{totalCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                   </div>
-                 </div>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: savings >= 0 ? '#f0fdf4' : '#fef2f2', borderRadius: '12px', padding: '0.6rem 0.75rem' }}>
-                   <div>
-                     <div style={{ fontSize: '0.8rem', fontWeight: '800', color: savings >= 0 ? '#166534' : '#991b1b' }}>
-                       {savings >= 0 ? '🐷 ประหยัดเทียบ 6.1.3 (ไม่ใช้ TOU)' : '⚠️ TOU แพงกว่า 6.1.3 (เพราะ Demand Charge)'}
-                     </div>
-                     <div style={{ fontSize: '0.72rem', color: theme.textSub, marginTop: '2px' }}>6.1.3 = ฿{Math.round(normalCost).toLocaleString('th-TH')} | TOU = ฿{Math.round(totalCost).toLocaleString('th-TH')}</div>
-                   </div>
-                   <div style={{ fontSize: '1.2rem', fontWeight: '800', color: savings >= 0 ? '#166534' : '#991b1b' }}>
-                     {savings >= 0 ? '' : '+'}฿{Math.abs(Math.round(savings)).toLocaleString('th-TH')}
-                   </div>
-                 </div>
-              </div>
-           );
-        })()}
-
-        {(() => {
-          // เตรียมข้อมูลสำหรับกราฟรายชั่วโมงของวันนี้
-          const todayStr = `${String(currentTime.getDate()).padStart(2, '0')}/${String(currentTime.getMonth()+1).padStart(2, '0')}/${currentTime.getFullYear()}`;
-          const isWeekday = currentTime.getDay() >= 1 && currentTime.getDay() <= 5;
-          const isHoliday = THAI_HOLIDAYS_2568.has(`${currentTime.getFullYear()}-${String(currentTime.getMonth()+1).padStart(2, '0')}-${String(currentTime.getDate()).padStart(2, '0')}`);
-          
-          let hasRealData = false;
-          const hourlyData = Array(24).fill(0).map((_, i) => {
-            const isPeakTime = i >= 9 && i <= 21;
-            const isPeak = isWeekday && !isHoliday && isPeakTime;
-            return { hour: `${String(i).padStart(2, '0')}:00`, isPeak, buildings: {} };
-          });
-
-          rawHistory.forEach(r => {
-             if (!r.timestamp || r.building === 'พลังงานโซล่าเซลล์') return;
-             let dPart = "", hPart = "";
-             if (r.timestamp.includes('T')) {
-                const match = r.timestamp.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):/);
-                if (match) { dPart = `${match[3]}/${match[2]}/${match[1]}`; hPart = match[4]; }
-             } else if (r.timestamp.includes('/')) {
-                const parts = r.timestamp.split(' ');
-                if (parts.length >= 2) {
-                   const dParts = parts[0].split('/');
-                   if (dParts.length === 3) { dPart = `${dParts[0].padStart(2, '0')}/${dParts[1].padStart(2, '0')}/${dParts[2]}`; hPart = parts[1].split(':')[0].padStart(2, '0'); }
-                }
-             }
-             if (dPart === todayStr && hPart) {
-                const hIdx = parseInt(hPart, 10);
-                if (hIdx >= 0 && hIdx < 24) {
-                   if (!hourlyData[hIdx].buildings[r.building]) {
-                      hourlyData[hIdx].buildings[r.building] = { sum: 0, count: 0 };
-                   }
-                   hourlyData[hIdx].buildings[r.building].sum += parseFloat(r.totalKw || 0);
-                   hourlyData[hIdx].buildings[r.building].count += 1;
-                }
-             }
-          });
-
-          let finalHourly = hourlyData.map(d => {
-             let totalAvgKw = 0;
-             const buildingNames = Object.keys(d.buildings);
-             if (buildingNames.length > 0) {
-                 hasRealData = true;
-                 buildingNames.forEach(bName => {
-                     const bStat = d.buildings[bName];
-                     if (bStat.count > 0) {
-                         totalAvgKw += (bStat.sum / bStat.count);
-                     }
-                 });
-             }
-             return {
-                hour: d.hour,
-                "กำลังไฟ (kW)": parseFloat(totalAvgKw.toFixed(2)),
-                fill: d.isPeak ? '#facc15' : '#84cc16'
-             };
-          });
-
-          // ถ้าวันนี้ยังไม่มีข้อมูลเลย ให้ใช้ Mock Data จำลองไปก่อนเพื่อให้กราฟสวยงาม
-          if (!hasRealData) {
-             const mock = [10,12,15,18,14,12,15,20,25,55,65,72,80,85,78,70,65,60,55,50,35,25,18,12];
-             finalHourly = mock.map((val, i) => {
-                const isPeakTime = i >= 9 && i <= 21;
-                const isPeak = isWeekday && !isHoliday && isPeakTime;
-                return {
-                   hour: `${String(i).padStart(2, '0')}:00`,
-                   "กำลังไฟ (kW)": val,
-                   fill: isPeak ? '#facc15' : '#84cc16'
-                };
-             });
-          }
+          const normalRate = 4.72; // Flat rate estimate
+          const normalCostBeforeVat = totalMonthlyKwh * normalRate + PEA_RATES.service + ftCost;
+          const normalCost = normalCostBeforeVat * (1 + PEA_RATES.vat);
+          const savings = Math.max(0, normalCost - totalCost);
 
           return (
             <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                     <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>ปริมาณการใช้ไฟรายชั่วโมง (วันนี้)</h3>
-                     {!hasRealData && <span style={{ fontSize: '0.75rem', color: theme.textSub, marginTop: '2px' }}>(กราฟจำลอง - กำลังรอข้อมูลจริงของวันนี้)</span>}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: theme.textSub }}>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#facc15' }}></div>On-Peak</div>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#84cc16' }}></div>Off-Peak</div>
-                  </div>
-               </div>
-               
-               <div style={{ width: '100%', height: 200, marginLeft: '-15px' }}>
-                 <ResponsiveContainer width="100%" height="100%">
-                   <BarChart data={finalHourly} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                     <CartesianGrid strokeDasharray="3 3" stroke={theme.border} vertical={false} />
-                     <XAxis dataKey="hour" stroke={theme.textSub} fontSize={10} tickMargin={8} minTickGap={20} />
-                     <YAxis stroke={theme.textSub} fontSize={10} tickFormatter={(val) => `${val}kW`} width={45} />
-                     <Tooltip 
-                       contentStyle={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '12px', color: theme.textMain, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                       itemStyle={{ color: theme.textMain, fontWeight: 'bold' }}
-                       labelStyle={{ color: theme.textSub, marginBottom: '0.25rem', fontSize: '0.85rem' }}
-                       cursor={{ fill: isDarkMode ? '#1e293b' : '#f1f5f9' }}
-                     />
-                     <Bar dataKey="กำลังไฟ (kW)" radius={[4, 4, 0, 0]} animationDuration={1500} />
-                   </BarChart>
-                 </ResponsiveContainer>
-               </div>
+              <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>สรุปการประหยัด (เทียบอัตราปกติ)</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#84cc16', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', boxShadow: '0 4px 10px rgba(132,204,22,0.3)', flexShrink: 0 }}>
+                  🐷
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#4d7c0f', lineHeight: 1 }}>฿{Math.floor(savings).toLocaleString('th-TH')}</div>
+                  <div style={{ fontSize: '0.75rem', color: theme.textSub, marginTop: '0.25rem' }}>ประหยัดไปได้ในเดือนนี้</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px dashed ${theme.border}`, paddingBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.85rem', color: theme.textSub }}>อัตราปกติ (ถ้าไม่ใช้ TOU)</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '700', color: theme.textMain }}>฿{Math.floor(normalCost).toLocaleString('th-TH')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', color: theme.textSub }}>อัตรา TOU ปัจจุบัน</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#65a30d' }}>฿{Math.floor(totalCost).toLocaleString('th-TH')}</span>
+                </div>
+              </div>
             </div>
           );
         })()}
 
+        {/* Hourly Chart Card */}
+        <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>ปริมาณการใช้ไฟรายชั่วโมง</h3>
+            <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: theme.textSub }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fde047' }}></div>On-Peak</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3e635' }}></div>Off-Peak</div>
+            </div>
+          </div>
+          <div style={{ height: '160px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '3px', paddingBottom: '0.5rem', borderBottom: `1px solid ${theme.border}` }}>
+            {[10, 12, 15, 18, 14, 12, 15, 20, 25, 55, 65, 72, 80, 85, 78, 70, 65, 60, 55, 50, 35, 25, 18, 12].map((h, i) => {
+              const isPeak = i >= 9 && i <= 21;
+              return <div key={i} style={{ flex: 1, background: isPeak ? '#fde047' : '#a3e635', height: `${h}%`, borderRadius: '2px 2px 0 0', transition: 'height 0.3s' }}></div>;
+            })}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.7rem', color: theme.textSub }}>
+            <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
+          </div>
+        </div>
+
 
         {/* Energy Distribution Card */}
         <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-           <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>การกระจายพลังงาน</h3>
-           <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#f1f5f9', borderRadius: '12px', marginBottom: '1rem' }}>
-              <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', borderRight: `1px solid ${theme.border}` }}>
-                 <div style={{ fontSize: '0.8rem', color: '#65a30d', fontWeight: '700' }}>🌱 พลังงานทดแทน</div>
-                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                    <span style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain }}>{solarKw.toFixed(1)}</span>
-                    <span style={{ fontSize: '0.75rem', color: theme.textSub }}>kW</span>
-                 </div>
-                 <div style={{ fontSize: '0.75rem', color: '#65a30d', fontWeight: '700' }}>▲ {prodPercent.toFixed(0)}%</div>
+          <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '800', color: theme.textMain }}>การกระจายพลังงาน</h3>
+          <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#f1f5f9', borderRadius: '12px', marginBottom: '1rem' }}>
+            <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', borderRight: `1px solid ${theme.border}` }}>
+              <div style={{ fontSize: '0.8rem', color: '#65a30d', fontWeight: '700' }}>🌱 พลังงานทดแทน</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                <span style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain }}>{solarKw.toFixed(1)}</span>
+                <span style={{ fontSize: '0.75rem', color: theme.textSub }}>kW</span>
               </div>
-              <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                 <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: '700' }}>⚡ PEA Grid</div>
-                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                    <span style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain }}>{globalKw.toFixed(1)}</span>
-                    <span style={{ fontSize: '0.75rem', color: theme.textSub }}>kW</span>
-                 </div>
-                 <div style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: '700' }}>▼ {(100-prodPercent).toFixed(0)}%</div>
+              <div style={{ fontSize: '0.75rem', color: '#65a30d', fontWeight: '700' }}>▲ {prodPercent.toFixed(0)}%</div>
+            </div>
+            <div style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: '700' }}>⚡ PEA Grid</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                <span style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain }}>{globalKw.toFixed(1)}</span>
+                <span style={{ fontSize: '0.75rem', color: theme.textSub }}>kW</span>
               </div>
-           </div>
-           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderTop: `1px solid ${theme.border}`, fontSize: '0.85rem' }}>
-              <div style={{ textAlign: 'center', flex: 1 }}>
-                 <div style={{ fontSize: '1.2rem', color: prodPercent >= 50 ? '#65a30d' : theme.danger, fontWeight: '800' }}>{prodPercent.toFixed(1)}%</div>
-                 <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>พึ่งพาทดแทน</div>
-              </div>
-              <div style={{ textAlign: 'center', flex: 1 }}>
-                 <div style={{ fontSize: '0.75rem', fontWeight: '600', padding: '0.15rem 0.5rem', borderRadius: '12px', border: `1px solid ${touStatus === 'ON_PEAK' ? theme.danger : theme.success}`, color: touStatus === 'ON_PEAK' ? theme.danger : theme.success, display: 'inline-block' }}>{touStatus === 'ON_PEAK' ? 'On-Peak' : 'Off-Peak'}</div>
-                 <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>ช่วงเวลา</div>
-              </div>
-              <div style={{ textAlign: 'center', flex: 1 }}>
-                 <div style={{ fontSize: '1.2rem', color: netGrid <= 0 ? '#65a30d' : theme.danger, fontWeight: '800' }}>{netGrid > 0 ? '+' : ''}{netGrid.toFixed(1)} kW</div>
-                 <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>{netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออก PEA'}</div>
-              </div>
-           </div>
+              <div style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: '700' }}>▼ {(100 - prodPercent).toFixed(0)}%</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderTop: `1px solid ${theme.border}`, fontSize: '0.85rem' }}>
+            <div style={{ textAlign: 'center', flex: 1 }}>
+              <div style={{ fontSize: '1.2rem', color: prodPercent >= 50 ? '#65a30d' : theme.danger, fontWeight: '800' }}>{prodPercent.toFixed(1)}%</div>
+              <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>พึ่งพาทดแทน</div>
+            </div>
+            <div style={{ textAlign: 'center', flex: 1 }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: '600', padding: '0.15rem 0.5rem', borderRadius: '12px', border: `1px solid ${touStatus === 'ON_PEAK' ? theme.danger : theme.success}`, color: touStatus === 'ON_PEAK' ? theme.danger : theme.success, display: 'inline-block' }}>{touStatus === 'ON_PEAK' ? 'On-Peak' : 'Off-Peak'}</div>
+              <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>ช่วงเวลา</div>
+            </div>
+            <div style={{ textAlign: 'center', flex: 1 }}>
+              <div style={{ fontSize: '1.2rem', color: netGrid <= 0 ? '#65a30d' : theme.danger, fontWeight: '800' }}>{netGrid > 0 ? '+' : ''}{netGrid.toFixed(1)} kW</div>
+              <div style={{ fontSize: '0.7rem', color: theme.textSub, marginTop: '0.15rem' }}>{netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออก PEA'}</div>
+            </div>
+          </div>
         </div>
 
-        <AiAssistant 
+        <AiAssistant
           mode="energy"
           contextData={aiContextData}
           title="AI Energy Analyst"
@@ -807,11 +680,11 @@ export default function EnergyDashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain, fontWeight: '700' }}>สถิติการใช้งาน</h3>
           </div>
-          
+
           {/* Time Filter Tabs */}
           <div style={{ display: 'flex', background: isDarkMode ? '#0f172a' : '#f1f5f9', borderRadius: '12px', padding: '4px' }}>
             {['15min', '30min', '1hour', 'day'].map(filter => {
-              const labels = { '15min':'15 นาที', '30min':'30 นาที', '1hour':'1 ชั่วโมง', 'day':'รายวัน' };
+              const labels = { '15min': '15 นาที', '30min': '30 นาที', '1hour': '1 ชั่วโมง', 'day': 'รายวัน' };
               const isActive = graphFilter === filter;
               return (
                 <div key={filter} onClick={() => setGraphFilter(filter)} style={{ flex: 1, textAlign: 'center', padding: '0.5rem 0', borderRadius: '10px', fontSize: '0.85rem', fontWeight: isActive ? '700' : '500', cursor: 'pointer', background: isActive ? theme.cardBg : 'transparent', color: isActive ? theme.textMain : theme.textSub, boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.2s' }}>
@@ -830,16 +703,16 @@ export default function EnergyDashboard() {
             <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain, fontWeight: '700' }}>ตารางข้อมูลสถิติไฟฟ้า (PEA Load Profile)</h3>
             <span style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', background: isDarkMode ? '#334155' : '#e2e8f0', color: theme.textSub, fontWeight: 'bold' }}>AMR Standard</span>
           </div>
-          
+
           <div style={{ overflowX: 'auto', maxHeight: '350px', overflowY: 'auto', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead style={{ position: 'sticky', top: 0, background: isDarkMode ? '#1e293b' : '#f8fafc', zIndex: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                 <tr style={{ color: theme.textSub, textAlign: 'left', whiteSpace: 'nowrap' }}>
                   <th style={{ padding: '0.75rem 1rem', borderBottom: `2px solid ${theme.border}` }}>วัน-เวลา</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>กำลังไฟ (kW)</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>พลังงาน (kWh)</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>โซล่า (kWh)</th>
-                  {graphFilter !== 'day' && <th style={{ padding: '0.75rem 1rem', textAlign: 'center', borderBottom: `2px solid ${theme.border}` }}>TOU</th>}
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>Demand (kW)</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>Energy (kWh)</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right', borderBottom: `2px solid ${theme.border}` }}>Solar (kWh)</th>
+                  {graphFilter !== 'day' && <th style={{ padding: '0.75rem 1rem', textAlign: 'center', borderBottom: `2px solid ${theme.border}` }}>TOU (Est.)</th>}
                 </tr>
               </thead>
               <tbody>
@@ -847,10 +720,10 @@ export default function EnergyDashboard() {
                   let kwh = 0;
                   let kw = 0;
                   let solarKwh = 0;
-                  
+
                   if (graphFilter === 'day') {
                     kwh = row.totalKw;
-                    kw = "-"; 
+                    kw = "-";
                     solarKwh = row.solarKw;
                   } else {
                     kw = row.totalKw;
@@ -861,19 +734,10 @@ export default function EnergyDashboard() {
 
                   let touBadge = null;
                   if (graphFilter !== 'day') {
-                    // parse date+time from fullTime e.g. "24/04 09:15" or "24/04/2026 09:15"
-                    const tMatch = row.fullTime.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))? (\d{2}):(\d{2})/);
-                    let isPeak = false;
-                    if (tMatch) {
-                      const hour = parseInt(tMatch[4], 10);
-                      const min  = parseInt(tMatch[5], 10);
-                      const dd   = parseInt(tMatch[1], 10);
-                      const mm   = parseInt(tMatch[2], 10);
-                      const yyyy = tMatch[3] ? parseInt(tMatch[3], 10) : currentTime.getFullYear();
-                      const dt   = new Date(yyyy, mm - 1, dd, hour, min);
-                      isPeak = getTouStatus(dt) === 'ON_PEAK';
-                    }
-                    touBadge = isPeak ?
+                    const timeMatch = row.fullTime.match(/(\d{2}):/);
+                    const hour = timeMatch ? parseInt(timeMatch[1], 10) : 0;
+                    const isPeakHour = hour >= 9 && hour < 22;
+                    touBadge = isPeakHour ?
                       <span style={{ background: '#fef08a', color: '#854d0e', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>On-Peak</span> :
                       <span style={{ background: '#bbf7d0', color: '#166534', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>Off-Peak</span>;
                   }
@@ -904,7 +768,7 @@ export default function EnergyDashboard() {
             <h3 style={{ margin: 0, fontSize: '1.2rem', color: theme.textMain, fontWeight: '800' }}>รายการอาคาร</h3>
             <span style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '500' }}>ทั้งหมด {BUILDINGS.length}</span>
           </div>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {Object.keys(buildingData).length === 0 ? (
               // Skeleton Loaders
@@ -918,49 +782,49 @@ export default function EnergyDashboard() {
                 </div>
               ))
             ) : (
-            BUILDINGS.map(b => {
-              const hasDevice = !!b.deviceId;
-              const data = buildingData[b.id];
-              const parsed = parsedBuildingData[b.id] || parseData(null);
-              const isSolar = b.isSolar;
-              
-              let statusText = 'Pending';
-              let statusColor = theme.warning;
-              if (hasDevice) {
-                statusText = parsed.isOnline ? 'Active' : 'Offline';
-                statusColor = parsed.isOnline ? theme.success : theme.danger;
-              }
-              
-              return (
-                <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.1rem 1.25rem', cursor: 'pointer', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem', transition: 'transform 0.1s' }}>
-                  
-                  {/* Icon */}
-                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: isSolar ? (isDarkMode ? '#451a03' : '#fef3c7') : (isDarkMode ? '#1e293b' : '#f1f5f9'), border: `1px solid ${isSolar ? '#fde68a' : theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
-                    {isSolar ? '☀️' : '🏢'}
+              BUILDINGS.map(b => {
+                const hasDevice = !!b.deviceId;
+                const data = buildingData[b.id];
+                const parsed = parsedBuildingData[b.id] || parseData(null);
+                const isSolar = b.isSolar;
+
+                let statusText = 'Pending';
+                let statusColor = theme.warning;
+                if (hasDevice) {
+                  statusText = parsed.isOnline ? 'Active' : 'Offline';
+                  statusColor = parsed.isOnline ? theme.success : theme.danger;
+                }
+
+                return (
+                  <div key={b.id} onClick={() => setActiveTab(b.id)} style={{ background: theme.cardBg, borderRadius: '16px', padding: '1.1rem 1.25rem', cursor: 'pointer', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem', transition: 'transform 0.1s' }}>
+
+                    {/* Icon */}
+                    <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: isSolar ? (isDarkMode ? '#451a03' : '#fef3c7') : (isDarkMode ? '#1e293b' : '#f1f5f9'), border: `1px solid ${isSolar ? '#fde68a' : theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
+                      {isSolar ? '☀️' : '🏢'}
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ margin: 0, fontSize: '1.05rem', color: theme.textMain, fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {b.name}
+                      </div>
+                      <div style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: theme.textSub, fontWeight: '500' }}>
+                        Power {hasDevice && parsed.isOnline ? parsed.totalKw : '0.00'} kW
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: '700', color: statusColor, marginBottom: '0.2rem' }}>
+                        {statusText}
+                      </div>
+                      <div style={{ fontSize: '0.95rem', color: theme.textMain, fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
+                        <span style={{ color: theme.warning }}>⚡</span> {hasDevice && parsed.isOnline ? parsed.totalKwh : '--'} <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>kwh</span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ margin: 0, fontSize: '1.05rem', color: theme.textMain, fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {b.name}
-                    </div>
-                    <div style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: theme.textSub, fontWeight: '500' }}>
-                      Power {hasDevice && parsed.isOnline ? parsed.totalKw : '0.00'} kW
-                    </div>
-                  </div>
-                  
-                  {/* Stats */}
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: '700', color: statusColor, marginBottom: '0.2rem' }}>
-                      {statusText}
-                    </div>
-                    <div style={{ fontSize: '0.95rem', color: theme.textMain, fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
-                      <span style={{ color: theme.warning }}>⚡</span> {hasDevice && parsed.isOnline ? parseFloat(parsed.totalKwh).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--'} <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '600' }}>kWh</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+                );
+              })
             )}
           </div>
         </div>
@@ -985,7 +849,7 @@ export default function EnergyDashboard() {
               background: conic-gradient(#84cc16 80%, ${isDarkMode ? '#334155' : '#e2e8f0'} 0);
             }
           `}</style>
-          
+
           {/* Top Nav */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem' }}>
             <button onClick={() => setActiveTab('overview')} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textMain, width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: theme.shadow, flexShrink: 0, fontSize: '1.2rem' }}>
@@ -998,94 +862,94 @@ export default function EnergyDashboard() {
 
           {/* Dark Banner */}
           <div style={{ background: isDarkMode ? '#18181b' : '#27272a', borderRadius: '24px', padding: '1.75rem 1.5rem', color: 'white', position: 'relative', overflow: 'hidden', boxShadow: theme.shadow }}>
-             <div style={{ position: 'relative', zIndex: 1, width: '65%' }}>
-                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', lineHeight: '1.3', letterSpacing: '0.5px' }}>
-                   <span style={{color: '#a3e635'}}>SUSTAINABLE</span> SUN<br/>ENERGY MONITORING<br/><span style={{opacity: 0.6, fontSize: '0.9rem'}}>DASHBOARD</span>
-                </h2>
-                <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                   <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System Status: </div>
-                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: parsed.isOnline ? '#a3e635' : '#ef4444' }}>{parsed.isOnline ? 'ACTIVE' : 'OFFLINE'}</div>
-                </div>
-             </div>
-             {/* House Image / Icon */}
-             <div style={{ position: 'absolute', right: '-15px', bottom: '-20px', fontSize: '7rem', opacity: 0.95, filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))' }}>
-                🏡
-             </div>
+            <div style={{ position: 'relative', zIndex: 1, width: '65%' }}>
+              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', lineHeight: '1.3', letterSpacing: '0.5px' }}>
+                <span style={{ color: '#a3e635' }}>SUSTAINABLE</span> SUN<br />ENERGY MONITORING<br /><span style={{ opacity: 0.6, fontSize: '0.9rem' }}>DASHBOARD</span>
+              </h2>
+              <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>System Status: </div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: parsed.isOnline ? '#a3e635' : '#ef4444' }}>{parsed.isOnline ? 'ACTIVE' : 'OFFLINE'}</div>
+              </div>
+            </div>
+            {/* House Image / Icon */}
+            <div style={{ position: 'absolute', right: '-15px', bottom: '-20px', fontSize: '7rem', opacity: 0.95, filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))' }}>
+              🏡
+            </div>
           </div>
 
           {/* Two Grid Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-             {/* Card 1: Power */}
-             <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                   <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Current Power</div>
-                   <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
-                </div>
-                <div style={{ marginTop: '0.5rem', fontSize: '2.2rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-1px' }}>
-                   {parsed.totalKw} <span style={{fontSize: '1rem', color: theme.textSub, fontWeight: '600'}}>kW</span>
-                </div>
-                {/* Mini visual - green bars */}
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '50px', marginTop: 'auto', paddingTop: '1rem' }}>
-                   {[40, 70, 30, 80, 50, 100, 60].map((h, i) => (
-                     <div key={i} style={{ flex: 1, background: i === 5 ? '#84cc16' : (isDarkMode ? '#334155' : '#e2e8f0'), height: `${h}%`, borderRadius: '4px' }}></div>
-                   ))}
-                </div>
-             </div>
+            {/* Card 1: Power */}
+            <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Current Power</div>
+                <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+              </div>
+              <div style={{ marginTop: '0.5rem', fontSize: '2.2rem', fontWeight: '800', color: theme.textMain, letterSpacing: '-1px' }}>
+                {parsed.totalKw} <span style={{ fontSize: '1rem', color: theme.textSub, fontWeight: '600' }}>kW</span>
+              </div>
+              {/* Mini visual - green bars */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '50px', marginTop: 'auto', paddingTop: '1rem' }}>
+                {[40, 70, 30, 80, 50, 100, 60].map((h, i) => (
+                  <div key={i} style={{ flex: 1, background: i === 5 ? '#84cc16' : (isDarkMode ? '#334155' : '#e2e8f0'), height: `${h}%`, borderRadius: '4px' }}></div>
+                ))}
+              </div>
+            </div>
 
-             {/* Card 2: Energy & Status Ring */}
-             <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                   <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Yield Status</div>
-                   <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+            {/* Card 2: Energy & Status Ring */}
+            <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: '800', color: theme.textMain }}>Yield Status</div>
+                <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+              </div>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginTop: '1rem' }}>
+                {/* CSS Circle */}
+                <div className="solar-ring" style={{ width: '100px', height: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: theme.cardBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain, lineHeight: '1' }}>{parsed.isOnline ? '98%' : '0%'}</div>
+                    <div style={{ fontSize: '0.65rem', color: theme.textSub, fontWeight: '600', marginTop: '2px' }}>Efficiency</div>
+                  </div>
                 </div>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginTop: '1rem' }}>
-                   {/* CSS Circle */}
-                   <div className="solar-ring" style={{ width: '100px', height: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: theme.cardBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                         <div style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.textMain, lineHeight: '1' }}>{parsed.isOnline ? '98%' : '0%'}</div>
-                         <div style={{ fontSize: '0.65rem', color: theme.textSub, fontWeight: '600', marginTop: '2px' }}>Efficiency</div>
-                      </div>
-                   </div>
-                </div>
-                <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>
-                   {parsed.totalKwh} <span style={{fontSize: '0.8rem', color: theme.textSub}}>kWh</span>
-                </div>
-             </div>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>
+                {parsed.totalKwh} <span style={{ fontSize: '0.8rem', color: theme.textSub }}>kWh</span>
+              </div>
+            </div>
           </div>
 
           {/* Phases List */}
           <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '1.05rem', fontWeight: '800', color: theme.textMain }}>Inverter Phases</div>
-                <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
-             </div>
-             
-             {!hasDevice || !parsed.isOnline ? (
-               <div style={{ textAlign: 'center', padding: '2rem 0', color: theme.textSub, fontSize: '0.9rem', fontWeight: '500' }}>
-                 Waiting for inverter connection...
-               </div>
-             ) : (
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {[
-                    { name: 'L1', data: parsed.phases.A },
-                    { name: 'L2', data: parsed.phases.B },
-                    { name: 'L3', data: parsed.phases.C }
-                  ].map(p => (
-                    <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '16px', border: `1px solid ${theme.border}` }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ fontWeight: '800', color: theme.textMain, fontSize: '1.1rem' }}>{p.name}</div>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                           <span style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>{p.data.v}V</span>
-                           <span style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>{p.data.a}A</span>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div style={{ fontWeight: '800', color: '#84cc16', fontSize: '1.2rem' }}>{p.data.kw} <span style={{fontSize:'0.8rem', color:theme.textSub}}>kW</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: '800', color: theme.textMain }}>Inverter Phases</div>
+              <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: 'bold' }}>↗</div>
+            </div>
+
+            {!hasDevice || !parsed.isOnline ? (
+              <div style={{ textAlign: 'center', padding: '2rem 0', color: theme.textSub, fontSize: '0.9rem', fontWeight: '500' }}>
+                Waiting for inverter connection...
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {[
+                  { name: 'L1', data: parsed.phases.A },
+                  { name: 'L2', data: parsed.phases.B },
+                  { name: 'L3', data: parsed.phases.C }
+                ].map(p => (
+                  <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', background: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: '16px', border: `1px solid ${theme.border}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ fontWeight: '800', color: theme.textMain, fontSize: '1.1rem' }}>{p.name}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>{p.data.v}V</span>
+                        <span style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: '600' }}>{p.data.a}A</span>
                       </div>
                     </div>
-                  ))}
-               </div>
-             )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ fontWeight: '800', color: '#84cc16', fontSize: '1.2rem' }}>{p.data.kw} <span style={{ fontSize: '0.8rem', color: theme.textSub }}>kW</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       );
@@ -1104,7 +968,7 @@ export default function EnergyDashboard() {
             to { opacity: 1; transform: translateY(0); }
           }
         `}</style>
-        
+
         {/* Top Nav */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
           <button onClick={() => setActiveTab('overview')} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textMain, width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: theme.shadow, flexShrink: 0, fontSize: '1.2rem' }}>
@@ -1127,56 +991,56 @@ export default function EnergyDashboard() {
         </div>
 
         {!hasDevice ? (
-           <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '4rem 1rem', textAlign: 'center', border: `1px dashed ${theme.border}` }}>
-             <div style={{ fontSize: '3.5rem', margin: '0 0 1rem 0', opacity: 0.3 }}>⚡</div>
-             <p style={{ margin: 0, fontWeight: '700', color: theme.textMain, fontSize: '1.2rem' }}>รอการติดตั้งอุปกรณ์</p>
-             <p style={{ margin: '0.5rem 0 0 0', color: theme.textSub, fontSize: '0.9rem' }}>ระบบจะแสดงผลทันทีเมื่อมีการเชื่อมต่อสำเร็จ</p>
-           </div>
+          <div style={{ background: theme.cardBg, borderRadius: '24px', padding: '4rem 1rem', textAlign: 'center', border: `1px dashed ${theme.border}` }}>
+            <div style={{ fontSize: '3.5rem', margin: '0 0 1rem 0', opacity: 0.3 }}>⚡</div>
+            <p style={{ margin: 0, fontWeight: '700', color: theme.textMain, fontSize: '1.2rem' }}>รอการติดตั้งอุปกรณ์</p>
+            <p style={{ margin: '0.5rem 0 0 0', color: theme.textSub, fontSize: '0.9rem' }}>ระบบจะแสดงผลทันทีเมื่อมีการเชื่อมต่อสำเร็จ</p>
+          </div>
         ) : (
           <>
             {/* Overview Stats (Thai) */}
             <h3 style={{ margin: '0.25rem 0 0 0', fontSize: '1.2rem', color: theme.textMain, fontWeight: '800', padding: '0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.2rem' }}>📊</span> ภาพรวมทางไฟฟ้า
             </h3>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-               <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>⚡</div>
-                    <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '700' }}>กำลังไฟรวม</div>
-                 </div>
-                 <div style={{ fontSize: '2.2rem', fontWeight: '800', color: theme.primary, lineHeight: '1.1' }}>{parsed.totalKw} <span style={{fontSize:'1rem', color:theme.textSub, fontWeight:'600'}}>kW</span></div>
-               </div>
-               
-               <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>🔋</div>
-                    <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '700' }}>หน่วยสะสม</div>
-                 </div>
-                 <div style={{ fontSize: '2.2rem', fontWeight: '800', color: theme.success, lineHeight: '1.1' }}>{parsed.totalKwh} <span style={{fontSize:'1rem', color:theme.textSub, fontWeight:'600'}}>kWh</span></div>
-               </div>
+              <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>⚡</div>
+                  <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '700' }}>กำลังไฟรวม</div>
+                </div>
+                <div style={{ fontSize: '2.2rem', fontWeight: '800', color: theme.primary, lineHeight: '1.1' }}>{parsed.totalKw} <span style={{ fontSize: '1rem', color: theme.textSub, fontWeight: '600' }}>kW</span></div>
+              </div>
+
+              <div style={{ background: isDarkMode ? '#1e293b' : '#f8fafc', borderRadius: '24px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>🔋</div>
+                  <div style={{ fontSize: '0.9rem', color: theme.textSub, fontWeight: '700' }}>หน่วยสะสม</div>
+                </div>
+                <div style={{ fontSize: '2.2rem', fontWeight: '800', color: theme.success, lineHeight: '1.1' }}>{parsed.totalKwh} <span style={{ fontSize: '1rem', color: theme.textSub, fontWeight: '600' }}>kWh</span></div>
+              </div>
             </div>
 
             {/* Environmental / Extra */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
-               <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                 <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>🔄 รีแอกทีฟรวม</span>
-                 <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.warning }}>{parsed.totalKvar} <span style={{fontSize:'0.7rem', color:theme.textSub}}>kVar</span></span>
-               </div>
-               <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                 <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>📈 ความถี่</span>
-                 <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>{parsed.frequency} <span style={{fontSize:'0.7rem', color:theme.textSub}}>Hz</span></span>
-               </div>
-               <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                 <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>🌡️ อุณหภูมิ</span>
-                 <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>{parsed.temperature} <span style={{fontSize:'0.7rem', color:theme.textSub}}>°C</span></span>
-               </div>
+              <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>🔄 รีแอกทีฟรวม</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.warning }}>{parsed.totalKvar} <span style={{ fontSize: '0.7rem', color: theme.textSub }}>kVar</span></span>
+              </div>
+              <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>📈 ความถี่</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>{parsed.frequency} <span style={{ fontSize: '0.7rem', color: theme.textSub }}>Hz</span></span>
+              </div>
+              <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: theme.textSub, fontWeight: '700', marginBottom: '0.25rem' }}>🌡️ อุณหภูมิ</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.textMain }}>{parsed.temperature} <span style={{ fontSize: '0.7rem', color: theme.textSub }}>°C</span></span>
+              </div>
             </div>
 
             <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '1.2rem', color: theme.textMain, fontWeight: '800', padding: '0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.2rem' }}>⚡</span> สถานะแยกเฟส (L1, L2, L3)
             </h3>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {[
                 { id: 'A', name: 'Phase A', label: 'L1', data: parsed.phases.A, color: '#ef4444', icon: '🔴' },
@@ -1184,37 +1048,37 @@ export default function EnergyDashboard() {
                 { id: 'C', name: 'Phase C', label: 'L3', data: parsed.phases.C, color: '#3b82f6', icon: '🔵' }
               ].map(p => (
                 <div key={p.id} style={{ background: theme.cardBg, borderRadius: '24px', padding: '1.5rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, position: 'relative', overflow: 'hidden' }}>
-                   {/* Background subtle color hint */}
-                   <div style={{ position: 'absolute', top: 0, right: 0, width: '150px', height: '150px', background: `radial-gradient(circle, ${p.color} 0%, transparent 70%)`, opacity: isDarkMode ? 0.15 : 0.05, transform: 'translate(30%, -30%)' }}></div>
-                   
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', position: 'relative', zIndex: 1 }}>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                       <span style={{ fontSize: '1.2rem' }}>{p.icon}</span>
-                       <strong style={{ color: theme.textMain, fontSize: '1.2rem', fontWeight: '800' }}>{p.name}</strong>
-                     </div>
-                     <div style={{ fontSize: '0.85rem', color: p.color, fontWeight: '800', background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.3rem 0.8rem', borderRadius: '10px' }}>{p.label}</div>
-                   </div>
+                  {/* Background subtle color hint */}
+                  <div style={{ position: 'absolute', top: 0, right: 0, width: '150px', height: '150px', background: `radial-gradient(circle, ${p.color} 0%, transparent 70%)`, opacity: isDarkMode ? 0.15 : 0.05, transform: 'translate(30%, -30%)' }}></div>
 
-                   <div style={{ display: 'flex', gap: '0.5rem', position: 'relative', zIndex: 1, width: '100%' }}>
-                     <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', boxSizing: 'border-box' }}>
-                       <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Voltage</div>
-                       <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.v}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px', color:theme.textSub}}>V</span></div>
-                     </div>
-                     <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', boxSizing: 'border-box' }}>
-                       <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Current</div>
-                       <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.a}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px', color:theme.textSub}}>A</span></div>
-                     </div>
-                     <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', border: `1px solid ${p.color}40`, boxSizing: 'border-box' }}>
-                       <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Power</div>
-                       <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: p.color, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.kw}<span style={{fontSize:'0.75rem', fontWeight:'600', marginLeft:'2px'}}>kW</span></div>
-                     </div>
-                   </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '1.2rem' }}>{p.icon}</span>
+                      <strong style={{ color: theme.textMain, fontSize: '1.2rem', fontWeight: '800' }}>{p.name}</strong>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: p.color, fontWeight: '800', background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.3rem 0.8rem', borderRadius: '10px' }}>{p.label}</div>
+                  </div>
 
-                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: `1px dashed ${theme.border}`, fontSize: '0.85rem', color: theme.textSub, position: 'relative', zIndex: 1, fontWeight: '500' }}>
-                     <div>PF: <strong style={{color: theme.textMain}}>{p.data.pf}</strong></div>
-                     <div>kVar: <strong style={{color: theme.textMain}}>{p.data.kvar}</strong></div>
-                     <div><strong style={{color: theme.textMain, fontSize:'0.9rem'}}>{p.data.kwh}</strong> <span style={{fontSize:'0.75rem'}}>kWh</span></div>
-                   </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', position: 'relative', zIndex: 1, width: '100%' }}>
+                    <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', boxSizing: 'border-box' }}>
+                      <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Voltage</div>
+                      <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.v}<span style={{ fontSize: '0.75rem', fontWeight: '600', marginLeft: '2px', color: theme.textSub }}>V</span></div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', boxSizing: 'border-box' }}>
+                      <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Current</div>
+                      <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: theme.textMain, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.a}<span style={{ fontSize: '0.75rem', fontWeight: '600', marginLeft: '2px', color: theme.textSub }}>A</span></div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0, background: isDarkMode ? '#0f172a' : '#f8fafc', padding: '0.75rem 0.5rem', borderRadius: '16px', border: `1px solid ${p.color}40`, boxSizing: 'border-box' }}>
+                      <div style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.8rem)', color: theme.textSub, fontWeight: '600' }}>Power</div>
+                      <div style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.2rem)', fontWeight: '800', color: p.color, marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.data.kw}<span style={{ fontSize: '0.75rem', fontWeight: '600', marginLeft: '2px' }}>kW</span></div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: `1px dashed ${theme.border}`, fontSize: '0.85rem', color: theme.textSub, position: 'relative', zIndex: 1, fontWeight: '500' }}>
+                    <div>PF: <strong style={{ color: theme.textMain }}>{p.data.pf}</strong></div>
+                    <div>kVar: <strong style={{ color: theme.textMain }}>{p.data.kvar}</strong></div>
+                    <div><strong style={{ color: theme.textMain, fontSize: '0.9rem' }}>{p.data.kwh}</strong> <span style={{ fontSize: '0.75rem' }}>kWh</span></div>
+                  </div>
                 </div>
               ))}
             </div>
