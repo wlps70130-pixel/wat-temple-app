@@ -603,6 +603,7 @@ export default function EnergyDashboard() {
            const norm_ft = totalMonthlyKwh * PEA_RATES.ft;
            const norm_service = totalMonthlyKwh > 0 ? 20.00 : 0;
            const normalCostBeforeVat = norm_first10 + norm_above10 + norm_ft + norm_service;
+           const normalCost = normalCostBeforeVat * (1 + PEA_RATES.vat);
            const savings = normalCost - totalCost;
            
            return (
