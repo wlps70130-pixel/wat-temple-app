@@ -188,9 +188,6 @@ export default function EnergyDashboard() {
   // Generate Graph Data
   const graphData = useMemo(() => {
       const data = [];
-      let labels = [];
-  const graphData = useMemo(() => {
-      const data = [];
       if (rawHistory.length === 0) return data;
 
       let sourceData = rawHistory;
@@ -259,7 +256,7 @@ export default function EnergyDashboard() {
          });
       }
       return data;
-  }, [reportFilter, selectedDate, selectedMonth, selectedYear]);
+  }, [reportFilter, selectedDate, selectedMonth, selectedYear, currentTab, rawHistory, selectedBuilding]);
 
   const billingInfo = useMemo(() => {
     let globalKw = 0, globalKwh = 0, solarKw = 0, cost = 0;
@@ -415,7 +412,7 @@ export default function EnergyDashboard() {
 
   const DashboardView = () => {
     const { 
-      globalKw, globalKwh, solarKw, cost, topBuildings, aiContextData,
+      globalKw, globalKwh, solarKw, cost, topBuildings,
       onPeakCost, offPeakCost, demandCost, ftCost, pfPenaltyCost, totalBeforeVat, vatCost,
       currentPf, excessKvar, estimatedKwh, monthlyOnPeakKwh, monthlyOffPeakKwh, estimatedMaxDemand
     } = billingInfo;
