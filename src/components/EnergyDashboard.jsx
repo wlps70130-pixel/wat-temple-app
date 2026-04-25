@@ -138,8 +138,9 @@ export default function EnergyDashboard() {
         const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
         const parsedData = results.data.map(row => {
           let kw = parseFloat(row['กำลังไฟรวม (kW)'] || 0);
+          let kwh = parseFloat(row['หน่วยไฟสะสมรวม (kWh)'] || 0);
           if (kw < -500 || kw > 1000) kw = 0;
-          return { timestamp: row['วัน-เวลา'], building: row['อาคาร'], totalKw: kw, touStatus: row['ช่วงเวลา (TOU)'] };
+          return { timestamp: row['วัน-เวลา'], building: row['อาคาร'], totalKw: kw, totalKwh: kwh, touStatus: row['ช่วงเวลา (TOU)'] };
         }).filter(r => r.timestamp);
         setRawHistory(parsedData);
       } catch (e) {
@@ -188,16 +189,75 @@ export default function EnergyDashboard() {
   const graphData = useMemo(() => {
       const data = [];
       let labels = [];
-      if (reportFilter === 'month') {
-          labels = ['สัปดาห์ 1', 'สัปดาห์ 2', 'สัปดาห์ 3', 'สัปดาห์ 4'];
-      } else if (reportFilter === 'year') {
-          labels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  const graphData = useMemo(() => {
+      const data = [];
+      if (rawHistory.length === 0) return data;
+
+      let sourceData = rawHistory;
+      if (currentTab === 'buildings' && selectedBuilding) {
+        sourceData = rawHistory.filter(r => r.building === selectedBuilding.name);
       } else {
-          labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
+        sourceData = rawHistory.filter(r => r.building !== 'พลังงานโซล่าเซลล์');
       }
-      labels.forEach(l => {
-          data.push({ time: l, kw: Math.floor(Math.random() * 2000) + 500, kwh: Math.floor(Math.random() * 8000) + 2000 });
-      });
+
+      if (reportFilter === 'day') {
+          const [y,m,d] = selectedDate.split('-');
+          const targetDateStr = `${d}/${m}/${y}`;
+          const dayData = sourceData.filter(r => r.timestamp.startsWith(targetDateStr));
+          const buckets = { '00:00':[], '04:00':[], '08:00':[], '12:00':[], '16:00':[], '20:00':[] };
+          
+          dayData.forEach(r => {
+             const timeStr = r.timestamp.split(' ')[1];
+             if (!timeStr) return;
+             const hour = parseInt(timeStr.split(':')[0]);
+             const bucket = Math.floor(hour / 4) * 4;
+             const bStr = bucket.toString().padStart(2, '0') + ':00';
+             if (buckets[bStr]) buckets[bStr].push(r);
+          });
+
+          Object.keys(buckets).forEach(b => {
+             let avgKw = 0; let sumKwh = 0;
+             if (buckets[b].length > 0) {
+                 avgKw = buckets[b].reduce((sum, r) => sum + r.totalKw, 0) / buckets[b].length;
+                 sumKwh = avgKw * 4; 
+             }
+             data.push({ time: b, kw: avgKw, kwh: sumKwh });
+          });
+      } else if (reportFilter === 'month') {
+          const [y,m] = selectedMonth.split('-');
+          const targetMonthStr = `/${m}/${y}`;
+          const monthData = sourceData.filter(r => r.timestamp.includes(targetMonthStr));
+          const buckets = { 'สัปดาห์ 1':[], 'สัปดาห์ 2':[], 'สัปดาห์ 3':[], 'สัปดาห์ 4':[] };
+          monthData.forEach(r => {
+             const d = parseInt(r.timestamp.split('/')[0]);
+             let b = 'สัปดาห์ 4';
+             if (d <= 7) b = 'สัปดาห์ 1';
+             else if (d <= 14) b = 'สัปดาห์ 2';
+             else if (d <= 21) b = 'สัปดาห์ 3';
+             buckets[b].push(r);
+          });
+          Object.keys(buckets).forEach(b => {
+             let avgKw = 0; let sumKwh = 0;
+             if (buckets[b].length > 0) {
+                 avgKw = buckets[b].reduce((sum, r) => sum + r.totalKw, 0) / buckets[b].length;
+                 sumKwh = avgKw * 24 * 7; 
+             }
+             data.push({ time: b, kw: avgKw, kwh: sumKwh });
+          });
+      } else {
+         const labels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+         labels.forEach((l, i) => {
+             const mStr = (i+1).toString().padStart(2, '0');
+             const targetStr = `/${mStr}/${selectedYear}`;
+             const monthData = sourceData.filter(r => r.timestamp.includes(targetStr));
+             let avgKw = 0; let sumKwh = 0;
+             if (monthData.length > 0) {
+                 avgKw = monthData.reduce((sum, r) => sum + r.totalKw, 0) / monthData.length;
+                 sumKwh = avgKw * 24 * 30; 
+             }
+             data.push({ time: l, kw: avgKw, kwh: sumKwh });
+         });
+      }
       return data;
   }, [reportFilter, selectedDate, selectedMonth, selectedYear]);
 
@@ -209,29 +269,69 @@ export default function EnergyDashboard() {
       onPeak: 4.3297, offPeak: 2.6369, demand: 210.00, ft: 0.3972, service: 312.24, vat: 0.07, pfPenalty: 56.07
     };
 
+    let actualOnPeakKwh = 0, actualOffPeakKwh = 0, actualMaxDemand = 0;
+
+    if (rawHistory.length > 0) {
+      const bMap = {};
+      const timeGroups = {};
+      
+      rawHistory.forEach(r => {
+        if (!bMap[r.building]) bMap[r.building] = { data: [] };
+        bMap[r.building].data.push(r);
+        
+        if (!timeGroups[r.timestamp]) timeGroups[r.timestamp] = { kw: 0 };
+        if (r.building !== 'พลังงานโซล่าเซลล์') timeGroups[r.timestamp].kw += r.totalKw;
+      });
+
+      actualMaxDemand = Math.max(0, ...Object.values(timeGroups).map(t => t.kw));
+
+      Object.keys(bMap).forEach(bName => {
+        const bData = bMap[bName].data.sort((a,b) => new Date(a.timestamp.split(' ')[0].split('/').reverse().join('-') + 'T' + a.timestamp.split(' ')[1]) - new Date(b.timestamp.split(' ')[0].split('/').reverse().join('-') + 'T' + b.timestamp.split(' ')[1]));
+        
+        let bKwh = 0, bOnPeak = 0, bOffPeak = 0;
+        for (let i = 1; i < bData.length; i++) {
+          const diff = bData[i].totalKwh - bData[i-1].totalKwh;
+          if (diff > 0 && diff < 500) {
+            bKwh += diff;
+            if (bData[i].touStatus === 'ON_PEAK') bOnPeak += diff;
+            else bOffPeak += diff;
+          }
+        }
+
+        if (bName !== 'พลังงานโซล่าเซลล์') {
+          globalKwh += bKwh;
+          actualOnPeakKwh += bOnPeak;
+          actualOffPeakKwh += bOffPeak;
+          const bMatch = BUILDINGS.find(b => b.name === bName);
+          if (bMatch) {
+            buildingUsages.push({ ...bMatch, kw: bData[bData.length-1].totalKw, kwh: bKwh });
+          }
+        }
+      });
+    }
+
     BUILDINGS.forEach(b => {
       if (b.deviceId && parsedBuildingData[b.id]?.isOnline) {
         const kw = parseFloat(parsedBuildingData[b.id].totalKw);
-        const kwh = parseFloat(parsedBuildingData[b.id].totalKwh);
         if (!b.isSolar) { 
-          globalKw += kw; 
-          globalKwh += kwh; 
-          buildingUsages.push({ ...b, kw, kwh });
+          globalKw = Math.max(globalKw, kw); 
+          const u = buildingUsages.find(u => u.id === b.id);
+          if (!u) buildingUsages.push({ ...b, kw, kwh: 0 });
+          else u.kw = kw;
         } else {
-          solarKw += kw;
+          solarKw = kw;
         }
       }
     });
 
-    const daysElapsed = Math.max(currentTime.getDate(), 1);
-    const estimatedKwh = globalKw > 0 ? (globalKw * 13 * daysElapsed) : 3800;
-    const monthlyOnPeakKwh = estimatedKwh * 0.55;
-    const monthlyOffPeakKwh = estimatedKwh * 0.45;
-    const estimatedMaxDemand = globalKw > 0 ? Math.max(globalKw * 1.5, 15) : 35; 
+    const monthlyOnPeakKwh = actualOnPeakKwh > 0 ? actualOnPeakKwh : 100;
+    const monthlyOffPeakKwh = actualOffPeakKwh > 0 ? actualOffPeakKwh : 80;
+    const estimatedKwh = monthlyOnPeakKwh + monthlyOffPeakKwh;
+    const estimatedMaxDemand = actualMaxDemand > 0 ? actualMaxDemand : (globalKw > 0 ? Math.max(globalKw * 1.5, 15) : 35); 
     
-    // PF Calculation (PEA 2569 B.E. Non-profit standard PF 0.85 limit)
+    // PF Calculation
     const estimatedKvar = estimatedMaxDemand * 0.698; // PF ~0.82 demo
-    const currentPf = estimatedMaxDemand / Math.sqrt(Math.pow(estimatedMaxDemand, 2) + Math.pow(estimatedKvar, 2));
+    const currentPf = estimatedMaxDemand / Math.sqrt(Math.pow(estimatedMaxDemand, 2) + Math.pow(estimatedKvar, 2)) || 1;
     const kvarLimit = estimatedMaxDemand * 0.6197; 
     let pfPenaltyCost = 0;
     let excessKvar = 0;
@@ -260,7 +360,7 @@ export default function EnergyDashboard() {
       `- โหลดรวม: ${globalKw.toFixed(2)} kW`,
       `- พึ่งพาพลังงานทดแทน: ${prodPercent.toFixed(1)}%`,
       `- ไฟสุทธิ: ${netGrid > 0 ? '+' : ''}${netGrid.toFixed(2)} kW (${netGrid > 0 ? 'ดึงจาก PEA' : 'ส่งออกไป PEA'})`,
-      `- ค่าไฟโดยประมาณเดือนนี้: ${cost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท`,
+      `- ค่าไฟโดยประมาณตามรอบบิลปัจจุบัน: ${cost.toLocaleString('th-TH', { maximumFractionDigits: 0 })} บาท`,
       `- ค่าพาวเวอร์แฟกเตอร์ (PF): ${currentPf.toFixed(2)} (เกินเกณฑ์เสียค่าปรับ ${pfPenaltyCost.toFixed(2)} บาท)`,
       `- อาคารใช้พลังงานสูงสุด 3 อันดับ:`,
       ...topBuildings.map((b, i) => `  ${i+1}. ${b.name} (${b.kwh.toFixed(2)} kWh)`)
@@ -272,7 +372,7 @@ export default function EnergyDashboard() {
       currentPf, excessKvar, estimatedKwh, monthlyOnPeakKwh, monthlyOffPeakKwh, estimatedMaxDemand,
       kvarLimit, estimatedKvar
     };
-  }, [parsedBuildingData, currentTime]);
+  }, [parsedBuildingData, rawHistory]);
 
   const FilterSelector = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
