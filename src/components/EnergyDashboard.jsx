@@ -97,6 +97,7 @@ export default function EnergyDashboard() {
   const [reportTab, setReportTab] = useState('usage'); // overview, usage, cost, compare
   const [reportFilter, setReportFilter] = useState('day'); // day, month, year
   const [graphUnit, setGraphUnit] = useState('kW'); // kW, kWh
+  const [dayResolution, setDayResolution] = useState('1h'); // 15m, 30m, 1h, 4h
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -221,14 +222,25 @@ export default function EnergyDashboard() {
           const [y,m,d] = selectedDate.split('-');
           const targetDateStr = `${d}/${m}/${y}`;
           const dayData = sourceData.filter(r => r.timestamp.startsWith(targetDateStr));
-          const buckets = { '00:00':[], '04:00':[], '08:00':[], '12:00':[], '16:00':[], '20:00':[] };
+          
+          const intervalMinutes = dayResolution === '15m' ? 15 : dayResolution === '30m' ? 30 : dayResolution === '1h' ? 60 : 240;
+          const buckets = {};
+          
+          for(let i=0; i<24*60; i+=intervalMinutes) {
+              const h = Math.floor(i/60).toString().padStart(2, '0');
+              const mStr = (i%60).toString().padStart(2, '0');
+              buckets[`${h}:${mStr}`] = [];
+          }
           
           dayData.forEach(r => {
              const timeStr = r.timestamp.split(' ')[1];
              if (!timeStr) return;
-             const hour = parseInt(timeStr.split(':')[0]);
-             const bucket = Math.floor(hour / 4) * 4;
-             const bStr = bucket.toString().padStart(2, '0') + ':00';
+             const [hh, mm] = timeStr.split(':').map(Number);
+             const totalMins = hh * 60 + mm;
+             const bucketMins = Math.floor(totalMins / intervalMinutes) * intervalMinutes;
+             const bH = Math.floor(bucketMins / 60).toString().padStart(2, '0');
+             const bM = (bucketMins % 60).toString().padStart(2, '0');
+             const bStr = `${bH}:${bM}`;
              if (buckets[bStr]) buckets[bStr].push(r);
           });
 
@@ -276,7 +288,7 @@ export default function EnergyDashboard() {
          });
       }
       return data;
-  }, [reportFilter, selectedDate, selectedMonth, selectedYear, currentTab, rawHistory, selectedBuilding]);
+  }, [reportFilter, dayResolution, selectedDate, selectedMonth, selectedYear, currentTab, rawHistory, selectedBuilding]);
 
   const billingInfo = useMemo(() => {
     let globalKw = 0, globalKwh = 0, solarKw = 0, cost = 0;
@@ -398,8 +410,18 @@ export default function EnergyDashboard() {
         <span onClick={() => setReportFilter('month')} style={{ cursor: 'pointer', fontSize: '0.75rem', padding: '4px 12px', background: reportFilter === 'month' ? theme.primary : '#f1f5f9', color: reportFilter === 'month' ? 'white' : theme.textSub, borderRadius: '12px', transition: 'all 0.2s' }}>รายเดือน</span>
         <span onClick={() => setReportFilter('year')} style={{ cursor: 'pointer', fontSize: '0.75rem', padding: '4px 12px', background: reportFilter === 'year' ? theme.primary : '#f1f5f9', color: reportFilter === 'year' ? 'white' : theme.textSub, borderRadius: '12px', transition: 'all 0.2s' }}>รายปี</span>
       </div>
-      <div>
-        {reportFilter === 'day' && <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }} />}
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        {reportFilter === 'day' && (
+          <>
+            <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }} />
+            <select value={dayResolution} onChange={e => setDayResolution(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }}>
+              <option value="15m">ทุก 15 นาที</option>
+              <option value="30m">ทุก 30 นาที</option>
+              <option value="1h">ทุก 1 ชั่วโมง</option>
+              <option value="4h">ทุก 4 ชั่วโมง</option>
+            </select>
+          </>
+        )}
         {reportFilter === 'month' && <input type="month" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }} />}
         {reportFilter === 'year' && (
           <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }}>
@@ -577,7 +599,7 @@ export default function EnergyDashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={graphData} style={{ outline: 'none' }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
-                <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} />
+                <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} minTickGap={20} />
                 <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
                   <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
                 </Bar>
@@ -803,7 +825,7 @@ export default function EnergyDashboard() {
         <div style={{ height: '200px', marginTop: '1rem' }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={graphData} style={{ outline: 'none' }}>
-              <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} axisLine={false} tickLine={false} />
+              <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} axisLine={false} tickLine={false} minTickGap={20} />
               <Bar dataKey="kwh" fill={theme.success} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
                 <LabelList dataKey="kwh" position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
               </Bar>
