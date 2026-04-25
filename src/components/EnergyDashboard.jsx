@@ -595,16 +595,18 @@ export default function EnergyDashboard() {
             </div>
           </div>
           <FilterSelector />
-          <div style={{ height: '150px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={graphData} style={{ outline: 'none' }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
-                <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} minTickGap={20} />
-                <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
-                  <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div style={{ height: '170px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
+            <div style={{ width: graphData.length > 10 ? graphData.length * 40 : '100%', height: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={graphData} style={{ outline: 'none' }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
+                  <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} minTickGap={20} />
+                  <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
+                    <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -822,15 +824,17 @@ export default function EnergyDashboard() {
           <div style={{ fontSize: '0.8rem', color: theme.success, fontWeight: 'bold' }}>+ 12.5% จากช่วงก่อน</div>
         </div>
 
-        <div style={{ height: '200px', marginTop: '1rem' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={graphData} style={{ outline: 'none' }}>
-              <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} axisLine={false} tickLine={false} minTickGap={20} />
-              <Bar dataKey="kwh" fill={theme.success} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
-                <LabelList dataKey="kwh" position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        <div style={{ height: '220px', marginTop: '1rem', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
+          <div style={{ width: graphData.length > 10 ? graphData.length * 40 : '100%', height: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={graphData} style={{ outline: 'none' }}>
+                <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} axisLine={false} tickLine={false} minTickGap={20} />
+                <Bar dataKey="kwh" fill={theme.success} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
+                  <LabelList dataKey="kwh" position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <h3 style={{ margin: '1rem 0 0 0', fontSize: '1rem', color: theme.textMain }}>ตารางสรุป</h3>
@@ -885,6 +889,10 @@ export default function EnergyDashboard() {
     <div style={{ background: theme.bg, minHeight: '100vh', margin: '-1rem', padding: '1.5rem 1rem 8rem 1rem', fontFamily: "'Prompt', sans-serif", color: theme.textMain }}>
       <style>{`
         @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .recharts-wrapper *, .recharts-surface, .recharts-layer { outline: none !important; }
+        ::-webkit-scrollbar { height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       `}</style>
       
       {currentTab === 'dashboard' && <DashboardView />}
