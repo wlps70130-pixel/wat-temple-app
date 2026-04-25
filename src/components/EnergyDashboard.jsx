@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import Papa from 'papaparse';
 import AiAssistant from './AiAssistant';
 
@@ -575,10 +575,12 @@ export default function EnergyDashboard() {
           <FilterSelector />
           <div style={{ height: '150px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={graphData}>
+              <BarChart data={graphData} style={{ outline: 'none' }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
                 <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} />
-                <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} />
+                <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
+                  <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -800,9 +802,11 @@ export default function EnergyDashboard() {
 
         <div style={{ height: '200px', marginTop: '1rem' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={graphData}>
+            <BarChart data={graphData} style={{ outline: 'none' }}>
               <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} axisLine={false} tickLine={false} />
-              <Bar dataKey="kwh" fill={theme.success} radius={[4,4,0,0]} barSize={20} />
+              <Bar dataKey="kwh" fill={theme.success} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
+                <LabelList dataKey="kwh" position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
