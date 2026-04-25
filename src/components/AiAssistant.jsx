@@ -19,29 +19,50 @@ export default function AiAssistant({
     setIsAiLoading(true);
     setAiInsight(null);
     setIsFallback(false);
+    
     try {
-      const res = await fetch('/api/thaillm', {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      
+      if (!apiKey) {
+        setAiInsight('กรุณาตั้งค่า VITE_GEMINI_API_KEY ใน Environment Variables เพื่อใช้งาน AI วิเคราะห์ข้อมูล');
+        setIsFallback(true);
+        setIsAiLoading(false);
+        return;
+      }
+
+      const prompt = `คุณคือ AI ผู้ช่วยวิเคราะห์ข้อมูลการใช้พลังงานไฟฟ้าสำหรับ "วัดหลวงพ่อสดธรรมกายาราม"
+หน้าที่ของคุณคือวิเคราะห์ข้อมูลที่ส่งมาให้ สรุปค่าใช้จ่าย ค้นหาจุดที่กินไฟผิดปกติ และให้คำแนะนำในการประหยัดพลังงานที่ทำได้จริง สั้นๆ กระชับ เป็นภาษาไทยที่เป็นทางการแต่เข้าใจง่าย
+
+ข้อมูลปัจจุบัน:
+${contextData}
+
+กรุณาวิเคราะห์:
+1. สรุปภาพรวมค่าไฟและแนวโน้ม
+2. อาคารไหนกินไฟมากสุด และควรจัดการอย่างไร
+3. ข้อเสนอแนะในการลดค่าไฟ / ลดค่า PF Penalty (ถ้ามี)`;
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode, context: contextData })
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 500
+          }
+        })
       });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error('ไม่สามารถอ่านข้อมูลจากเซิร์ฟเวอร์ได้');
-      }
-
-      if (data.success) {
-        setAiInsight(data.reply);
-        setIsFallback(!!data.fallback);
+      const data = await res.json();
+      
+      if (data.candidates && data.candidates[0].content) {
+        setAiInsight(data.candidates[0].content.parts[0].text);
       } else {
-        setAiInsight('ขออภัย ระบบ AI ชั่วคราวไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่อีกครั้งครับ');
-        setIsFallback(true);
+        throw new Error('Invalid response from AI');
       }
     } catch (e) {
-      setAiInsight('ขออภัย ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ตและลองใหม่ครับ');
+      console.error(e);
+      setAiInsight('ขออภัย ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ AI ได้ กรุณาลองใหม่อีกครั้ง');
       setIsFallback(true);
     }
     setIsAiLoading(false);
