@@ -197,6 +197,26 @@ export default function EnergyDashboard() {
         sourceData = rawHistory.filter(r => r.building !== 'พลังงานโซล่าเซลล์');
       }
 
+      // Calculate precise kWh delta for each record per building
+      const dataWithDelta = [];
+      const bGroups = {};
+      sourceData.forEach(r => {
+        if (!bGroups[r.building]) bGroups[r.building] = [];
+        bGroups[r.building].push(r);
+      });
+      Object.keys(bGroups).forEach(b => {
+        const sorted = bGroups[b].sort((a,b) => new Date(a.timestamp.split(' ')[0].split('/').reverse().join('-') + 'T' + a.timestamp.split(' ')[1]) - new Date(b.timestamp.split(' ')[0].split('/').reverse().join('-') + 'T' + b.timestamp.split(' ')[1]));
+        sorted.forEach((r, i) => {
+          let delta = 0;
+          if (i > 0) {
+            const diff = r.totalKwh - sorted[i-1].totalKwh;
+            if (diff > 0 && diff < 500) delta = diff;
+          }
+          dataWithDelta.push({ ...r, kwhDelta: delta });
+        });
+      });
+      sourceData = dataWithDelta;
+
       if (reportFilter === 'day') {
           const [y,m,d] = selectedDate.split('-');
           const targetDateStr = `${d}/${m}/${y}`;
@@ -216,7 +236,7 @@ export default function EnergyDashboard() {
              let avgKw = 0; let sumKwh = 0;
              if (buckets[b].length > 0) {
                  avgKw = buckets[b].reduce((sum, r) => sum + r.totalKw, 0) / buckets[b].length;
-                 sumKwh = avgKw * 4; 
+                 sumKwh = buckets[b].reduce((sum, r) => sum + r.kwhDelta, 0); 
              }
              data.push({ time: b, kw: avgKw, kwh: sumKwh });
           });
@@ -237,7 +257,7 @@ export default function EnergyDashboard() {
              let avgKw = 0; let sumKwh = 0;
              if (buckets[b].length > 0) {
                  avgKw = buckets[b].reduce((sum, r) => sum + r.totalKw, 0) / buckets[b].length;
-                 sumKwh = avgKw * 24 * 7; 
+                 sumKwh = buckets[b].reduce((sum, r) => sum + r.kwhDelta, 0); 
              }
              data.push({ time: b, kw: avgKw, kwh: sumKwh });
           });
@@ -250,7 +270,7 @@ export default function EnergyDashboard() {
              let avgKw = 0; let sumKwh = 0;
              if (monthData.length > 0) {
                  avgKw = monthData.reduce((sum, r) => sum + r.totalKw, 0) / monthData.length;
-                 sumKwh = avgKw * 24 * 30; 
+                 sumKwh = monthData.reduce((sum, r) => sum + r.kwhDelta, 0); 
              }
              data.push({ time: l, kw: avgKw, kwh: sumKwh });
          });
