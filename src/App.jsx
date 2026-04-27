@@ -90,7 +90,7 @@ function App() {
     <div className="app-wrapper" style={{
       padding: isDhammaView ? '0' : 'var(--content-pad)',
       paddingBottom: currentTrack ? '80px' : (isDhammaView ? '0' : '6rem'),
-      background: isDhammaView ? '#030303' : 'transparent',
+      background: isDhammaView ? '#f4f9fc' : 'transparent',
       minHeight: '100vh'
     }}>
       {!isDhammaView && <Header onBack={currentView !== 'dashboard' ? handleBack : undefined} />}

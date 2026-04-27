@@ -44,7 +44,7 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
     <div style={{
       background: '#f4f9fc',
       color: '#0f172a',
-      margin: 'calc(-1 * var(--content-pad))',
+      margin: 0,
       minHeight: '100vh',
       fontFamily: "'Prompt', sans-serif",
       display: 'flex',
