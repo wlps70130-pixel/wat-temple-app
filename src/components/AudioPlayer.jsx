@@ -208,8 +208,8 @@ export default function AudioPlayer({ track, isPlaying, onTogglePlay, audioRef, 
               onClick={seek}
               style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.15)', borderRadius: '6px', cursor: 'pointer', position: 'relative', marginBottom: '0.75rem' }}
             >
-              <div style={{ position: 'absolute', left: 0, top: 0, height: '6px', width: \`\${progress}%\`, background: '#38bdf8', borderRadius: '6px', transition: 'width 0.3s linear', boxShadow: '0 0 10px rgba(56, 189, 248, 0.6)' }} />
-              <div style={{ position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)', left: \`\${progress}%\`, width: '16px', height: '16px', background: 'white', borderRadius: '50%', boxShadow: '0 0 10px rgba(56, 189, 248, 0.8)' }} />
+              <div style={{ position: 'absolute', left: 0, top: 0, height: '6px', width: `${progress}%`, background: '#38bdf8', borderRadius: '6px', transition: 'width 0.3s linear', boxShadow: '0 0 10px rgba(56, 189, 248, 0.6)' }} />
+              <div style={{ position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)', left: `${progress}%`, width: '16px', height: '16px', background: 'white', borderRadius: '50%', boxShadow: '0 0 10px rgba(56, 189, 248, 0.8)' }} />
             </div>
 
             {/* Time */}
