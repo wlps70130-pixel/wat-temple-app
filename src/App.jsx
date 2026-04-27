@@ -91,7 +91,7 @@ function App() {
       padding: isDhammaView ? '0' : 'var(--content-pad)',
       paddingBottom: currentTrack ? '80px' : (isDhammaView ? '0' : '6rem'),
       background: isDhammaView ? '#f4f9fc' : 'transparent',
-      minHeight: '100vh'
+      minHeight: '100dvh'
     }}>
       {!isDhammaView && <Header onBack={currentView !== 'dashboard' ? handleBack : undefined} />}
 

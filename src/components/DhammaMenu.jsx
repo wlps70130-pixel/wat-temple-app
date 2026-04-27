@@ -43,7 +43,7 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
   return (
     <div style={{
       color: 'var(--text-main)',
-      minHeight: '100vh',
+      minHeight: '100dvh',
       fontFamily: "'Prompt', sans-serif",
       display: 'flex',
       flexDirection: 'column',

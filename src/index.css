@@ -56,7 +56,7 @@
 body {
   background: linear-gradient(135deg, var(--bg-top), var(--bg-bottom));
   color: var(--text-main);
-  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   display: flex;
   justify-content: center;
@@ -67,7 +67,7 @@ body {
 #root {
   width: 100%;
   max-width: var(--app-max-width);
-  min-height: 100vh;
+  min-height: 100dvh;
   background: #ffffff;
   position: relative;
   box-shadow: 0 0 40px rgba(0,0,0,0.08);
@@ -88,7 +88,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  max-height: 100vh;
+  max-height: 100dvh;
   overflow-y: auto;
   scrollbar-width: none;
 }

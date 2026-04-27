@@ -78,7 +78,7 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
   return (
     <div style={{
       color: 'var(--text-main)',
-      margin: 0, minHeight: '100vh',
+      margin: 0, minHeight: '100dvh',
       fontFamily: "'Prompt', sans-serif", paddingBottom: '140px', overflowX: 'hidden',
     }}>
 
