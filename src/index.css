@@ -15,6 +15,12 @@
   --content-pad: 1.25rem;
   --card-radius: 16px;
   --font-base: 1rem;
+  
+  /* Dhamma UI Variables */
+  --dhamma-page-pad: clamp(12px, 3vw, 28px);
+  --dhamma-card-radius: clamp(16px, 3vw, 24px);
+  --dhamma-title-size: clamp(1.15rem, 3vw, 1.8rem);
+  --dhamma-body-size: clamp(0.9rem, 2vw, 1rem);
 }
 
 /* ── Tablet 600px ── */
@@ -345,4 +351,49 @@ body {
 }
 @media (min-width: 900px) {
   .sangha-monks-grid { grid-template-columns: repeat(4, 1fr) !important; }
+}
+
+/* ── Dhamma Responsive AI Classes ── */
+.dhamma-page {
+  width: 100%;
+  margin: 0 auto;
+  font-family: "Prompt", "Noto Sans Thai", sans-serif;
+}
+
+.dhamma-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: clamp(10px, 2vw, 18px);
+}
+
+.dhamma-popular-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(140px, 40vw, 200px);
+  gap: clamp(10px, 2vw, 18px);
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: none;
+}
+.dhamma-popular-row::-webkit-scrollbar { display: none; }
+
+.dhamma-hero {
+  display: grid;
+  grid-template-columns: clamp(90px, 24vw, 150px) 1fr;
+  gap: clamp(12px, 3vw, 24px);
+  align-items: end;
+}
+
+@media (max-width: 420px) {
+  .dhamma-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    justify-items: center;
+  }
+  .dhamma-hero-text {
+    align-items: center !important;
+  }
+  .dhamma-category-grid {
+    grid-template-columns: 1fr;
+  }
 }

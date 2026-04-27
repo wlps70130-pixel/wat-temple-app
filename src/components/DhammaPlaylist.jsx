@@ -95,19 +95,19 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
           </div>
 
           {/* Album art + Info (Responsive side-by-side) */}
-          <div style={{ padding: '0.5rem 0.5rem 1rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'nowrap' }}>
+          <div className="dhamma-hero" style={{ padding: '0.5rem 0.5rem 1rem' }}>
             <div style={{
-              width: '100px', height: '100px', borderRadius: '12px', flexShrink: 0,
+              width: '100%', height: 'auto', aspectRatio: '1/1', borderRadius: 'var(--dhamma-card-radius)', flexShrink: 0,
               background: category.bgGradient || 'var(--primary-color)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: 'var(--glass-shadow)',
             }}>
               <category.icon size={48} color="white" strokeWidth={1.2} />
             </div>
-            <div className="glass glass-card" style={{ flex: 1, minWidth: 0, padding: '0.75rem', borderRadius: '12px' }}>
+            <div className="glass glass-card dhamma-hero-text" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0, padding: '0.75rem', borderRadius: 'var(--dhamma-card-radius)' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--primary-dark)', marginBottom: '0.2rem' }}>เพลย์ลิสต์ธรรมะ</div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-main)', lineHeight: 1.2, marginBottom: '0.25rem', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{category.title}</h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{category.subtitle}</p>
+              <h2 style={{ fontSize: 'var(--dhamma-title-size)', fontWeight: '800', color: 'var(--text-main)', lineHeight: 1.2, marginBottom: '0.25rem', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{category.title}</h2>
+              <p style={{ fontSize: 'var(--dhamma-body-size)', color: 'var(--text-muted)', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{category.subtitle}</p>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', opacity: 0.8 }}>
                 🛕 วัดหลวงพ่อสดฯ &nbsp;•&nbsp; {tracks.length} รายการ
               </p>

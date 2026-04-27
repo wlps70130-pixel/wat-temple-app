@@ -98,13 +98,10 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
           <span style={{ fontSize: '0.8rem', color: 'var(--primary-dark)', cursor: 'pointer', fontWeight: '600', letterSpacing: '0.5px' }}>ทั้งหมด &gt;</span>
         </div>
         
-        <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', padding: '0 0.5rem', scrollbarWidth: 'none', paddingBottom: '1rem' }}>
+        <div className="dhamma-popular-row" style={{ padding: '0 0.5rem', paddingBottom: '1rem' }}>
           {mixes.map(mix => (
             <div key={mix.id} style={{ 
-              flexShrink: 0, 
-              width: '140px', 
-              height: '180px', 
-              borderRadius: '12px', 
+              borderRadius: 'var(--dhamma-card-radius)', 
               background: mix.bg, 
               display: 'flex', 
               flexDirection: 'column',
@@ -114,7 +111,8 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
               border: '1px solid rgba(255,255,255,0.6)',
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: 'var(--glass-shadow)'
+              boxShadow: 'var(--glass-shadow)',
+              height: '180px'
             }}>
               <div style={{ position: 'absolute', top: '10%', right: '-10%', opacity: 0.1 }}>
                 <UserCircle size={100} color={mix.color} />
@@ -122,7 +120,7 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
               
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ fontSize: '0.65rem', fontWeight: '700', color: mix.color, marginBottom: '4px', letterSpacing: '0.5px' }}>{mix.tag}</div>
-                <div style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px', lineHeight: 1.2 }}>{mix.title}</div>
+                <div style={{ fontSize: 'var(--dhamma-body-size)', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px', lineHeight: 1.2 }}>{mix.title}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mix.author}</div>
               </div>
             </div>
@@ -136,7 +134,7 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
           <h2 className="section-title" style={{ margin: 0, color: 'var(--text-main)' }}>หมวดหมู่เสียงธรรม</h2>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', padding: '0 0.5rem' }}>
+        <div className="dhamma-category-grid" style={{ padding: '0 0.5rem' }}>
           {DHAMMA_CATEGORIES.map(cat => {
             const Icon = cat.icon;
             return (
@@ -151,7 +149,7 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
                   gap: '0.5rem', 
                   padding: '0.85rem', 
                   cursor: 'pointer', 
-                  borderRadius: '12px',
+                  borderRadius: 'var(--dhamma-card-radius)',
                   borderLeft: '4px solid var(--primary-color)',
                   transition: 'transform 0.15s' 
                 }}
@@ -159,8 +157,8 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
               >
                 <Icon size={24} color="var(--primary-dark)" strokeWidth={1.5} />
-                <div style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)', lineHeight: 1.2, marginTop: '2px' }}>{cat.title}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{cat.subtitle}</div>
+                <div style={{ fontSize: 'var(--dhamma-body-size)', fontWeight: '600', color: 'var(--text-main)', lineHeight: 1.2, marginTop: '2px' }}>{cat.title}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{cat.subtitle}</div>
               </div>
             );
           })}
