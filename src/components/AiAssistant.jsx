@@ -45,29 +45,46 @@ ${contextData}
 4. การแก้ปัญหา Power Factor (PF Penalty): วิเคราะห์ค่า PF ถ้ามีค่าปรับให้เสนอวิธีแก้แบบเจาะจง (เช่น การติดตั้งหรือปรับจูน Capacitor Bank)
 5. แผนปฏิบัติการ (Action Plan): แนะนำสิ่งที่ควรทำทันที (ใช้เงินน้อย/ไม่ใช้เงิน) และสิ่งที่ควรลงทุนในอนาคตเพื่อความคุ้มค่าระยะยาว`;
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.5,
-            maxOutputTokens: 8192
-          }
-        })
-      });
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro-latest'];
+      let res;
+      let data;
+      let success = false;
+      let lastErrorMessage = '';
 
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error?.message || `HTTP Error ${res.status}`);
+      for (const modelName of modelsToTry) {
+        try {
+          res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.5,
+                maxOutputTokens: 8192
+              }
+            })
+          });
+
+          data = await res.json();
+          
+          if (res.ok && data.candidates && data.candidates[0].content) {
+            success = true;
+            break;
+          } else {
+            lastErrorMessage = data.error?.message || `HTTP Error ${res.status}`;
+            console.warn(`Model ${modelName} failed:`, lastErrorMessage);
+          }
+        } catch (err) {
+          lastErrorMessage = err.message;
+          console.warn(`Fetch error for ${modelName}:`, err);
+        }
+      }
+
+      if (!success) {
+        throw new Error(lastErrorMessage || 'ไม่สามารถเชื่อมต่อกับ AI ได้ในขณะนี้ (Server Overloaded)');
       }
       
-      if (data.candidates && data.candidates[0].content) {
-        setAiInsight(data.candidates[0].content.parts[0].text);
-      } else {
-        throw new Error('Invalid response from AI');
-      }
+      setAiInsight(data.candidates[0].content.parts[0].text);
     } catch (e) {
       console.error(e);
       setAiInsight(`เกิดข้อผิดพลาด: ${e.message}`);
