@@ -5,12 +5,11 @@ import AiAssistant from './AiAssistant';
 
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=29969163&single=true&output=csv';
 
-// ─── Modern EQ Bars (Primary Color) ─────────────────────────────
 const EqBars = () => (
   <div style={{ display: 'flex', gap: '2px', height: '14px', alignItems: 'flex-end', width: '20px' }}>
     {[1, 0.5, 0.8].map((_, i) => (
       <div key={i} style={{
-        width: '3px', borderRadius: '2px', background: 'var(--primary-color)',
+        width: '3px', borderRadius: '2px', background: 'var(--dh-primary)',
         animation: `sEq${i} ${0.5 + i * 0.15}s ease-in-out infinite alternate`,
         transformOrigin: 'bottom'
       }} />
@@ -76,71 +75,54 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
   if (!category) return null;
 
   return (
-    <div style={{
-      color: 'var(--text-main)',
-      margin: 0, minHeight: '100dvh',
-      fontFamily: "'Prompt', sans-serif", paddingBottom: '140px', overflowX: 'hidden',
-    }}>
+    <div className="dh-page">
 
       {/* ── Hero with gradient bleed ── */}
       <div style={{ position: 'relative', paddingBottom: '1.5rem', paddingTop: '0.5rem' }}>
-        <div style={{ position: 'absolute', inset: 0, background: category.bgGradient || 'linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(255, 255, 255, 0))', zIndex: 0, opacity: 0.6 }} />
+        <div style={{ position: 'absolute', inset: 0, background: category.bgGradient || 'var(--dh-primary)', zIndex: 0, opacity: 0.2 }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           {/* Back Button */}
-          <div style={{ padding: '0 0.5rem 0.5rem' }}>
-            <button onClick={onBack} className="glass" style={{ border: '1px solid var(--glass-border)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--primary-dark)', padding: 0 }}>
+          <div className="dh-topbar" style={{ paddingBottom: 0 }}>
+            <button onClick={onBack} className="dh-icon-btn">
               <ChevronLeft size={24} />
             </button>
           </div>
 
-          {/* Album art + Info (Responsive side-by-side) */}
-          <div className="dhamma-hero" style={{ padding: '0.5rem 0.5rem 1rem' }}>
-            <div style={{
-              width: '100%', height: 'auto', aspectRatio: '1/1', borderRadius: 'var(--dhamma-card-radius)', flexShrink: 0,
-              background: category.bgGradient || 'var(--primary-color)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: 'var(--glass-shadow)',
-            }}>
-              <category.icon size={48} color="white" strokeWidth={1.2} />
+          {/* Album art + Info (Responsive) */}
+          <div className="dh-hero">
+            <div className="dh-hero-art" style={{ background: category.bgGradient || 'var(--dh-primary)' }}>
+              <category.icon size={64} color="white" strokeWidth={1.2} />
             </div>
-            <div className="glass glass-card dhamma-hero-text" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0, padding: '0.75rem', borderRadius: 'var(--dhamma-card-radius)' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--primary-dark)', marginBottom: '0.2rem' }}>เพลย์ลิสต์ธรรมะ</div>
-              <h2 style={{ fontSize: 'var(--dhamma-title-size)', fontWeight: '800', color: 'var(--text-main)', lineHeight: 1.2, marginBottom: '0.25rem', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{category.title}</h2>
-              <p style={{ fontSize: 'var(--dhamma-body-size)', color: 'var(--text-muted)', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{category.subtitle}</p>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', opacity: 0.8 }}>
+            <div className="dh-hero-info">
+              <div className="dh-subheading">เพลย์ลิสต์ธรรมะ</div>
+              <h2 className="dh-heading" style={{ marginBottom: '8px' }}>{category.title}</h2>
+              <p className="dh-hero-desc">{category.subtitle}</p>
+              <p style={{ fontSize: 'var(--dh-small-text)', color: 'var(--dh-text-muted)', opacity: 0.8, margin: 0 }}>
                 🛕 วัดหลวงพ่อสดฯ &nbsp;•&nbsp; {tracks.length} รายการ
               </p>
             </div>
           </div>
 
           {/* Controls Row */}
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0 1rem', gap: '1rem' }}>
-            <button onClick={() => {}} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '0.25rem' }}>
+          <div className="dh-controls-row">
+            <button className="dh-icon-btn" style={{ background: 'transparent', border: 'none' }}>
               <Heart size={28} />
             </button>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '0.25rem' }}>
+            <button className="dh-icon-btn" style={{ background: 'transparent', border: 'none' }}>
               <MoreVertical size={28} />
             </button>
             <div style={{ flex: 1 }} />
             {/* Shuffle */}
-            <button onClick={handleShuffle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: isShuffled ? 'var(--primary-dark)' : 'var(--text-muted)', display: 'flex', padding: '0.25rem', transition: 'color 0.2s' }}>
+            <button onClick={handleShuffle} className="dh-icon-btn" style={{ background: 'transparent', border: 'none', color: isShuffled ? 'var(--dh-primary)' : 'var(--dh-text-muted)' }}>
               <Shuffle size={24} />
             </button>
             {/* Play Button */}
             <button
               onClick={() => displayTracks.length > 0 && handlePlayTrack(displayTracks[0])}
-              style={{
-                width: '64px', height: '64px', borderRadius: '50%',
-                background: 'var(--primary-color)', border: '1px solid rgba(255,255,255,0.5)', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', boxShadow: '0 8px 24px rgba(234, 179, 8, 0.4)',
-                transition: 'transform 0.15s, filter 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)'; e.currentTarget.style.transform = 'scale(1.06)'; }}
-              onMouseLeave={e => { e.currentTarget.style.filter = 'brightness(1)'; e.currentTarget.style.transform = 'scale(1)'; }}
+              className="dh-play-btn"
             >
-              <Play size={28} fill="#fff" style={{ marginLeft: '4px' }} />
+              <Play size={32} fill="#fff" style={{ marginLeft: '4px' }} />
             </button>
           </div>
         </div>
@@ -150,12 +132,12 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
       <div style={{ padding: '0.5rem 0' }}>
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4rem 0', gap: '1rem' }}>
-            <Loader2 size={32} color="var(--primary-color)" style={{ animation: 'spin 1s linear infinite' }} />
-            <span style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>กำลังโหลด...</span>
+            <Loader2 size={32} color="var(--dh-primary)" style={{ animation: 'spin 1s linear infinite' }} />
+            <span style={{ color: 'var(--dh-text-muted)', fontSize: '1rem' }}>กำลังโหลด...</span>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : displayTracks.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-muted)' }}>
+          <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--dh-text-muted)' }}>
             <ListMusic size={48} style={{ display: 'block', margin: '0 auto 1rem', opacity: 0.3 }} />
             <p style={{ fontSize: '1rem' }}>ยังไม่มีรายการในหมวดนี้</p>
           </div>
@@ -166,44 +148,27 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
             <div
               key={track.id}
               onClick={() => handlePlayTrack(track)}
-              className="glass"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
-                padding: '0.6rem 0.8rem', cursor: 'pointer',
-                background: isSelected ? 'rgba(234, 179, 8, 0.1)' : 'var(--glass-bg)',
-                transition: 'transform 0.15s',
-                borderRadius: '8px',
-                marginBottom: '0.35rem', margin: '0 0.5rem 0.35rem 0.5rem'
-              }}
-              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.transform = 'translateX(2px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateX(0)'; }}
+              className={`dh-glass dh-track-item ${isSelected ? 'active' : ''}`}
             >
               {/* # or EQ */}
-              <div style={{ width: '20px', textAlign: 'center', flexShrink: 0 }}>
+              <div style={{ width: '24px', textAlign: 'center', flexShrink: 0 }}>
                 {isThisPlaying
                   ? <EqBars />
-                  : <span style={{ fontSize: '0.85rem', color: isSelected ? 'var(--primary-dark)' : 'var(--text-muted)' }}>{idx + 1}</span>
+                  : <span style={{ fontSize: '0.85rem', color: isSelected ? 'var(--dh-primary)' : 'var(--dh-text-muted)' }}>{idx + 1}</span>
                 }
               </div>
 
               {/* Thumbnail */}
-              <div style={{
-                width: '40px', height: '40px', borderRadius: '6px', flexShrink: 0,
-                background: category.bgGradient || 'var(--primary-color)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-              }}>
+              <div className="dh-track-thumb" style={{ background: category.bgGradient || 'var(--dh-primary)' }}>
                 <category.icon size={20} color="white" />
               </div>
 
               {/* Title + Artist */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: '0.95rem', fontWeight: '600',
-                  color: isSelected ? 'var(--primary-dark)' : 'var(--text-main)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px'
-                }}>{track.title}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div className="dh-track-info">
+                <div className="dh-track-title" style={{ color: isSelected ? 'var(--dh-primary)' : 'var(--dh-text-main)' }}>
+                  {track.title}
+                </div>
+                <div className="dh-track-sub">
                   {track.subtitle}
                 </div>
               </div>
@@ -214,12 +179,12 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
                   onClick={e => { e.stopPropagation(); setLiked(p => ({ ...p, [track.id]: !p[track.id] })); }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.3rem', display: 'flex' }}
                 >
-                  <Heart size={20} fill={liked[track.id] ? 'var(--primary-color)' : 'none'} color={liked[track.id] ? 'var(--primary-color)' : 'var(--text-muted)'} />
+                  <Heart size={20} fill={liked[track.id] ? 'var(--dh-primary)' : 'none'} color={liked[track.id] ? 'var(--dh-primary)' : 'var(--dh-text-muted)'} />
                 </button>
                 {track.duration && (
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', minWidth: '35px', textAlign: 'right' }}>{track.duration}</span>
+                  <span style={{ fontSize: 'var(--dh-small-text)', color: 'var(--dh-text-muted)', minWidth: '35px', textAlign: 'right' }}>{track.duration}</span>
                 )}
-                <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.3rem', display: 'flex' }}>
+                <button style={{ background: 'none', border: 'none', color: 'var(--dh-text-muted)', cursor: 'pointer', padding: '0.3rem', display: 'flex' }}>
                   <MoreVertical size={20} />
                 </button>
               </div>
@@ -230,14 +195,14 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
 
       {/* ── AI Assistant ── */}
       {currentTrack && (
-        <div className="glass glass-card" style={{ margin: '1rem 0.5rem', overflow: 'hidden' }}>
+        <div className="dh-glass" style={{ margin: '1rem var(--dh-page-pad)', overflow: 'hidden' }}>
           <AiAssistant
             mode="dhamma"
             contextData={`กำลังฟัง: "${currentTrack.title}" (${currentTrack.subtitle || ''})`}
             title="พระอาจารย์ AI"
             subtitle="ผู้ช่วยอธิบายธรรมะ"
             icon="✨"
-            themeColor="var(--primary-dark)"
+            themeColor="var(--dh-primary)"
             buttonText="ขอคำอธิบายเพิ่มเติม"
             isDarkMode={false}
           />

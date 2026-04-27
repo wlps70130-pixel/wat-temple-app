@@ -41,87 +41,47 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
   ];
 
   return (
-    <div style={{
-      color: 'var(--text-main)',
-      minHeight: '100dvh',
-      fontFamily: "'Prompt', sans-serif",
-      display: 'flex',
-      flexDirection: 'column',
-      paddingBottom: '80px',
-      overflowY: 'auto',
-      overflowX: 'hidden'
-    }}>
-
+    <div className="dh-page">
       {/* ── Top Bar ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.5rem 0.5rem', marginBottom: '0.5rem' }}>
-        <button onClick={onBack} className="glass" style={{ border: '1px solid var(--glass-border)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--primary-dark)', padding: 0 }}>
+      <div className="dh-topbar">
+        <button onClick={onBack} className="dh-icon-btn">
           <ChevronLeft size={24} />
         </button>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--primary-dark)', margin: 0, letterSpacing: '0.5px' }}>Dhamma Sanctuary</h1>
-        <button className="glass" style={{ border: '1px solid var(--glass-border)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--primary-dark)' }}>
+        <h1 className="dh-heading" style={{ fontSize: '1.25rem' }}>Dhamma Sanctuary</h1>
+        <button className="dh-icon-btn">
           <UserCircle size={24} />
         </button>
       </div>
 
       {/* ── Search Bar ── */}
-      <div style={{ padding: '0 0.5rem' }}>
-        <div className="glass" style={{
-          height: '52px',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 1.2rem',
-          gap: '0.75rem',
-          borderRadius: '26px'
-        }}>
-          <Search size={22} color="var(--text-muted)" />
-          <input 
-            type="text" 
-            placeholder="ค้นหาเสียงธรรม..." 
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-main)',
-              outline: 'none',
-              fontSize: '1rem',
-              fontFamily: 'inherit'
-            }}
-          />
-          <Mic size={22} color="var(--primary-dark)" />
-        </div>
+      <div className="dh-glass dh-search-bar">
+        <Search size={22} color="var(--dh-text-muted)" />
+        <input 
+          type="text" 
+          placeholder="ค้นหาเสียงธรรม..." 
+          className="dh-search-input"
+        />
+        <Mic size={22} color="var(--dh-primary)" />
       </div>
 
       {/* ── Popular Dhamma ── */}
-      <div style={{ padding: '1.5rem 0 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 0.5rem', marginBottom: '0.75rem' }}>
-          <h2 className="section-title" style={{ margin: 0, color: 'var(--text-main)' }}>ยอดนิยม</h2>
-          <span style={{ fontSize: '0.8rem', color: 'var(--primary-dark)', cursor: 'pointer', fontWeight: '600', letterSpacing: '0.5px' }}>ทั้งหมด &gt;</span>
+      <div>
+        <div className="dh-section-header">
+          <h2 className="dh-heading">ยอดนิยม</h2>
+          <span className="dh-subheading" style={{ cursor: 'pointer', marginBottom: 0 }}>ทั้งหมด &gt;</span>
         </div>
         
-        <div className="dhamma-popular-row" style={{ padding: '0 0.5rem', paddingBottom: '1rem' }}>
+        <div className="dh-popular-row">
           {mixes.map(mix => (
-            <div key={mix.id} style={{ 
-              borderRadius: 'var(--dhamma-card-radius)', 
-              background: mix.bg, 
-              display: 'flex', 
-              flexDirection: 'column',
-              justifyContent: 'flex-end',
-              padding: '1rem', 
-              cursor: 'pointer',
-              border: '1px solid rgba(255,255,255,0.6)',
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: 'var(--glass-shadow)',
-              height: '180px'
-            }}>
+            <div key={mix.id} className="dh-glass dh-popular-card" style={{ background: mix.bg }}>
               <div style={{ position: 'absolute', top: '10%', right: '-10%', opacity: 0.1 }}>
                 <UserCircle size={100} color={mix.color} />
               </div>
               
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ fontSize: '0.65rem', fontWeight: '700', color: mix.color, marginBottom: '4px', letterSpacing: '0.5px' }}>{mix.tag}</div>
-                <div style={{ fontSize: 'var(--dhamma-body-size)', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px', lineHeight: 1.2 }}>{mix.title}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mix.author}</div>
+                <div className="dh-cat-title" style={{ color: 'var(--dh-text-main)', marginBottom: '4px' }}>{mix.title}</div>
+                <div className="dh-cat-subtitle" style={{ color: 'var(--dh-text-muted)' }}>{mix.author}</div>
               </div>
             </div>
           ))}
@@ -129,36 +89,19 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
       </div>
 
       {/* ── Dhamma Categories ── */}
-      <div style={{ padding: '1rem 0 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem', marginBottom: '0.75rem' }}>
-          <h2 className="section-title" style={{ margin: 0, color: 'var(--text-main)' }}>หมวดหมู่เสียงธรรม</h2>
+      <div>
+        <div className="dh-section-header">
+          <h2 className="dh-heading">หมวดหมู่เสียงธรรม</h2>
         </div>
         
-        <div className="dhamma-category-grid" style={{ padding: '0 0.5rem' }}>
+        <div className="dh-category-grid">
           {DHAMMA_CATEGORIES.map(cat => {
             const Icon = cat.icon;
             return (
-              <div
-                key={cat.id}
-                onClick={() => onSelectCategory(cat)}
-                className="glass"
-                style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'flex-start', 
-                  gap: '0.5rem', 
-                  padding: '0.85rem', 
-                  cursor: 'pointer', 
-                  borderRadius: 'var(--dhamma-card-radius)',
-                  borderLeft: '4px solid var(--primary-color)',
-                  transition: 'transform 0.15s' 
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-              >
-                <Icon size={24} color="var(--primary-dark)" strokeWidth={1.5} />
-                <div style={{ fontSize: 'var(--dhamma-body-size)', fontWeight: '600', color: 'var(--text-main)', lineHeight: 1.2, marginTop: '2px' }}>{cat.title}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{cat.subtitle}</div>
+              <div key={cat.id} onClick={() => onSelectCategory(cat)} className="dh-glass dh-cat-card">
+                <Icon size={24} color="var(--dh-primary)" strokeWidth={1.5} />
+                <div className="dh-cat-title">{cat.title}</div>
+                <div className="dh-cat-subtitle">{cat.subtitle}</div>
               </div>
             );
           })}
@@ -166,14 +109,7 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
       </div>
 
       {/* ── Bottom Nav ── */}
-      <div className="glass" style={{
-        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 'var(--app-max-width)',
-        display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-        padding: '0.75rem 0', paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))',
-        zIndex: 50,
-        borderRadius: '20px 20px 0 0',
-      }}>
+      <div className="dh-bottom-nav">
         {[
           { icon: Home,    label: 'หน้าแรก', id: 'home', action: onBack },
           { icon: Search,  label: 'ค้นหา',   id: 'search' },
@@ -182,17 +118,11 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
           <button
             key={tab.id}
             onClick={() => { setActiveTab(tab.id); if (tab.action) tab.action(); }}
-            style={{ 
-              background: 'none', border: 'none', cursor: 'pointer', 
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', 
-              padding: '0 1rem', 
-              color: activeTab === tab.id ? 'var(--primary-dark)' : 'var(--text-muted)' 
-            }}
+            className={`dh-nav-btn ${activeTab === tab.id ? 'active' : ''}`}
           >
             <tab.icon size={26} fill={activeTab === tab.id ? 'currentColor' : 'none'} strokeWidth={activeTab === tab.id ? 2 : 1.5} />
-            <span style={{ fontSize: '0.75rem', fontWeight: '600' }}>{tab.label}</span>
-            {/* Active Indicator Dot */}
-            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: activeTab === tab.id ? 'var(--primary-dark)' : 'transparent', marginTop: '2px' }} />
+            <span className="dh-nav-text">{tab.label}</span>
+            <div className="dh-nav-dot" style={{ background: activeTab === tab.id ? 'var(--dh-primary)' : 'transparent' }} />
           </button>
         ))}
       </div>
