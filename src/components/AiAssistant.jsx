@@ -55,6 +55,10 @@ ${contextData}
 
       const data = await res.json();
       
+      if (!res.ok) {
+        throw new Error(data.error?.message || `HTTP Error ${res.status}`);
+      }
+      
       if (data.candidates && data.candidates[0].content) {
         setAiInsight(data.candidates[0].content.parts[0].text);
       } else {
@@ -62,7 +66,7 @@ ${contextData}
       }
     } catch (e) {
       console.error(e);
-      setAiInsight('ขออภัย ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ AI ได้ กรุณาลองใหม่อีกครั้ง');
+      setAiInsight(`เกิดข้อผิดพลาด: ${e.message}`);
       setIsFallback(true);
     }
     setIsAiLoading(false);

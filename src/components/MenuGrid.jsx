@@ -1,11 +1,12 @@
 import React from 'react';
-import { UserPlus, Headphones, Gift, HeartHandshake, Library, Zap, Wrench, CalendarSync, Car, Stethoscope, HardHat, Users, Camera } from 'lucide-react';
+import { UserPlus, Headphones, Gift, HeartHandshake, Library, Zap, Wrench, CalendarSync, Car, Stethoscope, HardHat, Users, Camera, ClipboardList } from 'lucide-react';
 
 const MENU_ITEMS = [
   // Active Modules (Top Priority)
   { id: 2,  label: 'ฟังธรรม',     icon: Headphones, color: '#f472b6', isActive: true,  target: 'dhamma' },
   { id: 11, label: 'ค่าพลังงาน',  icon: Zap,        color: '#fb923c', isActive: true,  target: 'energy' },
   { id: 5,  label: 'คณะสงฆ์',     icon: Users,      color: '#d97706', isActive: true,  target: 'sangha' },
+  { id: 13, label: 'ติดตามงาน',   icon: ClipboardList, color: '#10b981', isActive: true,  target: 'tasks' },
   { id: 3,  label: 'พระของขวัญ',  icon: Gift,       color: '#facc15', isActive: true,  target: 'amulet' },
   { id: 12, label: 'กล้องวงจรปิด',icon: Camera,     color: '#3b82f6', isActive: true,  target: 'cctv' },
   // Inactive Modules

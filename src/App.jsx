@@ -11,6 +11,7 @@ import AudioPlayer from './components/AudioPlayer';
 import EnergyDashboard from './components/EnergyDashboard';
 import AmuletViewer from './components/AmuletViewer';
 import CCTVViewer from './components/CCTVViewer';
+import TaskTracker from './components/TaskTracker';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -125,6 +126,8 @@ function App() {
         <AmuletViewer />
       ) : currentView === 'cctv' ? (
         <CCTVViewer />
+      ) : currentView === 'tasks' ? (
+        <TaskTracker />
       ) : null}
 
       {/* Hidden Audio Element */}
