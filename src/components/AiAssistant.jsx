@@ -41,7 +41,7 @@ ${contextData}
 2. อาคารไหนกินไฟมากสุด และควรจัดการอย่างไร
 3. ข้อเสนอแนะในการลดค่าไฟ / ลดค่า PF Penalty (ถ้ามี)`;
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
