@@ -75,19 +75,77 @@ const parseData = (raw) => {
 
 // --- ICONS ---
 const Icons = {
-  Home: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "#1d4ed8" : "none"} stroke={active ? "#1d4ed8" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
-  Buildings: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "rgba(29, 78, 216, 0.1)" : "none"} stroke={active ? "#1d4ed8" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>,
-  Reports: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "rgba(29, 78, 216, 0.1)" : "none"} stroke={active ? "#1d4ed8" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
-  Bell: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "rgba(29, 78, 216, 0.1)" : "none"} stroke={active ? "#1d4ed8" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>,
-  Settings: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "rgba(29, 78, 216, 0.1)" : "none"} stroke={active ? "#1d4ed8" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>,
+  Home: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
+  Buildings: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>,
+  Reports: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
+  Bell: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>,
+  Settings: ({ active }) => <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>,
   Back: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
-  Electric: () => <span style={{fontSize:'1.5rem'}}>🔌</span>,
-  AC: () => <span style={{fontSize:'1.5rem'}}>❄️</span>,
-  Solar: () => <span style={{fontSize:'1.5rem'}}>☀️</span>,
-  Meter: () => <span style={{fontSize:'1.5rem'}}>🎛️</span>
+  Electric: () => <span style={{fontSize:'1.5rem'}} aria-hidden="true">🔌</span>,
+  AC: () => <span style={{fontSize:'1.5rem'}} aria-hidden="true">❄️</span>,
+  Solar: () => <span style={{fontSize:'1.5rem'}} aria-hidden="true">☀️</span>,
+  Meter: () => <span style={{fontSize:'1.5rem'}} aria-hidden="true">🎛️</span>
 };
 
-// --- COMPONENT ---
+// --- SUB COMPONENTS ---
+
+const AppNav = ({ currentTab, setCurrentTab, setSelectedBuilding }) => (
+  <nav className="e-bottom-nav">
+    {[
+      { id: 'dashboard', name: 'หน้าหลัก', Icon: Icons.Home },
+      { id: 'buildings', name: 'อาคาร', Icon: Icons.Buildings },
+      { id: 'reports', name: 'รายงาน', Icon: Icons.Reports },
+      { id: 'notifications', name: 'แจ้งเตือน', Icon: Icons.Bell },
+      { id: 'settings', name: 'ตั้งค่า', Icon: Icons.Settings }
+    ].map(tab => (
+      <button 
+        key={tab.id} 
+        onClick={() => { setCurrentTab(tab.id); setSelectedBuilding(null); }} 
+        className={`e-nav-btn ${currentTab === tab.id ? 'active' : ''}`}
+        aria-label={tab.name}
+      >
+        <tab.Icon active={currentTab === tab.id} />
+        <span style={{ fontSize: '0.65rem', marginTop: '2px' }}>{tab.name}</span>
+      </button>
+    ))}
+  </nav>
+);
+
+const SegmentedControl = ({ options, value, onChange }) => (
+  <div className="e-segmented-control" role="tablist">
+    {options.map(opt => (
+      <button 
+        key={opt.value} 
+        onClick={() => onChange(opt.value)}
+        className={`e-segment-btn ${value === opt.value ? 'active' : ''}`}
+        role="tab"
+        aria-selected={value === opt.value}
+      >
+        {opt.label}
+      </button>
+    ))}
+  </div>
+);
+
+const StatCard = ({ title, value, unit, type }) => {
+  const colorVar = type === 'solar' ? 'var(--e-success)' : 'var(--e-primary)';
+  return (
+    <div className="e-card" style={{ textAlign: 'center' }}>
+      <div className="e-subtitle" style={{ marginBottom: '8px' }}>{title}</div>
+      <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: '800', color: colorVar }}>
+        {value} <span style={{ fontSize: '0.6em' }}>{unit}</span>
+      </div>
+    </div>
+  );
+};
+
+const EmptyState = ({ message }) => (
+  <div className="e-card" style={{ textAlign: 'center', padding: '32px 16px', borderStyle: 'dashed' }}>
+    <div className="e-subtitle">{message}</div>
+  </div>
+);
+
+// --- MAIN COMPONENT ---
 export default function EnergyDashboard() {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [selectedBuilding, setSelectedBuilding] = useState(null);
@@ -109,21 +167,6 @@ export default function EnergyDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQNzQ7frtMJMwnqyXuqMjU_Jx59iApoXM0KYwfsfqIh6Q_wCKF6lCV3q0qov-dpzxJLabPdZFk31gyi/pub?output=csv";
-
-  const theme = {
-    bg: '#f8fafc',
-    cardBg: '#ffffff',
-    textMain: '#0f172a',
-    textSub: '#64748b',
-    border: '#e2e8f0',
-    primary: '#1d4ed8', // Dark Blue
-    primaryLight: '#eff6ff',
-    success: '#10b981', // Green
-    warning: '#f59e0b', // Golden Yellow
-    danger: '#ef4444',
-    shadow: '0 4px 20px rgba(0,0,0,0.04)',
-    shadowLg: '0 10px 25px rgba(0,0,0,0.08)'
-  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -198,7 +241,7 @@ export default function EnergyDashboard() {
         sourceData = rawHistory.filter(r => r.building !== 'พลังงานโซล่าเซลล์');
       }
 
-      // Calculate precise kWh delta for each record per building
+      // Calculate precise kWh delta
       const dataWithDelta = [];
       const bGroups = {};
       sourceData.forEach(r => {
@@ -358,8 +401,7 @@ export default function EnergyDashboard() {
     const estimatedKwh = monthlyOnPeakKwh + monthlyOffPeakKwh;
     const estimatedMaxDemand = actualMaxDemand > 0 ? actualMaxDemand : (globalKw > 0 ? Math.max(globalKw * 1.5, 15) : 35); 
     
-    // PF Calculation
-    const estimatedKvar = estimatedMaxDemand * 0.698; // PF ~0.82 demo
+    const estimatedKvar = estimatedMaxDemand * 0.698;
     const currentPf = estimatedMaxDemand / Math.sqrt(Math.pow(estimatedMaxDemand, 2) + Math.pow(estimatedKvar, 2)) || 1;
     const kvarLimit = estimatedMaxDemand * 0.6197; 
     let pfPenaltyCost = 0;
@@ -378,7 +420,6 @@ export default function EnergyDashboard() {
     cost = totalBeforeVat + vatCost;
 
     const topBuildings = [...buildingUsages].sort((a, b) => b.kwh - a.kwh).slice(0, 3);
-    
     const totalPower = (solarKw + globalKw) || 1;
     const prodPercent = Math.min((solarKw / totalPower) * 100, 100);
     const netGrid = globalKw - solarKw;
@@ -403,18 +444,18 @@ export default function EnergyDashboard() {
     };
   }, [parsedBuildingData, rawHistory]);
 
-  const FilterSelector = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <span onClick={() => setReportFilter('day')} style={{ cursor: 'pointer', fontSize: '0.75rem', padding: '4px 12px', background: reportFilter === 'day' ? theme.primary : '#f1f5f9', color: reportFilter === 'day' ? 'white' : theme.textSub, borderRadius: '12px', transition: 'all 0.2s' }}>รายวัน</span>
-        <span onClick={() => setReportFilter('month')} style={{ cursor: 'pointer', fontSize: '0.75rem', padding: '4px 12px', background: reportFilter === 'month' ? theme.primary : '#f1f5f9', color: reportFilter === 'month' ? 'white' : theme.textSub, borderRadius: '12px', transition: 'all 0.2s' }}>รายเดือน</span>
-        <span onClick={() => setReportFilter('year')} style={{ cursor: 'pointer', fontSize: '0.75rem', padding: '4px 12px', background: reportFilter === 'year' ? theme.primary : '#f1f5f9', color: reportFilter === 'year' ? 'white' : theme.textSub, borderRadius: '12px', transition: 'all 0.2s' }}>รายปี</span>
-      </div>
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+  const FilterControls = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+      <SegmentedControl 
+        options={[{label: 'รายวัน', value: 'day'}, {label: 'รายเดือน', value: 'month'}, {label: 'รายปี', value: 'year'}]}
+        value={reportFilter}
+        onChange={setReportFilter}
+      />
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
         {reportFilter === 'day' && (
           <>
-            <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }} />
-            <select value={dayResolution} onChange={e => setDayResolution(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }}>
+            <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="e-input" />
+            <select value={dayResolution} onChange={e => setDayResolution(e.target.value)} className="e-input">
               <option value="15m">ทุก 15 นาที</option>
               <option value="30m">ทุก 30 นาที</option>
               <option value="1h">ทุก 1 ชั่วโมง</option>
@@ -422,9 +463,9 @@ export default function EnergyDashboard() {
             </select>
           </>
         )}
-        {reportFilter === 'month' && <input type="month" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }} />}
+        {reportFilter === 'month' && <input type="month" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className="e-input" />}
         {reportFilter === 'year' && (
-          <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} style={{ padding: '4px 8px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontSize: '0.8rem', outline: 'none', background: theme.bg, color: theme.textMain, fontFamily: 'inherit' }}>
+          <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className="e-input">
             {Array.from({ length: 5 }).map((_, i) => {
               const y = new Date().getFullYear() - i;
               return <option key={y} value={y}>ปี {y}</option>;
@@ -435,20 +476,29 @@ export default function EnergyDashboard() {
     </div>
   );
 
-  const renderNav = () => (
-    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#ffffff', borderTop: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-around', padding: '0.5rem 0 1rem 0', zIndex: 100, boxShadow: '0 -4px 12px rgba(0,0,0,0.03)' }}>
-      {[
-        { id: 'dashboard', name: 'หน้าหลัก', Icon: Icons.Home },
-        { id: 'buildings', name: 'อาคาร', Icon: Icons.Buildings },
-        { id: 'reports', name: 'รายงาน', Icon: Icons.Reports },
-        { id: 'notifications', name: 'แจ้งเตือน', Icon: Icons.Bell },
-        { id: 'settings', name: 'ตั้งค่า', Icon: Icons.Settings }
-      ].map(tab => (
-        <div key={tab.id} onClick={() => { setCurrentTab(tab.id); setSelectedBuilding(null); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', opacity: currentTab === tab.id ? 1 : 0.6 }}>
-          <tab.Icon active={currentTab === tab.id} />
-          <span style={{ fontSize: '0.65rem', fontWeight: currentTab === tab.id ? '700' : '500', color: currentTab === tab.id ? theme.primary : theme.textSub }}>{tab.name}</span>
+  const ChartCard = ({ title }) => (
+    <div className="e-card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h3 className="e-heading" style={{ margin: 0 }}>{title}</h3>
+        <div style={{ display: 'flex', background: 'var(--e-surface-soft)', borderRadius: '8px', padding: '2px' }}>
+          <button onClick={() => setGraphUnit('kW')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kW' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kW' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kW</button>
+          <button onClick={() => setGraphUnit('kWh')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kWh' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kWh</button>
         </div>
-      ))}
+      </div>
+      <FilterControls />
+      <div className="e-chart-container">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={graphData} margin={{ left: 0, right: 10, top: 30, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--e-border)" />
+            <XAxis dataKey="time" fontSize={10} stroke="var(--e-muted)" tickMargin={10} minTickGap={20} />
+            <YAxis domain={[0, dataMax => (dataMax * 1.15)]} fontSize={10} stroke="var(--e-muted)" tickFormatter={v => Math.round(v)} />
+            <Tooltip cursor={{ fill: 'var(--e-surface-soft)' }} contentStyle={{ backgroundColor: 'var(--e-surface)', border: `1px solid var(--e-border)`, borderRadius: '8px', color: 'var(--e-text)' }} />
+            <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : '#10b981'} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
+              <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill="var(--e-muted)" formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 
@@ -465,54 +515,51 @@ export default function EnergyDashboard() {
     const isOnPeakNow = !isHoliday && (currentHour >= 9 && currentHour < 22);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', animation: 'fade-in 0.3s ease-out' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: '40px', height: '40px', background: theme.primaryLight, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏛️</div>
-            <strong style={{ color: theme.textMain, fontSize: '1.1rem' }}>วัดหลวงพ่อสดธรรมกายาราม</strong>
+      <div className="e-app-shell">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '40px', height: '40px', background: 'var(--e-primary-soft)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏛️</div>
+            <strong className="e-title">วัดหลวงพ่อสดฯ</strong>
           </div>
-          <Icons.Bell />
+          <button className="e-btn" aria-label="Notifications">
+            <Icons.Bell />
+          </button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: '1.2rem', color: theme.textMain }}>ภาพรวมวันนี้</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.7rem', padding: '4px 8px', borderRadius: '12px', background: isOnPeakNow ? '#fef08a' : '#bbf7d0', color: isOnPeakNow ? '#854d0e' : '#166534', fontWeight: 'bold' }}>
+          <h2 className="e-heading" style={{ margin: 0 }}>ภาพรวมวันนี้</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className={`e-badge ${isOnPeakNow ? 'e-badge-pending' : 'e-badge-active'}`}>
               {isOnPeakNow ? '☀️ On-Peak' : '🌙 Off-Peak'}
             </span>
-            <span style={{ fontSize: '0.8rem', color: theme.primary, fontWeight: '600', cursor: 'pointer' }} onClick={() => setCurrentTab('reports')}>ดูทั้งหมด</span>
           </div>
         </div>
 
         {/* --- TOU BILLING ANALYSIS CARD --- */}
-        <div style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', borderRadius: '24px', padding: '1.5rem', color: 'white', boxShadow: theme.shadowLg, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '150px', height: '150px', background: 'rgba(56, 189, 248, 0.15)', filter: 'blur(50px)', borderRadius: '50%' }}></div>
-          <div style={{ position: 'absolute', bottom: '-30px', left: '-30px', width: '150px', height: '150px', background: 'rgba(16, 185, 129, 0.15)', filter: 'blur(50px)', borderRadius: '50%' }}></div>
+        <div className="e-tou-card">
+          <div className="e-tou-glow-1"></div>
+          <div className="e-tou-glow-2"></div>
           
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Icons.Electric /> วิเคราะห์ค่าไฟ (TOU 6.2.3)
                 </h3>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>สำหรับองค์กรไม่แสวงหากำไร (พ.ศ. 2569)</div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>สำหรับองค์กรไม่แสวงหากำไร (พ.ศ. 2569)</div>
               </div>
-              <div style={{ background: 'rgba(16, 185, 129, 0.2)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.7rem', color: '#34d399', fontWeight: 'bold' }}>
-                ประมาณการเดือนนี้
-              </div>
+              <div className="e-badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>ประมาณการเดือนนี้</div>
             </div>
 
-            <div style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1, marginBottom: '0.5rem', color: '#f8fafc', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+            <div className="e-tou-amount">
               ฿{cost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             
-            {/* Breakdown Details */}
-            <div style={{ marginTop: '1.5rem', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              
+            <div className="e-tou-breakdown">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#cbd5e1' }}>Demand Charge</span>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '0.5rem' }}>{estimatedMaxDemand.toFixed(2)} kW × ฿210</span>
+                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '8px' }}>{estimatedMaxDemand.toFixed(2)} kW × ฿210</span>
                   <b>฿{demandCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
                 </div>
               </div>
@@ -520,7 +567,7 @@ export default function EnergyDashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#cbd5e1' }}>On-Peak (09:00-22:00)</span>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '0.5rem' }}>{monthlyOnPeakKwh.toLocaleString('th-TH', { maximumFractionDigits: 0 })} หน่วย × ฿4.3297</span>
+                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '8px' }}>{monthlyOnPeakKwh.toLocaleString('th-TH', { maximumFractionDigits: 0 })} หน่วย × ฿4.3297</span>
                   <b>฿{onPeakCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
                 </div>
               </div>
@@ -528,20 +575,15 @@ export default function EnergyDashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#cbd5e1' }}>Off-Peak</span>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '0.5rem' }}>{monthlyOffPeakKwh.toLocaleString('th-TH', { maximumFractionDigits: 0 })} หน่วย × ฿2.6369</span>
+                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '8px' }}>{monthlyOffPeakKwh.toLocaleString('th-TH', { maximumFractionDigits: 0 })} หน่วย × ฿2.6369</span>
                   <b>฿{offPeakCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
                 </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#cbd5e1' }}>ค่าบริการรายเดือน</span>
-                <span><b>฿312.24</b></span>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#cbd5e1' }}>ค่า Ft (0.3972 บ./หน่วย)</span>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '0.5rem' }}>{estimatedKwh.toLocaleString('th-TH', { maximumFractionDigits: 0 })} หน่วย</span>
+                  <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '8px' }}>{estimatedKwh.toLocaleString('th-TH', { maximumFractionDigits: 0 })} หน่วย</span>
                   <b>฿{ftCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
                 </div>
               </div>
@@ -550,86 +592,45 @@ export default function EnergyDashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: '#fca5a5' }}>ค่าปรับเพาเวอร์แฟคเตอร์ (PF: {currentPf.toFixed(2)})</span>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '0.5rem' }}>ส่วนเกิน {excessKvar.toFixed(2)} kVAR × ฿56.07</span>
+                    <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginRight: '8px' }}>ส่วนเกิน {excessKvar.toFixed(2)} kVAR</span>
                     <b style={{ color: '#fca5a5' }}>฿{pfPenaltyCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
                   </div>
                 </div>
               )}
 
-              <div style={{ borderTop: '1px dashed rgba(255,255,255,0.2)', margin: '0.25rem 0' }}></div>
+              <div style={{ borderTop: '1px dashed rgba(255,255,255,0.2)' }}></div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#cbd5e1' }}>รวมเงินก่อนภาษี (VAT)</span>
-                <span><b>฿{totalBeforeVat.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></span>
-              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#a3e635' }}>
-                <span>ภาษีมูลค่าเพิ่ม 7%</span>
-                <span><b>฿{vatCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></span>
+                <span>รวม + ภาษีมูลค่าเพิ่ม 7%</span>
+                <span><b>฿{cost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></span>
               </div>
             </div>
-
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <div style={{ flex: 1, background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: theme.textSub, marginBottom: '0.5rem' }}>พลังงานไฟฟ้า</div>
-            <div style={{ fontSize: '1rem', fontWeight: '800', color: theme.primary }}>{globalKw.toFixed(3)} <span style={{fontSize:'0.7rem'}}>kW</span></div>
-          </div>
-          <div style={{ flex: 1, background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: theme.textSub, marginBottom: '0.5rem' }}>พลังงานใช้ไป</div>
-            <div style={{ fontSize: '1rem', fontWeight: '800', color: theme.primary }}>{globalKwh.toFixed(2)} <span style={{fontSize:'0.7rem'}}>kWh</span></div>
-          </div>
-          <div style={{ flex: 1, background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: theme.textSub, marginBottom: '0.5rem' }}>โซล่าเซลล์</div>
-            <div style={{ fontSize: '1rem', fontWeight: '800', color: theme.success }}>{solarKw.toFixed(2)} <span style={{fontSize:'0.7rem'}}>kW</span></div>
-          </div>
+        <div className="e-grid-summary">
+          <StatCard title="พลังงานไฟฟ้า" value={globalKw.toFixed(3)} unit="kW" />
+          <StatCard title="พลังงานใช้ไป" value={globalKwh.toFixed(2)} unit="kWh" />
+          <StatCard title="โซล่าเซลล์" value={solarKw.toFixed(2)} unit="kW" type="solar" />
         </div>
 
-        <div style={{ background: theme.cardBg, borderRadius: '20px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1rem', color: theme.textMain }}>กราฟการใช้พลังงาน</h3>
-            <div style={{ display: 'flex', background: theme.primaryLight, borderRadius: '8px', padding: '2px' }}>
-              <div onClick={() => setGraphUnit('kW')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kW' ? theme.primary : 'transparent', color: graphUnit === 'kW' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kW</div>
-              <div onClick={() => setGraphUnit('kWh')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? theme.primary : 'transparent', color: graphUnit === 'kWh' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kWh</div>
-            </div>
-          </div>
-          {FilterSelector()}
-          <div style={{ height: '180px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
-            <div style={{ width: graphData.length > 10 ? graphData.length * 40 : '100%', height: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={graphData} style={{ outline: 'none' }} margin={{ left: 40, right: 10, top: 30, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
-                  <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} minTickGap={20} />
-                    <YAxis domain={[0, dataMax => (dataMax * 1.15)]} fontSize={10} stroke={theme.textSub} tickFormatter={v => Math.round(v)} />
-                    <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '8px' }} />
-                  <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
-                    <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
+        <ChartCard title="กราฟการใช้พลังงาน" />
 
         <div>
-          <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: theme.textMain }}>อาคารที่ใช้พลังงานสูงสุด</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <h3 className="e-heading">อาคารที่ใช้พลังงานสูงสุด</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {topBuildings.length > 0 ? topBuildings.map((b, index) => (
-              <div key={b.id} onClick={() => { setSelectedBuilding(b); setBuildingTab('overview'); setCurrentTab('buildings'); }} style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', border: `1px solid ${theme.border}`, cursor: 'pointer' }}>
-                <div style={{ width: '40px', height: '40px', background: theme.primaryLight, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', color: theme.primary }}>{index + 1}</div>
+              <div key={b.id} onClick={() => { setSelectedBuilding(b); setBuildingTab('overview'); setCurrentTab('buildings'); }} className="e-building-card">
+                <div style={{ width: '40px', height: '40px', background: 'var(--e-primary-soft)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--e-primary)' }}>{index + 1}</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: theme.textMain }}>{b.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: theme.danger, fontWeight: 'bold' }}>฿ {(b.kwh * 4.24).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--e-text)' }}>{b.name}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--e-danger)', fontWeight: 'bold' }}>฿ {(b.kwh * 4.24).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                 </div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{b.kwh.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style={{fontSize:'0.7rem', color: theme.textSub}}>kWh</span></div>
+                <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{b.kwh.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style={{fontSize:'0.7rem', color: 'var(--e-muted)'}}>kWh</span></div>
               </div>
-            )) : (
-              <div style={{ padding: '1rem', textAlign: 'center', color: theme.textSub, fontSize: '0.9rem', background: theme.cardBg, borderRadius: '16px', border: `1px dashed ${theme.border}` }}>กำลังรอข้อมูลจากมิเตอร์...</div>
-            )}
+            )) : <EmptyState message="กำลังรอข้อมูลจากมิเตอร์..." />}
           </div>
         </div>
-
       </div>
     );
   };
@@ -637,40 +638,41 @@ export default function EnergyDashboard() {
   const BuildingsView = () => {
     const filtered = BUILDINGS.filter(b => b.name.includes(bSearch) && (bFilter === 'all' || (bFilter === 'active' && b.deviceId)));
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', animation: 'fade-in 0.3s ease-out' }}>
-        <h2 style={{ margin: 0, fontSize: '1.4rem', color: theme.textMain, textAlign: 'center' }}>อาคาร</h2>
+      <div className="e-app-shell">
+        <h2 className="e-title" style={{ textAlign: 'center' }}>อาคาร</h2>
         
-        <div style={{ display: 'flex', borderBottom: `2px solid ${theme.border}` }}>
-          <div onClick={() => setBFilter('all')} style={{ flex: 1, textAlign: 'center', padding: '0.5rem', fontWeight: 'bold', color: bFilter === 'all' ? theme.textMain : theme.textSub, borderBottom: bFilter === 'all' ? `2px solid ${theme.textMain}` : 'none', marginBottom: '-2px' }}>ทั้งหมด ({BUILDINGS.length})</div>
-          <div onClick={() => setBFilter('active')} style={{ flex: 1, textAlign: 'center', padding: '0.5rem', fontWeight: 'bold', color: bFilter === 'active' ? theme.textMain : theme.textSub, borderBottom: bFilter === 'active' ? `2px solid ${theme.textMain}` : 'none', marginBottom: '-2px' }}>ที่ใช้บ่อย</div>
-        </div>
+        <SegmentedControl 
+          options={[{label: `ทั้งหมด (${BUILDINGS.length})`, value: 'all'}, {label: 'ที่ใช้บ่อย', value: 'active'}]}
+          value={bFilter}
+          onChange={setBFilter}
+        />
 
-        <input type="text" placeholder="ค้นหาอาคาร" value={bSearch} onChange={e => setBSearch(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: `1px solid ${theme.border}`, background: theme.cardBg, fontSize: '0.9rem', outline: 'none' }} />
+        <input type="text" placeholder="ค้นหาอาคาร..." value={bSearch} onChange={e => setBSearch(e.target.value)} className="e-input" />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="e-grid-buildings">
           {filtered.map(b => {
             const hasDevice = !!b.deviceId;
             const parsed = parsedBuildingData[b.id] || parseData(null);
             const isOnline = hasDevice && parsed.isOnline;
-            const statusColor = isOnline ? theme.success : theme.warning;
+            const statusClass = isOnline ? 'e-badge-active' : (hasDevice ? 'e-badge-offline' : 'e-badge-pending');
             const statusText = isOnline ? 'Active' : (hasDevice ? 'Offline' : 'Pending');
             const kwh = isOnline ? parsed.totalKwh : (b.id === 'somdej' ? '2,300.76' : '--');
             const kwhNum = parseFloat(String(kwh).replace(/,/g, ''));
             const estCost = !isNaN(kwhNum) ? (kwhNum * 4.24).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '--';
             
             return (
-              <div key={b.id} onClick={() => { setSelectedBuilding(b); setBuildingTab('overview'); }} style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: b.isSolar ? '#fef3c7' : theme.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+              <div key={b.id} onClick={() => { setSelectedBuilding(b); setBuildingTab('overview'); }} className="e-building-card">
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: b.isSolar ? '#fef3c7' : 'var(--e-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
                   {b.isSolar ? '☀️' : '🏢'}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '1rem', fontWeight: 'bold', color: theme.textMain }}>{b.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: theme.textSub, marginTop: '0.2rem' }}>Power {isOnline ? parsed.totalKw : '0.000'} kW</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{b.name}</div>
+                  <div className="e-subtitle" style={{ marginTop: '4px' }}>Power {isOnline ? parsed.totalKw : '0.000'} kW</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: statusColor, marginBottom: '0.2rem' }}>{statusText}</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: theme.textMain }}><span style={{color: statusColor}}>⚡</span> {kwh} <span style={{fontSize:'0.65rem', color: theme.textSub}}>kWh</span></div>
-                  <div style={{ fontSize: '0.75rem', color: theme.danger, fontWeight: 'bold', marginTop: '0.2rem' }}>฿ {estCost}</div>
+                  <div className={`e-badge ${statusClass}`} style={{ marginBottom: '4px' }}>{statusText}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>⚡ {kwh} <span style={{fontSize:'0.65rem', color: 'var(--e-muted)'}}>kWh</span></div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--e-danger)', fontWeight: 'bold', marginTop: '4px' }}>฿ {estCost}</div>
                 </div>
               </div>
             );
@@ -688,244 +690,165 @@ export default function EnergyDashboard() {
     const equipments = getEquipmentsForBuilding(b.id, isOnline, hasDevice);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', animation: 'fade-in 0.3s ease-out' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div onClick={() => setSelectedBuilding(null)} style={{ cursor: 'pointer' }}><Icons.Back /></div>
-          <h2 style={{ margin: 0, fontSize: '1.2rem', color: theme.textMain, flex: 1 }}>{b.name}</h2>
-          <span style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '12px', border: `1px solid ${isOnline ? theme.success : theme.warning}`, color: isOnline ? theme.success : theme.warning, fontWeight: 'bold' }}>{isOnline ? 'Active' : (hasDevice ? 'Offline' : 'Pending')}</span>
+      <div className="e-app-shell">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={() => setSelectedBuilding(null)} className="e-btn"><Icons.Back /></button>
+          <h2 className="e-title" style={{ flex: 1 }}>{b.name}</h2>
+          <span className={`e-badge ${isOnline ? 'e-badge-active' : (hasDevice ? 'e-badge-offline' : 'e-badge-pending')}`}>{isOnline ? 'Active' : (hasDevice ? 'Offline' : 'Pending')}</span>
         </div>
 
-        <div style={{ display: 'flex', overflowX: 'auto', gap: '1rem', borderBottom: `1px solid ${theme.border}`, paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
-          {['ภาพรวม', 'พลังงาน', 'อุปกรณ์', 'โปรไฟล์'].map(t => {
-            let id = 'overview';
-            if (t === 'ภาพรวม') id = 'overview';
-            if (t === 'พลังงาน') id = 'energy';
-            if (t === 'อุปกรณ์') id = 'equipment';
-            if (t === 'โปรไฟล์') id = 'profile';
-            return (
-              <div key={t} onClick={() => setBuildingTab(id)} style={{ whiteSpace: 'nowrap', padding: '0.25rem 0', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', color: buildingTab === id ? theme.primary : theme.textSub, borderBottom: buildingTab === id ? `2px solid ${theme.primary}` : 'none', transition: 'all 0.2s' }}>
-                {t}
-              </div>
-            );
-          })}
-        </div>
+        <SegmentedControl 
+          options={[{label: 'ภาพรวม', value: 'overview'}, {label: 'พลังงาน', value: 'energy'}, {label: 'อุปกรณ์', value: 'equipment'}, {label: 'โปรไฟล์', value: 'profile'}]}
+          value={buildingTab}
+          onChange={setBuildingTab}
+        />
 
         {buildingTab === 'equipment' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {equipments.map(e => (
-              <div key={e.id} style={{ background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow, display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: theme.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div key={e.id} className="e-card" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'var(--e-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {e.type === 'electric' ? <Icons.Electric /> : e.type === 'ac' ? <Icons.AC /> : e.type === 'solar' ? <Icons.Solar /> : <Icons.Meter />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: theme.textMain }}>{e.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: theme.textSub, marginTop: '0.2rem' }}>Power {e.power} kW</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{e.name}</div>
+                  <div className="e-subtitle">Power {e.power} kW</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: e.status === 'Active' ? theme.success : theme.warning }}>{e.status}</div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: theme.textMain }}><span style={{color: e.status === 'Active' ? theme.danger : theme.warning}}>⚡</span> {e.kwh} <span style={{fontSize:'0.65rem', color: theme.textSub}}>kWh</span></div>
+                  <div className={`e-badge ${e.status === 'Active' ? 'e-badge-active' : 'e-badge-pending'}`}>{e.status}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold', marginTop: '4px' }}>⚡ {e.kwh} <span style={{fontSize:'0.65rem', color: 'var(--e-muted)'}}>kWh</span></div>
                 </div>
               </div>
             ))}
-            <div style={{ textAlign: 'center', padding: '1rem', color: theme.primary, fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>👁️ ดูอุปกรณ์ทั้งหมด</div>
           </div>
         ) : buildingTab === 'overview' ? (
           <>
-            <h3 style={{ margin: 0, fontSize: '1rem', color: theme.textMain }}>ภาพรวมวันนี้</h3>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <div style={{ flex: 1, background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                <div style={{ fontSize: '0.7rem', color: theme.textSub, marginBottom: '0.5rem' }}>พลังงานไฟฟ้า</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.primary }}>{isOnline ? parsed.totalKwh : '2,300.76'} <span style={{fontSize:'0.65rem', color: theme.textSub}}>kWh</span></div>
-              </div>
-              <div style={{ flex: 1, background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                <div style={{ fontSize: '0.7rem', color: theme.textSub, marginBottom: '0.5rem' }}>กำลังไฟฟ้า</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.primary }}>{isOnline ? parsed.totalKw : '0.945'} <span style={{fontSize:'0.65rem', color: theme.textSub}}>kW</span></div>
-              </div>
-              <div style={{ flex: 1, background: theme.cardBg, borderRadius: '16px', padding: '1rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-                <div style={{ fontSize: '0.7rem', color: theme.textSub, marginBottom: '0.5rem' }}>ค่าใช้จ่าย</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.danger }}>฿2,100.76</div>
+            <h3 className="e-heading">ภาพรวมวันนี้</h3>
+            <div className="e-grid-summary">
+              <StatCard title="พลังงานไฟฟ้า" value={isOnline ? parsed.totalKwh : '2,300.76'} unit="kWh" />
+              <StatCard title="กำลังไฟฟ้า" value={isOnline ? parsed.totalKw : '0.945'} unit="kW" />
+              <div className="e-card" style={{ textAlign: 'center' }}>
+                <div className="e-subtitle" style={{ marginBottom: '8px' }}>ค่าใช้จ่าย</div>
+                <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: '800', color: 'var(--e-danger)' }}>฿2,100.76</div>
               </div>
             </div>
 
-            <div style={{ background: theme.cardBg, borderRadius: '20px', padding: '1.25rem', border: `1px solid ${theme.border}`, boxShadow: theme.shadow }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1rem', color: theme.textMain }}>กราฟการใช้พลังงาน</h3>
-                <div style={{ display: 'flex', background: theme.primaryLight, borderRadius: '8px', padding: '2px' }}>
-                  <div onClick={() => setGraphUnit('kW')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kW' ? theme.primary : 'transparent', color: graphUnit === 'kW' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kW</div>
-                  <div onClick={() => setGraphUnit('kWh')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? theme.primary : 'transparent', color: graphUnit === 'kWh' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kWh</div>
-                </div>
-              </div>
-              {FilterSelector()}
-              <div style={{ height: '180px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
-                <div style={{ width: graphData.length > 10 ? graphData.length * 40 : '100%', height: '100%' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={graphData} style={{ outline: 'none' }} margin={{ left: 0, right: 10, top: 30, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
-                      <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} minTickGap={20} />
-                      <YAxis domain={[0, dataMax => (dataMax * 1.15)]} fontSize={10} stroke={theme.textSub} tickFormatter={v => Math.round(v)} />
-                      <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '8px' }} />
-                      <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
-                        <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
+            <ChartCard title="กราฟการใช้พลังงาน" />
 
-            <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '1rem', color: theme.textMain }}>อุปกรณ์ภายในอาคาร</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <h3 className="e-heading">อุปกรณ์ภายในอาคาร</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {equipments.slice(0, 3).map(e => (
-                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', borderBottom: `1px solid ${theme.border}` }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: theme.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', borderBottom: '1px solid var(--e-border)' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--e-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {e.type === 'electric' ? <Icons.Electric /> : e.type === 'ac' ? <Icons.AC /> : e.type === 'solar' ? <Icons.Solar /> : <Icons.Meter />}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: theme.textMain }}>{e.name}</div>
-                    <div style={{ fontSize: '0.7rem', color: theme.textSub }}>Power {e.power} kW</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{e.name}</div>
+                    <div className="e-subtitle">Power {e.power} kW</div>
                   </div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: e.status === 'Active' ? theme.success : theme.warning }}>{e.status}</div>
+                  <div className={`e-badge ${e.status === 'Active' ? 'e-badge-active' : 'e-badge-pending'}`}>{e.status}</div>
                 </div>
               ))}
             </div>
           </>
-        ) : (
-          <div style={{ padding: '2rem', textAlign: 'center', color: theme.textSub, background: theme.cardBg, borderRadius: '16px', border: `1px dashed ${theme.border}` }}>
-            กำลังพัฒนาระบบแสดงผลข้อมูลสำหรับหัวข้อนี้...
-          </div>
-        )}
+        ) : <EmptyState message="กำลังพัฒนาระบบแสดงผลข้อมูลสำหรับหัวข้อนี้..." />}
       </div>
     );
   };
 
-  const ReportsView = () => {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', animation: 'fade-in 0.3s ease-out' }}>
-        <h2 style={{ margin: 0, fontSize: '1.4rem', color: theme.textMain, textAlign: 'center' }}>รายงาน</h2>
-        
-        <div style={{ display: 'flex', overflowX: 'auto', gap: '1rem', borderBottom: `1px solid ${theme.border}`, paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
-          {['ภาพรวม', 'การใช้พลังงาน', 'ค่าใช้จ่าย', 'เปรียบเทียบ'].map(t => {
-            let id = 'usage';
-            if (t === 'ภาพรวม') id = 'overview';
-            if (t === 'การใช้พลังงาน') id = 'usage';
-            if (t === 'ค่าใช้จ่าย') id = 'cost';
-            if (t === 'เปรียบเทียบ') id = 'compare';
-            return (
-              <div key={t} onClick={() => setReportTab(id)} style={{ whiteSpace: 'nowrap', padding: '0.25rem 0', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', color: reportTab === id ? theme.primary : theme.textSub, borderBottom: reportTab === id ? `2px solid ${theme.primary}` : 'none', transition: 'all 0.2s' }}>
-                {t}
-              </div>
-            );
-          })}
-        </div>
+  const ReportsView = () => (
+    <div className="e-app-shell">
+      <h2 className="e-title" style={{ textAlign: 'center' }}>รายงาน</h2>
+      
+      <SegmentedControl 
+        options={[{label: 'ภาพรวม', value: 'overview'}, {label: 'การใช้พลังงาน', value: 'usage'}, {label: 'ค่าใช้จ่าย', value: 'cost'}, {label: 'เปรียบเทียบ', value: 'compare'}]}
+        value={reportTab}
+        onChange={setReportTab}
+      />
 
-        {reportTab === 'usage' && (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain }}>การใช้พลังงาน ({graphUnit === 'kW' ? 'kW' : 'kWh'})</h3>
-              <div style={{ display: 'flex', background: theme.primaryLight, borderRadius: '8px', padding: '2px' }}>
-                <div onClick={() => setGraphUnit('kW')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kW' ? theme.primary : 'transparent', color: graphUnit === 'kW' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kW</div>
-                <div onClick={() => setGraphUnit('kWh')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? theme.primary : 'transparent', color: graphUnit === 'kWh' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kWh</div>
-              </div>
-            </div>
-            
-            {FilterSelector()}
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <div>
-            <div style={{ fontSize: '0.8rem', color: theme.textSub }}>{graphUnit === 'kW' ? 'ความต้องการพลังงานสูงสุด (Peak Demand)' : 'รวมทั้งหมด'}</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: '800', color: theme.textMain }}>
-              {graphUnit === 'kW' ? Math.max(0, ...graphData.map(d => d.kw || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : graphData.reduce((sum, d) => sum + (d.kwh || 0), 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style={{fontSize:'0.8rem', color: theme.textSub}}>{graphUnit === 'kW' ? 'kW' : 'kWh'}</span>
+      {reportTab === 'usage' ? (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h3 className="e-heading" style={{ margin: 0 }}>การใช้พลังงาน ({graphUnit === 'kW' ? 'kW' : 'kWh'})</h3>
+            <div style={{ display: 'flex', background: 'var(--e-surface-soft)', borderRadius: '8px', padding: '2px' }}>
+              <button onClick={() => setGraphUnit('kW')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kW' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kW' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kW</button>
+              <button onClick={() => setGraphUnit('kWh')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kWh' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kWh</button>
             </div>
           </div>
-          <div style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: 'bold' }}>ข้อมูลตามช่วงเวลาที่เลือก</div>
-        </div>
+          
+          <FilterControls />
 
-        <div style={{ height: '230px', marginTop: '1rem', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
-          <div style={{ width: graphData.length > 10 ? graphData.length * 40 : '100%', height: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '16px' }}>
+            <div>
+              <div className="e-subtitle">{graphUnit === 'kW' ? 'ความต้องการพลังงานสูงสุด (Peak Demand)' : 'รวมทั้งหมด'}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>
+                {graphUnit === 'kW' ? Math.max(0, ...graphData.map(d => d.kw || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : graphData.reduce((sum, d) => sum + (d.kwh || 0), 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style={{fontSize:'0.8rem', color: 'var(--e-muted)'}}>{graphUnit === 'kW' ? 'kW' : 'kWh'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="e-chart-container">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={graphData} style={{ outline: 'none' }} margin={{ left: 10, right: 10, top: 30, bottom: 5 }}>
+              <BarChart data={graphData} margin={{ left: 0, right: 10, top: 30, bottom: 5 }}>
                 <YAxis domain={[0, dataMax => (dataMax * 1.15)]} hide />
-                <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '8px' }} />
-                <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} axisLine={false} tickLine={false} minTickGap={20} />
-                <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
-                  <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+                <Tooltip cursor={{ fill: 'var(--e-surface-soft)' }} contentStyle={{ backgroundColor: 'var(--e-surface)', border: `1px solid var(--e-border)`, borderRadius: '8px', color: 'var(--e-text)' }} />
+                <XAxis dataKey="time" fontSize={10} stroke="var(--e-muted)" axisLine={false} tickLine={false} minTickGap={20} />
+                <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : '#10b981'} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
+                  <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill="var(--e-muted)" formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
 
-        <h3 style={{ margin: '1rem 0 0 0', fontSize: '1rem', color: theme.textMain }}>ตารางสรุป</h3>
-        <div style={{ background: theme.cardBg, borderRadius: '16px', border: `1px solid ${theme.border}`, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${theme.border}`, color: theme.textSub }}>
-                <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: 'normal' }}>ช่วงเวลา</th>
-                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'normal' }}>การใช้พลังงาน (kWh)</th>
-                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'normal' }}>ความต้องการสูงสุด (kW)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {graphData.filter(d => d.kwh > 0 || d.kw > 0).reverse().map((r, i) => (
-                <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}>
-                  <td style={{ padding: '0.75rem', color: theme.textMain }}>{r.time}</td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold', color: theme.textMain }}>{r.kwh.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold', color: theme.warning }}>{r.kw.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                </tr>
-              ))}
-              {graphData.filter(d => d.kwh > 0 || d.kw > 0).length === 0 && (
+          <h3 className="e-heading" style={{ marginTop: '24px' }}>ตารางสรุป</h3>
+          <div className="e-card" style={{ padding: 0, overflowX: 'auto' }}>
+            <table className="e-table">
+              <thead>
                 <tr>
-                  <td colSpan="3" style={{ padding: '1rem', textAlign: 'center', color: theme.textSub }}>ไม่มีข้อมูลในอดีต</td>
+                  <th>ช่วงเวลา</th>
+                  <th style={{ textAlign: 'right' }}>การใช้พลังงาน (kWh)</th>
+                  <th style={{ textAlign: 'right' }}>ความต้องการสูงสุด (kW)</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        </>
-        )}
-        {reportTab !== 'usage' && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: theme.textSub, background: theme.cardBg, borderRadius: '16px', border: `1px dashed ${theme.border}` }}>
-            กำลังพัฒนาระบบแสดงผลข้อมูลสำหรับหัวข้อนี้...
+              </thead>
+              <tbody>
+                {graphData.filter(d => d.kwh > 0 || d.kw > 0).reverse().map((r, i) => (
+                  <tr key={i}>
+                    <td>{r.time}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{r.kwh.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--e-warning)' }}>{r.kw.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                ))}
+                {graphData.filter(d => d.kwh > 0 || d.kw > 0).length === 0 && (
+                  <tr><td colSpan="3" style={{ textAlign: 'center', color: 'var(--e-muted)' }}>ไม่มีข้อมูลในอดีต</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </>
+      ) : <EmptyState message="กำลังพัฒนาระบบแสดงผลข้อมูลสำหรับหัวข้อนี้..." />}
 
-        {/* AI Assistant Integration */}
-        <AiAssistant
-          mode="energy"
-          contextData={billingInfo.aiContextData}
-          title="AI Energy Analyst"
-          subtitle="วิเคราะห์อัจฉริยะโดย Gemini (Google AI)"
-          icon="⚡"
-          themeColor="#10b981"
-          isDarkMode={false}
-        />
-      </div>
-    );
-  };
+      <AiAssistant
+        mode="energy"
+        contextData={billingInfo.aiContextData}
+        title="AI Energy Analyst"
+        subtitle="วิเคราะห์อัจฉริยะโดย Gemini (Google AI)"
+        icon="⚡"
+        themeColor="#10b981"
+        isDarkMode={false}
+      />
+    </div>
+  );
 
   return (
-    <div style={{ background: theme.bg, minHeight: '100vh', margin: '-1rem', padding: '1.5rem 1rem 8rem 1rem', fontFamily: "'Prompt', sans-serif", color: theme.textMain }}>
-      <style>{`
-        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .recharts-wrapper *, .recharts-surface, .recharts-layer { outline: none !important; }
-        ::-webkit-scrollbar { height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-      `}</style>
-      
+    <div className="energy-app">
       {currentTab === 'dashboard' && DashboardView()}
       {currentTab === 'buildings' && !selectedBuilding && BuildingsView()}
       {currentTab === 'buildings' && selectedBuilding && BuildingDetailsView()}
       {currentTab === 'reports' && ReportsView()}
       {(currentTab === 'notifications' || currentTab === 'settings') && (
-        <div style={{ textAlign: 'center', marginTop: '4rem', color: theme.textSub }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚙️</div>
-          <h2>อยู่ระหว่างการพัฒนา</h2>
-        </div>
+        <EmptyState message="⚙️ อยู่ระหว่างการพัฒนา" />
       )}
-
-      <div style={{ height: '6rem', width: '100%' }}></div>
-      {renderNav()}
+      <AppNav currentTab={currentTab} setCurrentTab={setCurrentTab} setSelectedBuilding={setSelectedBuilding} />
     </div>
   );
 }
