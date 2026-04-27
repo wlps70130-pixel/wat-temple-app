@@ -98,18 +98,18 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
           <span style={{ fontSize: '0.8rem', color: 'var(--primary-dark)', cursor: 'pointer', fontWeight: '600', letterSpacing: '0.5px' }}>ทั้งหมด &gt;</span>
         </div>
         
-        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', padding: '0 0.5rem', scrollbarWidth: 'none', paddingBottom: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', padding: '0 0.5rem', scrollbarWidth: 'none', paddingBottom: '1rem' }}>
           {mixes.map(mix => (
             <div key={mix.id} style={{ 
               flexShrink: 0, 
-              width: '200px', 
-              height: '240px', 
-              borderRadius: 'var(--card-radius)', 
+              width: '140px', 
+              height: '180px', 
+              borderRadius: '12px', 
               background: mix.bg, 
               display: 'flex', 
               flexDirection: 'column',
               justifyContent: 'flex-end',
-              padding: '1.2rem', 
+              padding: '1rem', 
               cursor: 'pointer',
               border: '1px solid rgba(255,255,255,0.6)',
               position: 'relative',
@@ -117,13 +117,13 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
               boxShadow: 'var(--glass-shadow)'
             }}>
               <div style={{ position: 'absolute', top: '10%', right: '-10%', opacity: 0.1 }}>
-                <UserCircle size={150} color={mix.color} />
+                <UserCircle size={100} color={mix.color} />
               </div>
               
               <div style={{ position: 'relative', zIndex: 1 }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: '700', color: mix.color, marginBottom: '6px', letterSpacing: '1px' }}>{mix.tag}</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '4px', lineHeight: 1.2 }}>{mix.title}</div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>{mix.author}</div>
+                <div style={{ fontSize: '0.65rem', fontWeight: '700', color: mix.color, marginBottom: '4px', letterSpacing: '0.5px' }}>{mix.tag}</div>
+                <div style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px', lineHeight: 1.2 }}>{mix.title}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mix.author}</div>
               </div>
             </div>
           ))}
@@ -136,7 +136,7 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
           <h2 className="section-title" style={{ margin: 0, color: 'var(--text-main)' }}>หมวดหมู่เสียงธรรม</h2>
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', padding: '0 0.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', padding: '0 0.5rem' }}>
           {DHAMMA_CATEGORIES.map(cat => {
             const Icon = cat.icon;
             return (
@@ -146,23 +146,21 @@ export default function DhammaMenu({ onSelectCategory, onBack }) {
                 className="glass"
                 style={{ 
                   display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '1rem', 
-                  padding: '1rem', 
+                  flexDirection: 'column',
+                  alignItems: 'flex-start', 
+                  gap: '0.5rem', 
+                  padding: '0.85rem', 
                   cursor: 'pointer', 
+                  borderRadius: '12px',
+                  borderLeft: '4px solid var(--primary-color)',
                   transition: 'transform 0.15s' 
                 }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
               >
-                <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: 'rgba(234, 179, 8, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon size={26} color="var(--primary-dark)" strokeWidth={1.5} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-main)', marginBottom: '2px' }}>{cat.title}</div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.subtitle}</div>
-                </div>
-                <ChevronRight size={24} color="var(--text-muted)" style={{ opacity: 0.5 }} />
+                <Icon size={24} color="var(--primary-dark)" strokeWidth={1.5} />
+                <div style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)', lineHeight: 1.2, marginTop: '2px' }}>{cat.title}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{cat.subtitle}</div>
               </div>
             );
           })}

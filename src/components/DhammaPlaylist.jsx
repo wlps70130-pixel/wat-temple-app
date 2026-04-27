@@ -95,20 +95,20 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
           </div>
 
           {/* Album art + Info (Responsive side-by-side) */}
-          <div style={{ padding: '0.5rem 0.5rem 1.5rem', display: 'flex', gap: '1.2rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div style={{ padding: '0.5rem 0.5rem 1rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'nowrap' }}>
             <div style={{
-              width: 'clamp(100px, 25vw, 150px)', height: 'clamp(100px, 25vw, 150px)', borderRadius: '16px', flexShrink: 0,
+              width: '100px', height: '100px', borderRadius: '12px', flexShrink: 0,
               background: category.bgGradient || 'var(--primary-color)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: 'var(--glass-shadow)',
             }}>
-              <category.icon size={64} color="white" strokeWidth={1.2} />
+              <category.icon size={48} color="white" strokeWidth={1.2} />
             </div>
-            <div className="glass glass-card" style={{ flex: 1, minWidth: '220px', padding: '1rem' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--primary-dark)', marginBottom: '0.3rem' }}>เพลย์ลิสต์ธรรมะ</div>
-              <h2 style={{ fontSize: 'clamp(1.2rem, 4vw, 2rem)', fontWeight: '800', color: 'var(--text-main)', lineHeight: 1.2, marginBottom: '0.35rem', wordBreak: 'break-word' }}>{category.title}</h2>
-              <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{category.subtitle}</p>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', opacity: 0.8 }}>
+            <div className="glass glass-card" style={{ flex: 1, minWidth: 0, padding: '0.75rem', borderRadius: '12px' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--primary-dark)', marginBottom: '0.2rem' }}>เพลย์ลิสต์ธรรมะ</div>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-main)', lineHeight: 1.2, marginBottom: '0.25rem', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{category.title}</h2>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{category.subtitle}</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', opacity: 0.8 }}>
                 🛕 วัดหลวงพ่อสดฯ &nbsp;•&nbsp; {tracks.length} รายการ
               </p>
             </div>
@@ -168,41 +168,42 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
               onClick={() => handlePlayTrack(track)}
               className="glass"
               style={{
-                display: 'flex', alignItems: 'center', gap: '1rem',
-                padding: '0.8rem 1.2rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                padding: '0.6rem 0.8rem', cursor: 'pointer',
                 background: isSelected ? 'rgba(234, 179, 8, 0.1)' : 'var(--glass-bg)',
                 transition: 'transform 0.15s',
-                marginBottom: '0.5rem', margin: '0 0.5rem 0.5rem 0.5rem'
+                borderRadius: '8px',
+                marginBottom: '0.35rem', margin: '0 0.5rem 0.35rem 0.5rem'
               }}
-              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.transform = 'translateX(4px)'; }}
+              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.transform = 'translateX(2px)'; }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'translateX(0)'; }}
             >
               {/* # or EQ */}
-              <div style={{ width: '24px', textAlign: 'center', flexShrink: 0 }}>
+              <div style={{ width: '20px', textAlign: 'center', flexShrink: 0 }}>
                 {isThisPlaying
                   ? <EqBars />
-                  : <span style={{ fontSize: '1rem', color: isSelected ? 'var(--primary-dark)' : 'var(--text-muted)' }}>{idx + 1}</span>
+                  : <span style={{ fontSize: '0.85rem', color: isSelected ? 'var(--primary-dark)' : 'var(--text-muted)' }}>{idx + 1}</span>
                 }
               </div>
 
               {/* Thumbnail */}
               <div style={{
-                width: '48px', height: '48px', borderRadius: '8px', flexShrink: 0,
+                width: '40px', height: '40px', borderRadius: '6px', flexShrink: 0,
                 background: category.bgGradient || 'var(--primary-color)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
               }}>
-                <category.icon size={22} color="white" />
+                <category.icon size={20} color="white" />
               </div>
 
               {/* Title + Artist */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: '1.05rem', fontWeight: '600',
+                  fontSize: '0.95rem', fontWeight: '600',
                   color: isSelected ? 'var(--primary-dark)' : 'var(--text-main)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '4px'
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px'
                 }}>{track.title}</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {track.subtitle}
                 </div>
               </div>
