@@ -211,7 +211,7 @@ export default function EnergyDashboard() {
           let delta = 0;
           if (i > 0) {
             const diff = r.totalKwh - sorted[i-1].totalKwh;
-            if (diff > 0 && diff < 500) delta = diff;
+            if (diff > 0 && diff < 50000) delta = diff;
           }
           dataWithDelta.push({ ...r, kwhDelta: delta });
         });
@@ -245,12 +245,12 @@ export default function EnergyDashboard() {
           });
 
           Object.keys(buckets).forEach(b => {
-             let avgKw = 0; let sumKwh = 0;
+             let maxKw = 0; let sumKwh = 0;
              if (buckets[b].length > 0) {
-                 avgKw = buckets[b].reduce((sum, r) => sum + r.totalKw, 0) / buckets[b].length;
+                 maxKw = Math.max(...buckets[b].map(r => r.totalKw));
                  sumKwh = buckets[b].reduce((sum, r) => sum + r.kwhDelta, 0); 
              }
-             data.push({ time: b, kw: avgKw, kwh: sumKwh });
+             data.push({ time: b, kw: maxKw, kwh: sumKwh });
           });
       } else if (reportFilter === 'month') {
           const [y,m] = selectedMonth.split('-');
@@ -266,12 +266,12 @@ export default function EnergyDashboard() {
              buckets[b].push(r);
           });
           Object.keys(buckets).forEach(b => {
-             let avgKw = 0; let sumKwh = 0;
+             let maxKw = 0; let sumKwh = 0;
              if (buckets[b].length > 0) {
-                 avgKw = buckets[b].reduce((sum, r) => sum + r.totalKw, 0) / buckets[b].length;
+                 maxKw = Math.max(...buckets[b].map(r => r.totalKw));
                  sumKwh = buckets[b].reduce((sum, r) => sum + r.kwhDelta, 0); 
              }
-             data.push({ time: b, kw: avgKw, kwh: sumKwh });
+             data.push({ time: b, kw: maxKw, kwh: sumKwh });
           });
       } else {
          const labels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -279,12 +279,12 @@ export default function EnergyDashboard() {
              const mStr = (i+1).toString().padStart(2, '0');
              const targetStr = `/${mStr}/${selectedYear}`;
              const monthData = sourceData.filter(r => r.timestamp.includes(targetStr));
-             let avgKw = 0; let sumKwh = 0;
+             let maxKw = 0; let sumKwh = 0;
              if (monthData.length > 0) {
-                 avgKw = monthData.reduce((sum, r) => sum + r.totalKw, 0) / monthData.length;
+                 maxKw = Math.max(...monthData.map(r => r.totalKw));
                  sumKwh = monthData.reduce((sum, r) => sum + r.kwhDelta, 0); 
              }
-             data.push({ time: l, kw: avgKw, kwh: sumKwh });
+             data.push({ time: l, kw: maxKw, kwh: sumKwh });
          });
       }
       return data;
@@ -594,13 +594,15 @@ export default function EnergyDashboard() {
               <div onClick={() => setGraphUnit('kWh')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? theme.primary : 'transparent', color: graphUnit === 'kWh' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kWh</div>
             </div>
           </div>
-          <FilterSelector />
-          <div style={{ height: '170px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
+          {FilterSelector()}
+          <div style={{ height: '180px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
             <div style={{ width: graphData.length > 10 ? graphData.length * 40 : '100%', height: '100%' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={graphData} style={{ outline: 'none' }}>
+                <BarChart data={graphData} style={{ outline: 'none' }} margin={{ left: 40, right: 10, top: 30, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
                   <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} minTickGap={20} />
+                    <YAxis domain={[0, dataMax => (dataMax * 1.15)]} fontSize={10} stroke={theme.textSub} tickFormatter={v => Math.round(v)} />
+                    <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '8px' }} />
                   <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
                     <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
                   </Bar>
@@ -753,15 +755,21 @@ export default function EnergyDashboard() {
                   <div onClick={() => setGraphUnit('kWh')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? theme.primary : 'transparent', color: graphUnit === 'kWh' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kWh</div>
                 </div>
               </div>
-              <FilterSelector />
-              <div style={{ height: '150px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={graphData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
-                    <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} />
-                    <Line type="monotone" dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} stroke={graphUnit === 'kW' ? theme.primary : theme.success} strokeWidth={3} dot={{ r: 4, fill: graphUnit === 'kW' ? theme.primary : theme.success }} />
-                  </LineChart>
-                </ResponsiveContainer>
+              {FilterSelector()}
+              <div style={{ height: '180px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
+                <div style={{ width: graphData.length > 10 ? graphData.length * 40 : '100%', height: '100%' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={graphData} style={{ outline: 'none' }} margin={{ left: 0, right: 10, top: 30, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.border} />
+                      <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} tickMargin={10} minTickGap={20} />
+                      <YAxis domain={[0, dataMax => (dataMax * 1.15)]} fontSize={10} stroke={theme.textSub} tickFormatter={v => Math.round(v)} />
+                      <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '8px' }} />
+                      <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
+                        <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
@@ -812,25 +820,35 @@ export default function EnergyDashboard() {
 
         {reportTab === 'usage' && (
           <>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain }}>การใช้พลังงาน (kWh)</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: theme.textMain }}>การใช้พลังงาน ({graphUnit === 'kW' ? 'kW' : 'kWh'})</h3>
+              <div style={{ display: 'flex', background: theme.primaryLight, borderRadius: '8px', padding: '2px' }}>
+                <div onClick={() => setGraphUnit('kW')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kW' ? theme.primary : 'transparent', color: graphUnit === 'kW' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kW</div>
+                <div onClick={() => setGraphUnit('kWh')} style={{ cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? theme.primary : 'transparent', color: graphUnit === 'kWh' ? 'white' : theme.primary, borderRadius: '6px', fontWeight: 'bold', transition: 'all 0.2s' }}>kWh</div>
+              </div>
+            </div>
             
-            <FilterSelector />
+            {FilterSelector()}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <div style={{ fontSize: '0.8rem', color: theme.textSub }}>รวมทั้งหมด</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: '800', color: theme.textMain }}>2,106.94 <span style={{fontSize:'0.8rem', color: theme.textSub}}>kWh</span></div>
+            <div style={{ fontSize: '0.8rem', color: theme.textSub }}>{graphUnit === 'kW' ? 'ความต้องการพลังงานสูงสุด (Peak Demand)' : 'รวมทั้งหมด'}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: '800', color: theme.textMain }}>
+              {graphUnit === 'kW' ? Math.max(0, ...graphData.map(d => d.kw || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : graphData.reduce((sum, d) => sum + (d.kwh || 0), 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style={{fontSize:'0.8rem', color: theme.textSub}}>{graphUnit === 'kW' ? 'kW' : 'kWh'}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '0.8rem', color: theme.success, fontWeight: 'bold' }}>+ 12.5% จากช่วงก่อน</div>
+          <div style={{ fontSize: '0.8rem', color: theme.textSub, fontWeight: 'bold' }}>ข้อมูลตามช่วงเวลาที่เลือก</div>
         </div>
 
-        <div style={{ height: '220px', marginTop: '1rem', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
+        <div style={{ height: '230px', marginTop: '1rem', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '10px' }}>
           <div style={{ width: graphData.length > 10 ? graphData.length * 40 : '100%', height: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={graphData} style={{ outline: 'none' }}>
+              <BarChart data={graphData} style={{ outline: 'none' }} margin={{ left: 10, right: 10, top: 30, bottom: 5 }}>
+                <YAxis domain={[0, dataMax => (dataMax * 1.15)]} hide />
+                <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '8px' }} />
                 <XAxis dataKey="time" fontSize={10} stroke={theme.textSub} axisLine={false} tickLine={false} minTickGap={20} />
-                <Bar dataKey="kwh" fill={theme.success} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
-                  <LabelList dataKey="kwh" position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+                <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : theme.success} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
+                  <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill={theme.textSub} formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -843,23 +861,23 @@ export default function EnergyDashboard() {
             <thead>
               <tr style={{ borderBottom: `1px solid ${theme.border}`, color: theme.textSub }}>
                 <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: 'normal' }}>ช่วงเวลา</th>
-                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'normal' }}>การใช้พลังงาน</th>
-                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'normal' }}>ช่วงก่อน</th>
+                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'normal' }}>การใช้พลังงาน (kWh)</th>
+                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'normal' }}>ความต้องการสูงสุด (kW)</th>
               </tr>
             </thead>
             <tbody>
-              {[
-                { d: '24/04/2567', u: '2,106.94', p: '+ 12.5%', c: theme.success },
-                { d: '23/04/2567', u: '2,405.32', p: '+ 8.3%', c: theme.success },
-                { d: '22/04/2567', u: '2,222.11', p: '+ 4.1%', c: theme.success },
-                { d: '21/04/2567', u: '2,317.69', p: '+ 2.7%', c: theme.success }
-              ].map((r, i) => (
+              {graphData.filter(d => d.kwh > 0 || d.kw > 0).reverse().map((r, i) => (
                 <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}>
-                  <td style={{ padding: '0.75rem', color: theme.textMain }}>{r.d}</td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold', color: theme.textMain }}>{r.u}</td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold', color: r.c }}>{r.p}</td>
+                  <td style={{ padding: '0.75rem', color: theme.textMain }}>{r.time}</td>
+                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold', color: theme.textMain }}>{r.kwh.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold', color: theme.warning }}>{r.kw.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 </tr>
               ))}
+              {graphData.filter(d => d.kwh > 0 || d.kw > 0).length === 0 && (
+                <tr>
+                  <td colSpan="3" style={{ padding: '1rem', textAlign: 'center', color: theme.textSub }}>ไม่มีข้อมูลในอดีต</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -895,10 +913,10 @@ export default function EnergyDashboard() {
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       `}</style>
       
-      {currentTab === 'dashboard' && <DashboardView />}
-      {currentTab === 'buildings' && !selectedBuilding && <BuildingsView />}
-      {currentTab === 'buildings' && selectedBuilding && <BuildingDetailsView />}
-      {currentTab === 'reports' && <ReportsView />}
+      {currentTab === 'dashboard' && DashboardView()}
+      {currentTab === 'buildings' && !selectedBuilding && BuildingsView()}
+      {currentTab === 'buildings' && selectedBuilding && BuildingDetailsView()}
+      {currentTab === 'reports' && ReportsView()}
       {(currentTab === 'notifications' || currentTab === 'settings') && (
         <div style={{ textAlign: 'center', marginTop: '4rem', color: theme.textSub }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚙️</div>
