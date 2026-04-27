@@ -138,10 +138,10 @@
 
 /* Chart Area */
 .e-chart-container {
-  height: 240px; width: 100%; margin-top: 16px;
+  height: 280px; width: 100%; margin-top: 16px;
 }
 @media (min-width: 768px) {
-  .e-chart-container { height: 320px; }
+  .e-chart-container { height: 340px; }
 }
 
 /* Hero TOU Card */

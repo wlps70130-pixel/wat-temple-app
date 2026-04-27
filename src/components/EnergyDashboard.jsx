@@ -476,31 +476,34 @@ export default function EnergyDashboard() {
     </div>
   );
 
-  const ChartCard = ({ title }) => (
-    <div className="e-card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h3 className="e-heading" style={{ margin: 0 }}>{title}</h3>
-        <div style={{ display: 'flex', background: 'var(--e-surface-soft)', borderRadius: '8px', padding: '2px' }}>
-          <button onClick={() => setGraphUnit('kW')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kW' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kW' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kW</button>
-          <button onClick={() => setGraphUnit('kWh')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kWh' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kWh</button>
+  const ChartCard = ({ title }) => {
+    const shouldShowLabels = graphData.length <= 12;
+    return (
+      <div className="e-card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 className="e-heading" style={{ margin: 0 }}>{title}</h3>
+          <div style={{ display: 'flex', background: 'var(--e-surface-soft)', borderRadius: '8px', padding: '2px' }}>
+            <button onClick={() => setGraphUnit('kW')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kW' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kW' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kW</button>
+            <button onClick={() => setGraphUnit('kWh')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kWh' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kWh</button>
+          </div>
+        </div>
+        <FilterControls />
+        <div className="e-chart-container">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={graphData} margin={{ top: 48, right: 20, left: 12, bottom: 24 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--e-border)" />
+              <XAxis dataKey="time" fontSize={11} stroke="var(--e-muted)" tickMargin={12} interval="preserveStartEnd" minTickGap={28} />
+              <YAxis width={42} domain={[0, dataMax => (dataMax * 1.15)]} fontSize={11} stroke="var(--e-muted)" tickMargin={8} tickFormatter={v => Math.round(v)} />
+              <Tooltip cursor={{ fill: 'var(--e-surface-soft)' }} contentStyle={{ backgroundColor: 'var(--e-surface)', border: `1px solid var(--e-border)`, borderRadius: '8px', color: 'var(--e-text)' }} />
+              <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : '#10b981'} maxBarSize={18} radius={[6,6,0,0]} isAnimationActive={false} activeBar={false}>
+                {shouldShowLabels && <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={11} fill="var(--e-muted)" offset={8} formatter={(val) => val > 0 ? Number(val).toFixed(1) : ''} />}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
-      <FilterControls />
-      <div className="e-chart-container">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={graphData} margin={{ left: 0, right: 10, top: 30, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--e-border)" />
-            <XAxis dataKey="time" fontSize={10} stroke="var(--e-muted)" tickMargin={10} minTickGap={20} />
-            <YAxis domain={[0, dataMax => (dataMax * 1.15)]} fontSize={10} stroke="var(--e-muted)" tickFormatter={v => Math.round(v)} />
-            <Tooltip cursor={{ fill: 'var(--e-surface-soft)' }} contentStyle={{ backgroundColor: 'var(--e-surface)', border: `1px solid var(--e-border)`, borderRadius: '8px', color: 'var(--e-text)' }} />
-            <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : '#10b981'} radius={[4,4,0,0]} isAnimationActive={false} activeBar={false}>
-              <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill="var(--e-muted)" formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const DashboardView = () => {
     const { 
@@ -789,12 +792,12 @@ export default function EnergyDashboard() {
 
           <div className="e-chart-container">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={graphData} margin={{ left: 0, right: 10, top: 30, bottom: 5 }}>
-                <YAxis domain={[0, dataMax => (dataMax * 1.15)]} hide />
+              <BarChart data={graphData} margin={{ top: 48, right: 20, left: 12, bottom: 24 }}>
+                <YAxis width={42} domain={[0, dataMax => (dataMax * 1.15)]} hide />
                 <Tooltip cursor={{ fill: 'var(--e-surface-soft)' }} contentStyle={{ backgroundColor: 'var(--e-surface)', border: `1px solid var(--e-border)`, borderRadius: '8px', color: 'var(--e-text)' }} />
-                <XAxis dataKey="time" fontSize={10} stroke="var(--e-muted)" axisLine={false} tickLine={false} minTickGap={20} />
-                <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : '#10b981'} radius={[4,4,0,0]} barSize={20} isAnimationActive={false} activeBar={false}>
-                  <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={10} fill="var(--e-muted)" formatter={(val) => val > 0 ? val.toFixed(1) : ''} />
+                <XAxis dataKey="time" fontSize={11} stroke="var(--e-muted)" axisLine={false} tickLine={false} tickMargin={12} interval="preserveStartEnd" minTickGap={28} />
+                <Bar dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} fill={graphUnit === 'kW' ? '#eab308' : '#10b981'} maxBarSize={18} radius={[6,6,0,0]} isAnimationActive={false} activeBar={false}>
+                  {graphData.length <= 12 && <LabelList dataKey={graphUnit === 'kW' ? 'kw' : 'kwh'} position="top" fontSize={11} fill="var(--e-muted)" offset={8} formatter={(val) => val > 0 ? Number(val).toFixed(1) : ''} />}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
