@@ -78,6 +78,12 @@ function App() {
   };
 
   const isDhammaView = currentView === 'dhamma' || currentView === 'dhammaplaylist';
+  const isEnergyView = currentView === 'energy';
+
+  useEffect(() => {
+    document.body.classList.toggle('energy-view-active', isEnergyView);
+    return () => document.body.classList.remove('energy-view-active');
+  }, [isEnergyView]);
 
   // Next tracks in queue (those after current)
   const queueAfterCurrent = (() => {
@@ -87,10 +93,10 @@ function App() {
   })();
 
   return (
-    <div className="app-wrapper" style={{
-      padding: isDhammaView ? '0' : 'var(--content-pad)',
-      paddingBottom: currentTrack ? '80px' : (isDhammaView ? '0' : '6rem'),
-      background: isDhammaView ? '#f4f9fc' : 'transparent',
+    <div className={`app-wrapper ${isEnergyView ? 'energy-mode' : ''}`} style={{
+      padding: (isDhammaView || isEnergyView) ? '0' : 'var(--content-pad)',
+      paddingBottom: currentTrack ? '80px' : ((isDhammaView || isEnergyView) ? '0' : '6rem'),
+      background: isDhammaView ? '#f4f9fc' : (isEnergyView ? '#f4f7fb' : 'transparent'),
       minHeight: '100dvh'
     }}>
       {!isDhammaView && <Header onBack={currentView !== 'dashboard' ? handleBack : undefined} />}

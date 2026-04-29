@@ -105,7 +105,7 @@ const AppNav = ({ currentTab, setCurrentTab, setSelectedBuilding }) => (
         aria-label={tab.name}
       >
         <tab.Icon active={currentTab === tab.id} />
-        <span style={{ fontSize: '0.65rem', marginTop: '2px' }}>{tab.name}</span>
+        <span className="e-nav-label">{tab.name}</span>
       </button>
     ))}
   </nav>
@@ -128,12 +128,11 @@ const SegmentedControl = ({ options, value, onChange }) => (
 );
 
 const StatCard = ({ title, value, unit, type }) => {
-  const colorVar = type === 'solar' ? 'var(--e-success)' : 'var(--e-primary)';
   return (
-    <div className="e-card" style={{ textAlign: 'center' }}>
-      <div className="e-subtitle" style={{ marginBottom: '8px' }}>{title}</div>
-      <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: '800', color: colorVar }}>
-        {value} <span style={{ fontSize: '0.6em' }}>{unit}</span>
+    <div className={`e-card e-stat-card ${type === 'solar' ? 'is-solar' : ''}`}>
+      <div className="e-stat-title">{title}</div>
+      <div className="e-stat-value">
+        {value} <span>{unit}</span>
       </div>
     </div>
   );
@@ -480,11 +479,11 @@ export default function EnergyDashboard() {
     const shouldShowLabels = graphData.length <= 12;
     return (
       <div className="e-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div className="e-card-header">
           <h3 className="e-heading" style={{ margin: 0 }}>{title}</h3>
-          <div style={{ display: 'flex', background: 'var(--e-surface-soft)', borderRadius: '8px', padding: '2px' }}>
-            <button onClick={() => setGraphUnit('kW')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kW' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kW' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kW</button>
-            <button onClick={() => setGraphUnit('kWh')} style={{ padding: '4px 12px', fontSize: '0.75rem', background: graphUnit === 'kWh' ? 'var(--e-primary)' : 'transparent', color: graphUnit === 'kWh' ? 'white' : 'var(--e-primary)', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>kWh</button>
+          <div className="e-unit-toggle">
+            <button className={graphUnit === 'kW' ? 'active' : ''} onClick={() => setGraphUnit('kW')}>kW</button>
+            <button className={graphUnit === 'kWh' ? 'active' : ''} onClick={() => setGraphUnit('kWh')}>kWh</button>
           </div>
         </div>
         <FilterControls />
@@ -518,10 +517,10 @@ export default function EnergyDashboard() {
     const isOnPeakNow = !isHoliday && (currentHour >= 9 && currentHour < 22);
 
     return (
-      <div className="e-app-shell">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '40px', height: '40px', background: 'var(--e-primary-soft)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏛️</div>
+      <div className="e-app-shell e-dashboard-shell">
+        <div className="e-page-header">
+          <div className="e-page-title-group">
+            <div className="e-page-icon">🏛️</div>
             <strong className="e-title">วัดหลวงพ่อสดฯ</strong>
           </div>
           <button className="e-btn" aria-label="Notifications">
@@ -529,9 +528,9 @@ export default function EnergyDashboard() {
           </button>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="e-section-header">
           <h2 className="e-heading" style={{ margin: 0 }}>ภาพรวมวันนี้</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="e-section-actions">
             <span className={`e-badge ${isOnPeakNow ? 'e-badge-pending' : 'e-badge-active'}`}>
               {isOnPeakNow ? '☀️ On-Peak' : '🌙 Off-Peak'}
             </span>
@@ -543,15 +542,15 @@ export default function EnergyDashboard() {
           <div className="e-tou-glow-1"></div>
           <div className="e-tou-glow-2"></div>
           
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="e-tou-content">
+            <div className="e-tou-header">
+              <div className="e-tou-title-block">
+                <h3 className="e-tou-title">
                   <Icons.Electric /> วิเคราะห์ค่าไฟ (TOU 6.2.3)
                 </h3>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>สำหรับองค์กรไม่แสวงหากำไร (พ.ศ. 2569)</div>
+                <div className="e-tou-subtitle">สำหรับองค์กรไม่แสวงหากำไร (พ.ศ. 2569)</div>
               </div>
-              <div className="e-badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>ประมาณการเดือนนี้</div>
+              <div className="e-badge e-tou-status-badge">ประมาณการเดือนนี้</div>
             </div>
 
             <div className="e-tou-amount">
@@ -619,9 +618,9 @@ export default function EnergyDashboard() {
 
         <ChartCard title="กราฟการใช้พลังงาน" />
 
-        <div>
+        <div className="e-top-buildings">
           <h3 className="e-heading">อาคารที่ใช้พลังงานสูงสุด</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="e-list-stack">
             {topBuildings.length > 0 ? topBuildings.map((b, index) => (
               <div key={b.id} onClick={() => { setSelectedBuilding(b); setBuildingTab('overview'); setCurrentTab('buildings'); }} className="e-building-card">
                 <div style={{ width: '40px', height: '40px', background: 'var(--e-primary-soft)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--e-primary)' }}>{index + 1}</div>

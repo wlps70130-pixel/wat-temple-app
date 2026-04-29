@@ -66,6 +66,10 @@ body {
   font-size: var(--font-base);
 }
 
+body.energy-view-active {
+  background: #f4f7fb;
+}
+
 #root {
   width: 100%;
   max-width: var(--app-max-width);
@@ -73,6 +77,12 @@ body {
   background: #ffffff;
   position: relative;
   box-shadow: 0 0 40px rgba(0,0,0,0.08);
+}
+
+body.energy-view-active #root {
+  max-width: none;
+  background: #f4f7fb;
+  box-shadow: none;
 }
 
 #root::before {
@@ -103,6 +113,24 @@ body {
 }
 
 .app-wrapper::-webkit-scrollbar { display: none; }
+
+.app-wrapper.energy-mode {
+  gap: 0;
+  max-height: 100dvh;
+  background: #f4f7fb;
+}
+
+.app-wrapper.energy-mode > .header {
+  width: min(100% - 32px, 1180px);
+  margin: 20px auto 0;
+}
+
+@media (max-width: 599px) {
+  .app-wrapper.energy-mode > .header {
+    width: min(100% - 24px, 1180px);
+    margin-top: 12px;
+  }
+}
 
 /* ── Glassmorphism ── */
 .glass {
