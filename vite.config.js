@@ -1,5 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -10,6 +12,7 @@ export default defineConfig(({ mode }) => {
   // Inject into process.env so the API handlers can see them
   process.env.TUYA_CLIENT_ID = env.TUYA_CLIENT_ID;
   process.env.TUYA_CLIENT_SECRET = env.TUYA_CLIENT_SECRET;
+  process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
 
   return {
     plugins: [react()],
@@ -37,16 +40,40 @@ export default defineConfig(({ mode }) => {
               try {
                 const url = new URL(req.url, 'http://localhost:5173');
                 const functionName = url.pathname.replace('/api/', '').split('?')[0];
-                const modulePath = `./api/${functionName}.js`;
+                const modulePath = pathToFileURL(path.resolve(process.cwd(), 'api', `${functionName}.js`)).href;
                 
                 // Load the serverless function
                 const { default: handler } = await import(modulePath);
+                const body = await new Promise((resolve, reject) => {
+                  if (req.method === 'GET' || req.method === 'HEAD') {
+                    resolve(undefined);
+                    return;
+                  }
+
+                  let raw = '';
+                  req.on('data', chunk => {
+                    raw += chunk.toString();
+                  });
+                  req.on('end', () => {
+                    if (!raw) {
+                      resolve(undefined);
+                      return;
+                    }
+
+                    try {
+                      resolve(JSON.parse(raw));
+                    } catch {
+                      resolve(raw);
+                    }
+                  });
+                  req.on('error', reject);
+                });
                 
                 // Mock Vercel req/res
                 const mockReq = {
                   query: Object.fromEntries(url.searchParams.entries()),
                   method: req.method,
-                  body: req.body
+                  body
                 };
                 
                 const mockRes = {
