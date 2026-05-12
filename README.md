@@ -95,6 +95,20 @@ curl.exe http://127.0.0.1:10000/api/nvr-events?limit=20
 
 If `event_server` is configured but no callbacks arrive, this firmware likely supports event server configuration but does not link detection events to it. The fallback is to poll/search NVR events through OpenAPI on a schedule instead of receiving callbacks.
 
+Build a daily CSV table from received event logs:
+
+```powershell
+cd C:\Users\SFS-RTFV\Documents\wat-temple-app
+node .\scripts\nvr-build-daily-table.mjs
+node .\scripts\nvr-build-daily-table.mjs 2026-05-12
+```
+
+Output files:
+
+```text
+data\nvr-tables\YYYY-MM-DD.csv
+```
+
 ## Remote access with Tailscale
 
 Use Tailscale instead of exposing the NVR or Optiplex directly to the internet.
