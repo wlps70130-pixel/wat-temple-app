@@ -38,7 +38,7 @@ app.all('/api/auth/profile', authProfileHandler);
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Fallback all other routes to React Router (index.html)
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
