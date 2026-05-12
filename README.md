@@ -95,6 +95,49 @@ curl.exe http://127.0.0.1:10000/api/nvr-events?limit=20
 
 If `event_server` is configured but no callbacks arrive, this firmware likely supports event server configuration but does not link detection events to it. The fallback is to poll/search NVR events through OpenAPI on a schedule instead of receiving callbacks.
 
+## Remote access with Tailscale
+
+Use Tailscale instead of exposing the NVR or Optiplex directly to the internet.
+
+Recommended setup:
+
+- Install Tailscale on the Optiplex at the temple.
+- Install Tailscale on the notebook/home computer.
+- Sign in to the same Tailscale account on both devices.
+- On the Optiplex, enable unattended mode so it reconnects after restart:
+
+```powershell
+tailscale up --unattended=true
+tailscale ip -4
+```
+
+With basic Tailscale only, the home computer can reach services running on the Optiplex through its Tailscale IP:
+
+```powershell
+http://<OPTIPLEX_TAILSCALE_IP>:10000/
+http://<OPTIPLEX_TAILSCALE_IP>:10000/api/nvr-events?limit=20
+```
+
+To also reach LAN-only devices at the temple, such as the NVR at `192.168.1.69`, make the Optiplex a subnet router:
+
+```powershell
+tailscale set --advertise-routes=192.168.1.0/24
+```
+
+Then open the Tailscale admin console, find the Optiplex machine, approve the advertised subnet route `192.168.1.0/24`, and test from home:
+
+```powershell
+ping 192.168.1.69
+curl.exe -k https://192.168.1.69:20443/openapi/added_devices
+```
+
+Notes:
+
+- Do not port-forward the NVR from the internet.
+- Keep AnyDesk installed as backup access.
+- If only the app is needed, access the Optiplex by Tailscale IP and leave subnet routing off.
+- If NVR OpenAPI or camera LAN access is needed from home, enable subnet routing.
+
 Optional environment variables:
 
 - `NVR_EVENT_LOG_DIR`: directory for `.jsonl` event logs. Use a persistent local folder on the Optiplex, for example `D:\wat-temple-app\data\nvr-events`.
