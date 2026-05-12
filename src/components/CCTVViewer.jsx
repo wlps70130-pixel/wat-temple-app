@@ -4,7 +4,7 @@ import { Camera, Maximize2, X, RefreshCw, Wifi, WifiOff, Settings, ChevronRight,
 // ─── ตั้งค่ากล้องที่นี่ ─────────────────────────────────────────
 // รองรับ: URL รูป MJPEG, iframe URL ของระบบ NVR, หรือ HLS stream
 const CAMERAS = [
-  { id: 1, name: 'VIGI C340S',             url: '/cctv-proxy/', type: 'iframe', location: 'หน้าวัด' },
+  { id: 1, name: 'VIGI C340S',             url: '/api/cctv?path=/', checkUrl: '/api/cctv?path=/', type: 'iframe', location: 'หน้าวัด' },
   { id: 2, name: 'ศาลาสมเด็จ',             url: '', type: 'mjpeg', location: 'ด้านหน้าศาลา' },
   { id: 3, name: 'อาคารอเนกประสงค์',       url: '', type: 'mjpeg', location: 'ทางเข้าอาคาร' },
   { id: 4, name: 'ลานจอดรถ',               url: '', type: 'mjpeg', location: 'ด้านหลังวัด' },
@@ -18,22 +18,53 @@ const CAMERAS = [
 function CameraCard({ cam, onExpand }) {
   const [imgError, setImgError] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [status, setStatus] = useState(cam.url ? 'checking' : 'unconfigured');
   const hasStream = !!cam.url;
+
+  useEffect(() => {
+    if (!hasStream) {
+      setStatus('unconfigured');
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+
+    fetch(cam.checkUrl || cam.url, {
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: { Accept: 'text/html,image/*,*/*' }
+    })
+      .then(response => {
+        setStatus(response.ok ? 'online' : 'offline');
+        if (!response.ok) setImgError(true);
+      })
+      .catch(() => {
+        setStatus('offline');
+        setImgError(true);
+      })
+      .finally(() => clearTimeout(timer));
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [cam.checkUrl, cam.url, hasStream]);
 
   return (
     <div
-      onClick={() => hasStream && onExpand(cam)}
+      onClick={() => hasStream && status === 'online' && onExpand(cam)}
       style={{
         background: '#0f172a', borderRadius: '14px', overflow: 'hidden',
         border: '1px solid #1e293b', position: 'relative',
-        aspectRatio: '16/9', cursor: hasStream ? 'pointer' : 'default',
+        aspectRatio: '16/9', cursor: hasStream && status === 'online' ? 'pointer' : 'default',
         transition: 'all 0.2s',
       }}
       onMouseEnter={e => hasStream && (e.currentTarget.style.border = '1px solid #3b82f6')}
       onMouseLeave={e => (e.currentTarget.style.border = '1px solid #1e293b')}
     >
       {/* Camera Feed */}
-      {hasStream && !imgError ? (
+      {hasStream && status === 'online' && !imgError ? (
         <>
           {!loaded && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a' }}>
@@ -66,10 +97,14 @@ function CameraCard({ cam, onExpand }) {
         </>
       ) : (
         // Offline / Not configured placeholder
-        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-          <Camera size={22} color={hasStream ? '#ef4444' : '#334155'} />
-          <span style={{ fontSize: '0.6rem', color: hasStream ? '#ef4444' : '#475569', fontWeight: '600' }}>
-            {hasStream ? 'สัญญาณขาด' : 'ยังไม่ได้ตั้งค่า'}
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.28rem', padding: '1.1rem 0.5rem 2.3rem' }}>
+          {status === 'checking' ? (
+            <RefreshCw size={22} color="#38bdf8" style={{ animation: 'spin 1s linear infinite' }} />
+          ) : (
+            <Camera size={22} color={hasStream ? '#ef4444' : '#334155'} />
+          )}
+          <span style={{ fontSize: '0.55rem', color: hasStream ? '#ef4444' : '#475569', fontWeight: '700', textAlign: 'center' }}>
+            {status === 'checking' ? 'กำลังเชื่อมต่อ' : hasStream ? 'เชื่อมต่อกล้องไม่ได้' : 'ยังไม่ได้ตั้งค่า'}
           </span>
         </div>
       )}
@@ -82,20 +117,22 @@ function CameraCard({ cam, onExpand }) {
 
       {/* Status dot */}
       <div style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
-        {hasStream && !imgError
+        {hasStream && status === 'online' && !imgError
           ? <><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 4px #22c55e', animation: 'pulse 2s infinite' }}/><span style={{ fontSize: '0.5rem', color: '#22c55e', fontWeight: '700' }}>LIVE</span></>
-          : <><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#475569' }}/><span style={{ fontSize: '0.5rem', color: '#475569', fontWeight: '700' }}>OFF</span></>}
+          : status === 'checking'
+            ? <><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#38bdf8', animation: 'pulse 2s infinite' }}/><span style={{ fontSize: '0.5rem', color: '#38bdf8', fontWeight: '700' }}>CHECK</span></>
+            : <><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#475569' }}/><span style={{ fontSize: '0.5rem', color: '#475569', fontWeight: '700' }}>OFF</span></>}
       </div>
 
       {/* Expand icon */}
-      {hasStream && !imgError && loaded && (
+      {hasStream && status === 'online' && !imgError && loaded && (
         <div style={{ position: 'absolute', top: '0.4rem', left: '0.4rem', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', padding: '2px 4px' }}>
           <Maximize2 size={10} color="white" />
         </div>
       )}
 
       {/* Cam number */}
-      <div style={{ position: 'absolute', top: '0.4rem', left: hasStream && !imgError && loaded ? '1.6rem' : '0.4rem', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', padding: '1px 5px', fontSize: '0.52rem', color: '#94a3b8', fontWeight: '700' }}>
+      <div style={{ position: 'absolute', top: '0.4rem', left: hasStream && status === 'online' && !imgError && loaded ? '1.6rem' : '0.4rem', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', padding: '1px 5px', fontSize: '0.52rem', color: '#94a3b8', fontWeight: '700' }}>
         CAM {cam.id}
       </div>
     </div>
@@ -178,10 +215,10 @@ function SetupHint() {
       </button>
       {show && (
         <div style={{ marginTop: '0.75rem', fontSize: '0.68rem', color: '#475569', lineHeight: 1.7 }}>
-          <p>📌 เปิดไฟล์ <code style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '4px', color: '#94a3b8' }}>src/components/CCTVViewer.jsx</code></p>
-          <p style={{ marginTop: '0.4rem' }}>📷 ใส่ URL กล้องในตัวแปร <code style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '4px', color: '#94a3b8' }}>CAMERAS</code></p>
-          <p style={{ marginTop: '0.4rem' }}>🔗 รองรับ: MJPEG stream URL, snapshot URL ที่รีเฟรชอัตโนมัติ</p>
-          <p style={{ marginTop: '0.4rem' }}>⚠️ ต้องเป็น <strong style={{ color: '#f59e0b' }}>https://</strong> เท่านั้น (ไม่รองรับ RTSP โดยตรง)</p>
+          <p>📌 ตั้งค่า <code style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '4px', color: '#94a3b8' }}>CCTV_TARGET_URL</code> เป็น URL ของ NVR/กล้อง เช่น <code style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '4px', color: '#94a3b8' }}>https://192.168.1.252</code></p>
+          <p style={{ marginTop: '0.4rem' }}>🔐 ถ้าระบบรองรับ Basic Auth ให้ตั้ง <code style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '4px', color: '#94a3b8' }}>CCTV_USERNAME</code> และ <code style={{ background: '#1e293b', padding: '1px 5px', borderRadius: '4px', color: '#94a3b8' }}>CCTV_PASSWORD</code></p>
+          <p style={{ marginTop: '0.4rem' }}>🔗 รองรับหน้าเว็บ NVR/กล้องผ่าน iframe หรือ URL ภาพ/stream ที่ browser เปิดได้</p>
+          <p style={{ marginTop: '0.4rem' }}>⚠️ ถ้า deploy บน Vercel แล้วใช้ IP วงใน 192.168.x.x, Vercel จะมองไม่เห็นกล้อง ต้องใช้ public/VPN/cloud URL หรือรัน server ในวง LAN เดียวกับกล้อง</p>
         </div>
       )}
     </div>
@@ -192,14 +229,7 @@ function SetupHint() {
 export default function CCTVViewer() {
   const [expandedCam, setExpandedCam] = useState(null);
   const [cols, setCols] = useState(2);
-  const [tick, setTick] = useState(0);
   const activeCams = CAMERAS.filter(c => c.url);
-
-  // Auto-refresh snapshot every 5s for MJPEG
-  useEffect(() => {
-    const t = setInterval(() => setTick(k => k + 1), 5000);
-    return () => clearInterval(t);
-  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -209,9 +239,9 @@ export default function CCTVViewer() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: '3px', height: '18px', background: '#3b82f6', borderRadius: '2px' }} />
           <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#1e293b' }}>กล้องวงจรปิด</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#dcfce7', padding: '2px 8px', borderRadius: '20px' }}>
-            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontSize: '0.58rem', color: '#16a34a', fontWeight: '800' }}>LIVE</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#dbeafe', padding: '2px 8px', borderRadius: '20px' }}>
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#3b82f6', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: '0.58rem', color: '#2563eb', fontWeight: '800' }}>CCTV</span>
           </div>
         </div>
         {/* Grid toggle */}
@@ -228,7 +258,7 @@ export default function CCTVViewer() {
 
       {/* Summary bar */}
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '0.85rem' }}>
-        {[{ label: 'กล้องทั้งหมด', val: CAMERAS.length, color: '#1e293b' }, { label: 'ออนไลน์', val: activeCams.length, color: '#16a34a' }, { label: 'ออฟไลน์', val: CAMERAS.length - activeCams.length, color: '#94a3b8' }].map(s => (
+        {[{ label: 'กล้องทั้งหมด', val: CAMERAS.length, color: '#1e293b' }, { label: 'ตั้งค่าแล้ว', val: activeCams.length, color: '#16a34a' }, { label: 'ยังไม่ตั้งค่า', val: CAMERAS.length - activeCams.length, color: '#94a3b8' }].map(s => (
           <div key={s.label} style={{ flex: 1, background: '#f8fafc', borderRadius: '10px', padding: '0.5rem 0.6rem', textAlign: 'center', border: '1px solid #f1f5f9' }}>
             <div style={{ fontSize: '1.1rem', fontWeight: '800', color: s.color }}>{s.val}</div>
             <div style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: '600' }}>{s.label}</div>
@@ -239,7 +269,7 @@ export default function CCTVViewer() {
       {/* Camera Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '0.6rem' }}>
         {CAMERAS.map(cam => (
-          <CameraCard key={`${cam.id}-${tick}`} cam={cam} onExpand={setExpandedCam} />
+          <CameraCard key={cam.id} cam={cam} onExpand={setExpandedCam} />
         ))}
       </div>
 

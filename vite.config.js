@@ -13,6 +13,18 @@ export default defineConfig(({ mode }) => {
   process.env.TUYA_CLIENT_ID = env.TUYA_CLIENT_ID;
   process.env.TUYA_CLIENT_SECRET = env.TUYA_CLIENT_SECRET;
   process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
+  if (env.CCTV_TARGET_URL) process.env.CCTV_TARGET_URL = env.CCTV_TARGET_URL;
+  else delete process.env.CCTV_TARGET_URL;
+  if (env.CCTV_USERNAME) process.env.CCTV_USERNAME = env.CCTV_USERNAME;
+  else delete process.env.CCTV_USERNAME;
+  if (env.CCTV_PASSWORD) process.env.CCTV_PASSWORD = env.CCTV_PASSWORD;
+  else delete process.env.CCTV_PASSWORD;
+  if (env.NVR_EVENT_LOG_DIR) process.env.NVR_EVENT_LOG_DIR = env.NVR_EVENT_LOG_DIR;
+  else delete process.env.NVR_EVENT_LOG_DIR;
+  if (env.NVR_EVENT_SECRET) process.env.NVR_EVENT_SECRET = env.NVR_EVENT_SECRET;
+  else delete process.env.NVR_EVENT_SECRET;
+  if (env.NVR_EVENT_TIME_ZONE) process.env.NVR_EVENT_TIME_ZONE = env.NVR_EVENT_TIME_ZONE;
+  else delete process.env.NVR_EVENT_TIME_ZONE;
 
   return {
     plugins: [react()],
@@ -39,7 +51,7 @@ export default defineConfig(({ mode }) => {
             if (req.url.startsWith('/api/')) {
               try {
                 const url = new URL(req.url, 'http://localhost:5173');
-                const functionName = url.pathname.replace('/api/', '').split('?')[0];
+                const functionName = url.pathname.replace(/^\/api\//, '');
                 const modulePath = pathToFileURL(path.resolve(process.cwd(), 'api', `${functionName}.js`)).href;
                 
                 // Load the serverless function
@@ -60,6 +72,12 @@ export default defineConfig(({ mode }) => {
                       return;
                     }
 
+                    const contentType = req.headers['content-type'] || '';
+                    if (!contentType.includes('application/json')) {
+                      resolve(raw);
+                      return;
+                    }
+
                     try {
                       resolve(JSON.parse(raw));
                     } catch {
@@ -73,10 +91,21 @@ export default defineConfig(({ mode }) => {
                 const mockReq = {
                   query: Object.fromEntries(url.searchParams.entries()),
                   method: req.method,
-                  body
+                  body,
+                  headers: req.headers,
+                  ip: req.socket?.remoteAddress
                 };
                 
                 const mockRes = {
+                  get statusCode() {
+                    return res.statusCode;
+                  },
+                  set statusCode(code) {
+                    res.statusCode = code;
+                  },
+                  get headersSent() {
+                    return res.headersSent;
+                  },
                   status: (code) => {
                     res.statusCode = code;
                     return mockRes;
@@ -88,6 +117,10 @@ export default defineConfig(({ mode }) => {
                   },
                   setHeader: (name, value) => {
                     res.setHeader(name, value);
+                    return mockRes;
+                  },
+                  write: (data) => {
+                    res.write(data);
                     return mockRes;
                   },
                   end: (data) => {

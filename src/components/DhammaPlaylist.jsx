@@ -1,26 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Shuffle, ListMusic, Loader2, MoreVertical, ChevronLeft, Heart } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  ChevronLeft,
+  Download,
+  Heart,
+  ListMusic,
+  Loader2,
+  MoreVertical,
+  Pause,
+  Play,
+  Search,
+  Shuffle,
+} from 'lucide-react';
 import Papa from 'papaparse';
 import AiAssistant from './AiAssistant';
 
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=29969163&single=true&output=csv';
 
-const EqBars = () => (
-  <div style={{ display: 'flex', gap: '2px', height: '14px', alignItems: 'flex-end', width: '20px' }}>
-    {[1, 0.5, 0.8].map((_, i) => (
-      <div key={i} style={{
-        width: '3px', borderRadius: '2px', background: 'var(--dh-primary)',
-        animation: `sEq${i} ${0.5 + i * 0.15}s ease-in-out infinite alternate`,
-        transformOrigin: 'bottom'
-      }} />
-    ))}
-    <style>{`
-      @keyframes sEq0{0%{height:25%}100%{height:100%}}
-      @keyframes sEq1{0%{height:100%}100%{height:35%}}
-      @keyframes sEq2{0%{height:55%}100%{height:90%}}
-    `}</style>
-  </div>
-);
+function EqBars() {
+  return (
+    <span className="dh-eq-bars" aria-label="กำลังเล่น">
+      <i />
+      <i />
+      <i />
+    </span>
+  );
+}
+
+function getCleanValue(row, keyName) {
+  const key = Object.keys(row).find((item) => item.replace(/^\uFEFF/, '').trim() === keyName);
+  return key && typeof row[key] === 'string' ? row[key].trim() : '';
+}
+
+function normalizeDuration(value) {
+  if (!value) return '';
+  return value.replace('.', ':');
+}
 
 export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPlayTrack, onBack }) {
   const [tracks, setTracks] = useState([]);
@@ -28,185 +42,236 @@ export default function DhammaPlaylist({ category, currentTrack, isPlaying, onPl
   const [isShuffled, setIsShuffled] = useState(false);
   const [displayTracks, setDisplayTracks] = useState([]);
   const [liked, setLiked] = useState({});
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     if (!category) return;
+
+    let isMounted = true;
     setLoading(true);
+
     Papa.parse(`${SHEET_URL}&t=${Date.now()}`, {
-      download: true, header: true, skipEmptyLines: true,
+      download: true,
+      header: true,
+      skipEmptyLines: true,
       complete: (results) => {
+        if (!isMounted) return;
+
         const filtered = results.data
-          .filter(row => {
-            const catKey = Object.keys(row).find(k => k.replace(/^\uFEFF/, '').trim() === 'categoryId');
-            const urlKey = Object.keys(row).find(k => k.trim() === 'url');
-            if (!catKey || !urlKey || typeof row[catKey] !== 'string' || typeof row[urlKey] !== 'string') return false;
-            return row[catKey].trim() === category.id && row[urlKey].trim() !== '';
-          })
-          .map((row, i) => {
-            const titleKey = Object.keys(row).find(k => k.replace(/^\uFEFF/, '').trim() === 'title');
-            const subKey = Object.keys(row).find(k => k.trim() === 'subtitle');
-            const durKey = Object.keys(row).find(k => k.trim() === 'duration');
-            const urlKey = Object.keys(row).find(k => k.trim() === 'url');
-            return {
-              id: `${category.id}-${i}`,
-              title: (titleKey && typeof row[titleKey] === 'string' && row[titleKey].trim()) ? row[titleKey].trim() : `ไฟล์เสียงธรรม ${i + 1}`,
-              subtitle: (subKey && typeof row[subKey] === 'string' && row[subKey].trim()) ? row[subKey].trim() : category.title,
-              duration: (durKey && typeof row[durKey] === 'string') ? row[durKey].trim() : '',
-              url: (urlKey && typeof row[urlKey] === 'string') ? row[urlKey].trim() : '',
-              categoryGradient: category.bgGradient,
-              categoryColor: category.color,
-            };
-          });
+          .filter((row) => getCleanValue(row, 'categoryId') === category.id && getCleanValue(row, 'url'))
+          .map((row, index) => ({
+            id: `${category.id}-${index}`,
+            title: getCleanValue(row, 'title') || `เสียงธรรม ${index + 1}`,
+            subtitle: getCleanValue(row, 'subtitle') || category.title,
+            duration: normalizeDuration(getCleanValue(row, 'duration')),
+            url: getCleanValue(row, 'url'),
+            categoryGradient: category.bgGradient,
+            categoryColor: category.color,
+          }));
+
         setTracks(filtered);
         setDisplayTracks(filtered);
         setLoading(false);
       },
-      error: () => setLoading(false),
+      error: () => {
+        if (!isMounted) return;
+        setTracks([]);
+        setDisplayTracks([]);
+        setLoading(false);
+      },
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, [category]);
 
+  const filteredTracks = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+    if (!keyword) return displayTracks;
+    return displayTracks.filter((track) =>
+      `${track.title} ${track.subtitle}`.toLowerCase().includes(keyword)
+    );
+  }, [displayTracks, query]);
+
+  const totalDurationLabel = useMemo(() => {
+    const durations = tracks
+      .map((track) => track.duration)
+      .filter(Boolean)
+      .map((duration) => duration.split(':').map(Number))
+      .filter(([minute, second]) => Number.isFinite(minute) && Number.isFinite(second));
+    if (durations.length === 0) return '';
+    const totalSeconds = durations.reduce((sum, [minute, second]) => sum + minute * 60 + second, 0);
+    const hour = Math.floor(totalSeconds / 3600);
+    const minute = Math.round((totalSeconds % 3600) / 60);
+    return hour ? `${hour} ชม. ${minute} นาที` : `${minute} นาที`;
+  }, [tracks]);
+
   const handleShuffle = () => {
-    if (isShuffled) { setDisplayTracks(tracks); setIsShuffled(false); }
-    else { setDisplayTracks([...tracks].sort(() => Math.random() - 0.5)); setIsShuffled(true); }
+    if (isShuffled) {
+      setDisplayTracks(tracks);
+      setIsShuffled(false);
+      return;
+    }
+    setDisplayTracks([...tracks].sort(() => Math.random() - 0.5));
+    setIsShuffled(true);
   };
 
-  const handlePlayTrack = (track) => onPlayTrack(track, displayTracks);
+  const handlePlayTrack = (track) => onPlayTrack(track, filteredTracks);
 
   if (!category) return null;
 
+  const CategoryIcon = category.icon;
+
   return (
-    <div className="dh-page">
+    <div className="dh-page dh-playlist-page">
+      <section className="dh-playlist-hero" style={{ '--playlist-gradient': category.bgGradient }}>
+        <div className="dh-topbar dh-playlist-topbar">
+          <button onClick={onBack} className="dh-icon-btn" aria-label="กลับไปหมวดเสียงธรรม">
+            <ChevronLeft size={24} />
+          </button>
+          <button className="dh-icon-btn" aria-label="เมนูเพิ่มเติม">
+            <MoreVertical size={23} />
+          </button>
+        </div>
 
-      {/* ── Hero with gradient bleed ── */}
-      <div style={{ position: 'relative', paddingBottom: '1.5rem', paddingTop: '0.5rem' }}>
-        <div style={{ position: 'absolute', inset: 0, background: category.bgGradient || 'var(--dh-primary)', zIndex: 0, opacity: 0.2 }} />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          {/* Back Button */}
-          <div className="dh-topbar" style={{ paddingBottom: 0 }}>
-            <button onClick={onBack} className="dh-icon-btn">
-              <ChevronLeft size={24} />
-            </button>
+        <div className="dh-hero">
+          <div className="dh-hero-art" style={{ background: category.bgGradient }}>
+            <CategoryIcon size={70} color="white" strokeWidth={1.4} />
           </div>
 
-          {/* Album art + Info (Responsive) */}
-          <div className="dh-hero">
-            <div className="dh-hero-art" style={{ background: category.bgGradient || 'var(--dh-primary)' }}>
-              <category.icon size={64} color="white" strokeWidth={1.2} />
+          <div className="dh-hero-info">
+            <span className="dh-subheading">เพลย์ลิสต์เสียงธรรม</span>
+            <h1 className="dh-heading">{category.title}</h1>
+            <p className="dh-hero-desc">{category.subtitle}</p>
+            <div className="dh-playlist-meta">
+              <span>วัดหลวงพ่อสดธรรมกายาราม</span>
+              <span>{tracks.length} รายการ</span>
+              {totalDurationLabel && <span>{totalDurationLabel}</span>}
             </div>
-            <div className="dh-hero-info">
-              <div className="dh-subheading">เพลย์ลิสต์ธรรมะ</div>
-              <h2 className="dh-heading" style={{ marginBottom: '8px' }}>{category.title}</h2>
-              <p className="dh-hero-desc">{category.subtitle}</p>
-              <p style={{ fontSize: 'var(--dh-small-text)', color: 'var(--dh-text-muted)', opacity: 0.8, margin: 0 }}>
-                🛕 วัดหลวงพ่อสดฯ &nbsp;•&nbsp; {tracks.length} รายการ
-              </p>
-            </div>
-          </div>
-
-          {/* Controls Row */}
-          <div className="dh-controls-row">
-            <button className="dh-icon-btn" style={{ background: 'transparent', border: 'none' }}>
-              <Heart size={28} />
-            </button>
-            <button className="dh-icon-btn" style={{ background: 'transparent', border: 'none' }}>
-              <MoreVertical size={28} />
-            </button>
-            <div style={{ flex: 1 }} />
-            {/* Shuffle */}
-            <button onClick={handleShuffle} className="dh-icon-btn" style={{ background: 'transparent', border: 'none', color: isShuffled ? 'var(--dh-primary)' : 'var(--dh-text-muted)' }}>
-              <Shuffle size={24} />
-            </button>
-            {/* Play Button */}
-            <button
-              onClick={() => displayTracks.length > 0 && handlePlayTrack(displayTracks[0])}
-              className="dh-play-btn"
-            >
-              <Play size={32} fill="#fff" style={{ marginLeft: '4px' }} />
-            </button>
           </div>
         </div>
+
+        <div className="dh-controls-row">
+          <button className="dh-soft-btn" type="button">
+            <Heart size={20} />
+            บันทึก
+          </button>
+          <button
+            onClick={handleShuffle}
+            className={`dh-soft-btn ${isShuffled ? 'active' : ''}`}
+            type="button"
+          >
+            <Shuffle size={20} />
+            สุ่มเล่น
+          </button>
+          <button
+            onClick={() => filteredTracks.length > 0 && handlePlayTrack(filteredTracks[0])}
+            className="dh-play-btn"
+            type="button"
+            disabled={filteredTracks.length === 0}
+            aria-label="เล่นทั้งหมด"
+          >
+            <Play size={32} fill="currentColor" />
+          </button>
+        </div>
+      </section>
+
+      <div className="dh-playlist-toolbar">
+        <label className="dh-glass dh-search-bar dh-track-search">
+          <Search size={20} />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="ค้นหาในเพลย์ลิสต์นี้..."
+            className="dh-search-input"
+          />
+        </label>
       </div>
 
-      {/* ── Track List ── */}
-      <div style={{ padding: '0.5rem 0' }}>
+      <section className="dh-track-list">
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4rem 0', gap: '1rem' }}>
-            <Loader2 size={32} color="var(--dh-primary)" style={{ animation: 'spin 1s linear infinite' }} />
-            <span style={{ color: 'var(--dh-text-muted)', fontSize: '1rem' }}>กำลังโหลด...</span>
-            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          <div className="dh-empty-state">
+            <Loader2 size={34} className="dh-spin" />
+            <span>กำลังโหลดเสียงธรรม...</span>
           </div>
-        ) : displayTracks.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--dh-text-muted)' }}>
-            <ListMusic size={48} style={{ display: 'block', margin: '0 auto 1rem', opacity: 0.3 }} />
-            <p style={{ fontSize: '1rem' }}>ยังไม่มีรายการในหมวดนี้</p>
+        ) : filteredTracks.length === 0 ? (
+          <div className="dh-empty-state">
+            <ListMusic size={46} />
+            <span>ไม่พบรายการเสียงธรรมในหมวดนี้</span>
           </div>
-        ) : displayTracks.map((track, idx) => {
-          const isSelected = currentTrack?.id === track.id;
-          const isThisPlaying = isSelected && isPlaying;
-          return (
-            <div
-              key={track.id}
-              onClick={() => handlePlayTrack(track)}
-              className={`dh-glass dh-track-item ${isSelected ? 'active' : ''}`}
-            >
-              {/* # or EQ */}
-              <div style={{ width: '24px', textAlign: 'center', flexShrink: 0 }}>
-                {isThisPlaying
-                  ? <EqBars />
-                  : <span style={{ fontSize: '0.85rem', color: isSelected ? 'var(--dh-primary)' : 'var(--dh-text-muted)' }}>{idx + 1}</span>
-                }
-              </div>
+        ) : (
+          filteredTracks.map((track, index) => {
+            const isSelected = currentTrack?.id === track.id;
+            const isThisPlaying = isSelected && isPlaying;
 
-              {/* Thumbnail */}
-              <div className="dh-track-thumb" style={{ background: category.bgGradient || 'var(--dh-primary)' }}>
-                <category.icon size={20} color="white" />
-              </div>
+            return (
+              <div
+                key={track.id}
+                onClick={() => handlePlayTrack(track)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handlePlayTrack(track);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                className={`dh-track-item ${isSelected ? 'active' : ''}`}
+              >
+                <span className="dh-track-index">
+                  {isThisPlaying ? <EqBars /> : index + 1}
+                </span>
 
-              {/* Title + Artist */}
-              <div className="dh-track-info">
-                <div className="dh-track-title" style={{ color: isSelected ? 'var(--dh-primary)' : 'var(--dh-text-main)' }}>
-                  {track.title}
-                </div>
-                <div className="dh-track-sub">
-                  {track.subtitle}
-                </div>
-              </div>
+                <span className="dh-track-thumb" style={{ background: category.bgGradient }}>
+                  {isThisPlaying ? <Pause size={19} fill="currentColor" /> : <CategoryIcon size={20} />}
+                </span>
 
-              {/* Like + Duration + More */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                <button
-                  onClick={e => { e.stopPropagation(); setLiked(p => ({ ...p, [track.id]: !p[track.id] })); }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.3rem', display: 'flex' }}
-                >
-                  <Heart size={20} fill={liked[track.id] ? 'var(--dh-primary)' : 'none'} color={liked[track.id] ? 'var(--dh-primary)' : 'var(--dh-text-muted)'} />
-                </button>
-                {track.duration && (
-                  <span style={{ fontSize: 'var(--dh-small-text)', color: 'var(--dh-text-muted)', minWidth: '35px', textAlign: 'right' }}>{track.duration}</span>
-                )}
-                <button style={{ background: 'none', border: 'none', color: 'var(--dh-text-muted)', cursor: 'pointer', padding: '0.3rem', display: 'flex' }}>
-                  <MoreVertical size={20} />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                <span className="dh-track-info">
+                  <strong className="dh-track-title">{track.title}</strong>
+                  <small className="dh-track-sub">{track.subtitle}</small>
+                </span>
 
-      {/* ── AI Assistant ── */}
+                <span className="dh-track-actions" onClick={(event) => event.stopPropagation()}>
+                  <button
+                    type="button"
+                    className={`dh-inline-icon ${liked[track.id] ? 'active' : ''}`}
+                    onClick={() => setLiked((previous) => ({ ...previous, [track.id]: !previous[track.id] }))}
+                    aria-label="บันทึกรายการโปรด"
+                  >
+                    <Heart size={19} fill={liked[track.id] ? 'currentColor' : 'none'} />
+                  </button>
+                  {track.duration && <span className="dh-duration">{track.duration}</span>}
+                  <a
+                    href={track.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="dh-inline-icon"
+                    aria-label={`ดาวน์โหลด ${track.title}`}
+                  >
+                    <Download size={18} />
+                  </a>
+                </span>
+              </div>
+            );
+          })
+        )}
+      </section>
+
       {currentTrack && (
-        <div className="dh-glass" style={{ margin: '1rem var(--dh-page-pad)', overflow: 'hidden' }}>
+        <section className="dh-ai-panel">
           <AiAssistant
             mode="dhamma"
             contextData={`กำลังฟัง: "${currentTrack.title}" (${currentTrack.subtitle || ''})`}
             title="พระอาจารย์ AI"
-            subtitle="ผู้ช่วยอธิบายธรรมะ"
+            subtitle="ช่วยสรุปใจความและอธิบายธรรมะจากรายการที่กำลังฟัง"
             icon="✨"
             themeColor="var(--dh-primary)"
             buttonText="ขอคำอธิบายเพิ่มเติม"
             isDarkMode={false}
           />
-        </div>
+        </section>
       )}
     </div>
   );

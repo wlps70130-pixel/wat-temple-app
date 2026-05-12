@@ -82,18 +82,22 @@ function App() {
 
   useEffect(() => {
     document.body.classList.toggle('energy-view-active', isEnergyView);
-    return () => document.body.classList.remove('energy-view-active');
-  }, [isEnergyView]);
+    document.body.classList.toggle('dhamma-view-active', isDhammaView);
+    return () => {
+      document.body.classList.remove('energy-view-active');
+      document.body.classList.remove('dhamma-view-active');
+    };
+  }, [isEnergyView, isDhammaView]);
 
   // Next tracks in queue (those after current)
   const queueAfterCurrent = (() => {
     if (!currentTrack || queue.length === 0) return [];
     const idx = queue.findIndex(t => t.id === currentTrack.id);
-    return queue.slice(idx + 1, idx + 3);
+    return queue.slice(idx + 1, idx + 6);
   })();
 
   return (
-    <div className={`app-wrapper ${isEnergyView ? 'energy-mode' : ''}`} style={{
+    <div className={`app-wrapper ${isEnergyView ? 'energy-mode' : ''} ${isDhammaView ? 'dhamma-mode' : ''} ${currentTrack ? 'has-audio' : ''}`} style={{
       padding: (isDhammaView || isEnergyView) ? '0' : 'var(--content-pad)',
       paddingBottom: currentTrack ? '80px' : ((isDhammaView || isEnergyView) ? '0' : '6rem'),
       background: isDhammaView ? '#f4f9fc' : (isEnergyView ? '#f4f7fb' : 'transparent'),
@@ -137,13 +141,15 @@ function App() {
       ) : null}
 
       {/* Hidden Audio Element */}
-      <audio
-        ref={audioRef}
-        src={currentTrack ? currentTrack.url : ''}
-        onEnded={playNext}
-        onPause={() => setIsPlaying(false)}
-        onPlay={() => setIsPlaying(true)}
-      />
+      {currentTrack && (
+        <audio
+          ref={audioRef}
+          src={currentTrack.url}
+          onEnded={playNext}
+          onPause={() => setIsPlaying(false)}
+          onPlay={() => setIsPlaying(true)}
+        />
+      )}
 
       {/* YouTube Music style Player */}
       {currentTrack && (

@@ -24,7 +24,7 @@
 .energy-app {
   background: var(--e-bg);
   min-height: 100vh;
-  font-family: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  font-family: var(--app-font-family);
   color: var(--e-text);
 }
 
@@ -309,7 +309,7 @@
   background:
     linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,247,251,0.98) 34%),
     #f4f7fb;
-  font-family: "Sarabun", "Prompt", system-ui, sans-serif;
+  font-family: var(--app-font-family);
   letter-spacing: 0;
 }
 

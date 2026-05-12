@@ -2,7 +2,7 @@ import React from 'react';
 import { ChevronLeft } from 'lucide-react';
 
 // ฟอนต์หรูสำหรับชื่อวัด
-const elegantFontLink = "https://fonts.googleapis.com/css2?family=Sarabun:wght@500;700&family=Prompt:wght@600&display=swap";
+const elegantFontLink = "https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap";
 
 export default function Header({ onBack }) {
   return (
@@ -49,7 +49,7 @@ export default function Header({ onBack }) {
       <div className="header-text" style={{ flex: 1, minWidth: 0 }}>
         <link rel="stylesheet" href={elegantFontLink} />
         <h1 style={{
-          fontFamily: "'Sarabun', 'Prompt', sans-serif",
+          fontFamily: "var(--app-font-family)",
           fontWeight: 700,
           fontSize: 'clamp(0.95rem, 3.5vw, 1.35rem)',
           whiteSpace: 'nowrap',
@@ -60,7 +60,7 @@ export default function Header({ onBack }) {
           color: 'var(--primary-dark)'
         }}>วัดหลวงพ่อสดธรรมกายาราม</h1>
         <p style={{
-          fontFamily: "'Sarabun', sans-serif",
+          fontFamily: "var(--app-font-family)",
           fontWeight: 500,
           fontSize: 'clamp(0.68rem, 2.5vw, 0.85rem)',
           letterSpacing: '0.01em',

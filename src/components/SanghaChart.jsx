@@ -149,7 +149,7 @@ export default function SanghaChart() {
   );
 
   return (
-    <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '80px', fontFamily: '"Prompt", "Inter", sans-serif', marginLeft: 'calc(-1 * var(--content-pad))', marginRight: 'calc(-1 * var(--content-pad))' }}>
+    <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '80px', fontFamily: 'var(--app-font-family)', marginLeft: 'calc(-1 * var(--content-pad))', marginRight: 'calc(-1 * var(--content-pad))' }}>
       <div style={{ padding: '1.25rem var(--content-pad)', display:'flex', flexDirection:'column', gap:'1rem' }}>
 
         {/* ── Page Title ── */}

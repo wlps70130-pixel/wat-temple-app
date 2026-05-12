@@ -14,18 +14,24 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 app.use(cors());
-app.use(express.json());
 
 // Load API routes
 // The Vercel functions take (req, res), which is identical to Express signature
 import tuyaHandler from './api/tuya.js';
 import shellyHandler from './api/shelly.js';
 import thaillmHandler from './api/thaillm.js';
+import cctvHandler from './api/cctv.js';
+import nvrEventsHandler from './api/nvr-events.js';
 import authProfileHandler from './api/auth/profile.js';
+
+app.all('/api/nvr-events', express.raw({ type: '*/*', limit: '5mb' }), nvrEventsHandler);
+
+app.use(express.json());
 
 app.all('/api/tuya', tuyaHandler);
 app.all('/api/shelly', shellyHandler);
 app.all('/api/thaillm', thaillmHandler);
+app.all('/api/cctv', cctvHandler);
 app.all('/api/auth/profile', authProfileHandler);
 
 // Serve static frontend in production (Vite build output)
