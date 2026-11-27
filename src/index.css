@@ -377,3 +377,22 @@ body.energy-view-active #root {
 @media (min-width: 900px) {
   .sangha-monks-grid { grid-template-columns: repeat(4, 1fr) !important; }
 }
+
+/* Facebook Events - natural image size */
+.embla__slide-card .embla__slide-img-wrapper {
+  aspect-ratio: auto;
+  height: auto;
+  overflow: hidden;
+}
+
+.embla__slide-card .embla__slide-img-wrapper img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  transform: none;
+}
+
+.embla__slide-card:hover .embla__slide-img-wrapper img {
+  transform: none;
+}
