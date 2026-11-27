@@ -14,7 +14,12 @@ function EventImage({ src, title }) {
         src={failed ? FALLBACK_IMAGE : (src || FALLBACK_IMAGE)}
         alt={title}
         loading="lazy"
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        style={{
+  display: 'block',
+  width: '100%',
+  height: 'auto',
+  objectFit: 'contain'
+}}
         onError={(event) => {
           if (!failed) {
             setFailed(true);
