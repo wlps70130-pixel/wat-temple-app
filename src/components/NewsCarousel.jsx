@@ -1,168 +1,234 @@
-import React, { useEffect, useState } from 'react';
+ 
+import { useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { Newspaper, Loader2, RefreshCw } from 'lucide-react';
-import Papa from 'papaparse';
+import { CalendarDays, RefreshCw, MapPin } from 'lucide-react';
 
-// ── Google Sheet (แท็บ "news") ─────────────────────────────────
-// คอลัมน์ที่ต้องมีใน Sheet: title | tag | image | date | link
-// เผยแพร่ Sheet → File → Share → Publish to web → CSV แล้วนำ URL มาวาง
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPZers8pjFy5zTEaUJlKc0-uG3o0DHxWsHhxI91Q4ZUMkhNAXCiURxF1jNEdgycnXEvB-y_QZIAfCY/pub?gid=1313998691&single=true&output=csv';
+const FALLBACK_IMAGE = '/logo.png';
 
-// Fallback ถ้า Sheet ยังไม่มีข้อมูล
-const FALLBACK_NEWS = [
-  { id: 1, image: 'https://images.unsplash.com/photo-1600028243685-611ac47c5df6?auto=format&fit=crop&q=80&w=800', tag: 'ประชาสัมพันธ์', title: 'ขอเชิญร่วมงานบุญทอดกฐินสามัคคี ประจำปี 2569', date: '', link: '' },
-  { id: 2, image: 'https://images.unsplash.com/photo-1577903273180-87711ab4b914?auto=format&fit=crop&q=80&w=800', tag: 'กิจกรรม',      title: 'เปิดรับสมัครผู้เข้าปฏิบัติธรรม หลักสูตร 7 วัน', date: '', link: '' },
-  { id: 3, image: 'https://images.unsplash.com/photo-1542646452-fefc90eb8eeb?auto=format&fit=crop&q=80&w=800', tag: 'ข่าวสาร',      title: 'โครงการปลูกป่าเฉลิมพระเกียรติ รอบบริเวณวัด', date: '', link: '' },
-];
-
-const TAG_COLORS = {
-  'ประชาสัมพันธ์': '#eab308',
-  'กิจกรรม':       '#f472b6',
-  'ข่าวสาร':        '#0ea5e9',
-  'ธรรมะ':          '#a78bfa',
-  'นิมนต์':         '#f87171',
-};
-const tagColor = (tag) => TAG_COLORS[tag] || '#eab308';
-
-export default function NewsCarousel() {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
-  const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [usingFallback, setUsingFallback] = useState(false);
-
-  const fetchNews = () => {
-    setLoading(true);
-    Papa.parse(SHEET_URL, {
-      download: true,
-      header: true,
-      complete: (r) => {
-        const rows = r.data
-          .filter(row => row.title && row.title.trim())
-          .map((row, i) => ({
-            id: i + 1,
-            title: row.title?.trim() || '',
-            tag:   row.tag?.trim()   || 'ประชาสัมพันธ์',
-            image: row.image?.trim() || '',
-            date:  row.date?.trim()  || '',
-            link:  row.link?.trim()  || '',
-          }));
-
-        if (rows.length > 0) {
-          setNews(rows);
-          setUsingFallback(false);
-        } else {
-          setNews(FALLBACK_NEWS);
-          setUsingFallback(true);
-        }
-        setLoading(false);
-      },
-      error: () => {
-        setNews(FALLBACK_NEWS);
-        setUsingFallback(true);
-        setLoading(false);
-      },
-    });
-  };
-
-  useEffect(() => { fetchNews(); }, []);
-
-  // Auto-advance carousel
-  useEffect(() => {
-    if (!emblaApi || news.length <= 1) return;
-    const interval = setInterval(() => emblaApi.scrollNext(), 4500);
-    return () => clearInterval(interval);
-  }, [emblaApi, news]);
+function EventImage({ src, title }) {
+  const [failed, setFailed] = useState(false);
 
   return (
-    <div style={{ marginTop: '0.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: '0.5rem', marginBottom: '0.75rem' }}>
-        <h2 className="section-title" style={{ margin: 0 }}>
-          <Newspaper size={20} color="#eab308" />
-          ข่าวประชาสัมพันธ์
+    <div className="embla__slide-img-wrapper">
+      <img
+        src={failed ? FALLBACK_IMAGE : (src || FALLBACK_IMAGE)}
+        alt={title}
+        loading="lazy"
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        onError={(event) => {
+          if (!failed) {
+            setFailed(true);
+          } else {
+            event.currentTarget.style.display = 'none';
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+export default function NewsCarousel() {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: false,
+    align: 'start'
+  });
+
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [now, setNow] = useState(Date.now());
+
+  async function loadEvents() {
+    setLoading(true);
+    setError(false);
+
+    try {
+      const response = await fetch('/api/news');
+
+      if (!response.ok) {
+        throw new Error('Cannot load events');
+      }
+
+      const result = await response.json();
+
+      const items = Array.isArray(result.items)
+        ? result.items
+        : [];
+
+      setEvents(items.filter(item => item.type === 'event'));
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadEvents();
+
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const currentEvents = events
+    .filter(event => {
+      if (!event.startsAt) return false;
+
+      const start = Date.parse(event.startsAt);
+      const end = event.endsAt
+        ? Date.parse(event.endsAt)
+        : start;
+
+      return Number.isFinite(start) &&
+        Number.isFinite(end) &&
+        end >= now;
+    })
+    .sort((a, b) =>
+      Date.parse(a.startsAt) - Date.parse(b.startsAt)
+    );
+
+  function formatDate(date) {
+    if (!date) return '';
+
+    return new Intl.DateTimeFormat('th-TH', {
+      timeZone: 'Asia/Bangkok',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(date));
+  }
+
+  return (
+    <section style={{ marginTop: '0.5rem' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1rem'
+      }}>
+        <h2 className="section-title">
+          <CalendarDays size={20} color="#eab308" />
+          กิจกรรมของวัด
         </h2>
-        <button onClick={fetchNews} title="โหลดใหม่"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: '#94a3b8', display: 'flex', alignItems: 'center' }}>
-          <RefreshCw size={15} style={loading ? { animation: 'spin 1s linear infinite' } : {}} />
+
+        <button
+          type="button"
+          onClick={loadEvents}
+          disabled={loading}
+          aria-label="โหลดกิจกรรมใหม่"
+          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          <RefreshCw size={18} />
         </button>
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', gap: '0.5rem' }}>
-          <Loader2 size={22} color="#eab308" style={{ animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>กำลังโหลดข่าว...</span>
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      ) : (
+      {loading && events.length === 0 && (
+        <p>กำลังโหลดกิจกรรม...</p>
+      )}
+
+      {error && (
+        <p style={{ color: '#b45309' }}>
+          ไม่สามารถอัปเดตกิจกรรมจาก Facebook ได้ในขณะนี้
+        </p>
+      )}
+
+      {!loading && currentEvents.length === 0 && (
+        <p style={{
+          textAlign: 'center',
+          padding: '2rem',
+          color: '#64748b'
+        }}>
+          ขณะนี้ยังไม่มีกิจกรรมที่กำลังจัดหรือกำลังจะมาถึง
+        </p>
+      )}
+
+      {currentEvents.length > 0 && (
         <>
           <div className="embla" ref={emblaRef}>
             <div className="embla__container">
-              {news.map((item) => (
+              {currentEvents.map(item => (
                 <div className="embla__slide" key={item.id}>
-                  <div className="embla__slide-card"
-                    onClick={() => item.link && window.open(item.link, '_blank')}
-                    style={{ cursor: item.link ? 'pointer' : 'default' }}>
-                    <div className="embla__slide-img-wrapper">
-                      {item.image ? (
-                        <img 
-                          src={item.image && item.image.startsWith('http://') ? item.image.replace('http://', 'https://') : item.image} 
-                          alt={item.title || "ข่าวประชาสัมพันธ์"}
-                          loading="lazy"
-                          decoding="async"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
-                          onError={(e) => { 
-                            e.currentTarget.onerror = null; 
-                            e.currentTarget.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='100%25' height='100%25' fill='%23fef3c7'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='40' fill='%23d97706' text-anchor='middle' dy='.3em'%3E🛕%3C/text%3E%3C/svg%3E"; 
-                            e.currentTarget.parentElement.style.background = '#fef3c7'; 
-                          }} 
-                        />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#fef3c7,#fde68a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>
-                          🛕
-                        </div>
-                      )}
-                    </div>
+                  <article className="embla__slide-card">
+                    <EventImage
+                      key={item.imageUrl}
+                      src={item.imageUrl}
+                      title={item.title}
+                    />
+
                     <div className="embla__slide-content">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <span className="embla__slide-tag" style={{ background: tagColor(item.tag) }}>
-                          {item.tag}
-                        </span>
-                        {item.date && (
-                          <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '500' }}>{item.date}</span>
-                        )}
-                      </div>
-                      <h3 className="embla__slide-title">{item.title}</h3>
-                      {item.link && (
-                        <span style={{ fontSize: '0.72rem', color: '#3b82f6', fontWeight: '600', marginTop: '0.25rem', display: 'block' }}>
-                          อ่านเพิ่มเติม →
-                        </span>
+                      <span className="embla__slide-tag">
+                        กิจกรรม
+                      </span>
+
+                      <h3 className="embla__slide-title">
+                        {item.title}
+                      </h3>
+
+                      <p style={{ fontSize: '0.85rem' }}>
+                        <CalendarDays size={14} style={{ display: 'inline' }} />
+                        {' '}{formatDate(item.startsAt)} น.
+                      </p>
+
+                      {item.location && (
+                        <p style={{ fontSize: '0.8rem' }}>
+                          <MapPin size={14} style={{ display: 'inline' }} />
+                          {' '}{item.location}
+                        </p>
+                      )}
+
+                      {item.summary && (
+                        <p style={{
+                          fontSize: '0.82rem',
+                          lineHeight: 1.6,
+                          whiteSpace: 'pre-line',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitBoxOrient: 'vertical',
+                          WebkitLineClamp: 3
+                        }}>
+                          {item.summary}
+                        </p>
+                      )}
+
+                      {item.url && (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: '#2563eb' }}
+                        >
+                          ดูรายละเอียดกิจกรรมบน Facebook
+                        </a>
                       )}
                     </div>
-                  </div>
+                  </article>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Dot indicators */}
-          {news.length > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginTop: '0.75rem' }}>
-              {news.map((_, i) => (
-                <div key={i} onClick={() => emblaApi?.scrollTo(i)}
-                  style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#eab308', opacity: 0.4, cursor: 'pointer', transition: 'opacity 0.2s' }}
-                  onMouseEnter={e => e.target.style.opacity = 1}
-                  onMouseLeave={e => e.target.style.opacity = 0.4}
-                />
-              ))}
+          {currentEvents.length > 1 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '1rem',
+              marginTop: '1rem'
+            }}>
+              <button type="button" onClick={() => emblaApi?.scrollPrev()}>
+                ก่อนหน้า
+              </button>
+              <button type="button" onClick={() => emblaApi?.scrollNext()}>
+                ถัดไป
+              </button>
             </div>
-          )}
-
-          {usingFallback && (
-            <p style={{ textAlign: 'center', fontSize: '0.65rem', color: '#cbd5e1', marginTop: '0.5rem' }}>
-              * กำลังแสดงข้อมูลตัวอย่าง — เพิ่มข้อมูลใน Google Sheets เพื่อแสดงข่าวจริง
-            </p>
           )}
         </>
       )}
-    </div>
+    </section>
   );
 }
