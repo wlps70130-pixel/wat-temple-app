@@ -113,8 +113,9 @@ if (!response.ok) {
     name: error.name
   });
 
-  return res.status(503).json({
-    items: [],
-    error: 'Unable to load Facebook events'
-  });
+      return res.status(503).json({
+      items: [],
+      error: 'Unable to load Facebook events'
+    });
+  }
 }
