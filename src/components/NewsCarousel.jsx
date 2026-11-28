@@ -1,7 +1,7 @@
  
 import { useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { CalendarDays, RefreshCw, MapPin } from 'lucide-react';
+import { CalendarDays, RefreshCw, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const FALLBACK_IMAGE = '/logo.png';
 
@@ -217,23 +217,58 @@ export default function NewsCarousel() {
             </div>
           </div>
 
-          {currentEvents.length > 1 && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '1rem',
-              marginTop: '1rem'
-            }}>
-              <button type="button" onClick={() => emblaApi?.scrollPrev()}>
-                ก่อนหน้า
-              </button>
-              <button type="button" onClick={() => emblaApi?.scrollNext()}>
-                ถัดไป
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </section>
-  );
+
+{currentEvents.length > 1 && (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '12px',
+    marginTop: '16px'
+  }}>
+    <button
+      type="button"
+      onClick={() => emblaApi?.scrollPrev()}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '10px 18px',
+        background: '#ffffff',
+        color: '#173b79',
+        border: '1px solid #d9e7f5',
+        borderRadius: '999px',
+        fontSize: '13px',
+        fontWeight: 600,
+        cursor: 'pointer',
+        boxShadow: '0 3px 10px rgba(23,59,121,0.08)'
+      }}
+    >
+      <ChevronLeft size={16} color="#d59a16" />
+      ก่อนหน้า
+    </button>
+
+    <button
+      type="button"
+      onClick={() => emblaApi?.scrollNext()}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '10px 18px',
+        background: '#ffffff',
+        color: '#173b79',
+        border: '1px solid #d9e7f5',
+        borderRadius: '999px',
+        fontSize: '13px',
+        fontWeight: 600,
+        cursor: 'pointer',
+        boxShadow: '0 3px 10px rgba(23,59,121,0.08)'
+      }}
+    >
+      ถัดไป
+      <ChevronRight size={16} color="#d59a16" />
+    </button>
+  </div>
+)}
 }
