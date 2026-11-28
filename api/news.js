@@ -67,9 +67,22 @@ export default async function handler(req, res) {
       signal: AbortSignal.timeout(8000)
     });
 
-    if (!response.ok) {
-      throw new Error('Facebook API unavailable');
-    }
+    
+if (!response.ok) {
+  const errorData = await response.json().catch(() => ({}));
+  const fbError = errorData.error || {};
+
+  console.error('Facebook Graph API error', {
+    httpStatus: response.status,
+    code: fbError.code,
+    subcode: fbError.error_subcode,
+    type: fbError.type,
+    message: fbError.message
+  });
+
+  throw new Error('Facebook API unavailable');
+}
+
 
     const data = await response.json();
 
@@ -93,10 +106,15 @@ export default async function handler(req, res) {
       items,
       updatedAt: new Date().toISOString()
     });
-  } catch {
-    return res.status(503).json({
-      items: [],
-      error: 'Unable to load Facebook events'
-    });
-  }
+  
+} catch (error) {
+  console.error('Facebook events request failed', {
+    message: error.message,
+    name: error.name
+  });
+
+  return res.status(503).json({
+    items: [],
+    error: 'Unable to load Facebook events'
+  });
 }
