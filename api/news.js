@@ -107,14 +107,16 @@ if (!response.ok) {
       updatedAt: new Date().toISOString()
     });
   
-} catch (error) {
-  console.error('Facebook events request failed', {
-    message: error.message,
-    name: error.name
-  });
 
-  return res.status(503).json({
-    items: [],
-    error: 'Unable to load Facebook events'
-  });
+  } catch (error) {
+    console.error('Facebook events request failed', {
+      message: error.message,
+      name: error.name
+    });
+
+    return res.status(503).json({
+      items: [],
+      error: 'Unable to load Facebook events'
+    });
+  }
 }
