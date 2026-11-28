@@ -269,6 +269,11 @@ export default function NewsCarousel() {
       ถัดไป
       <ChevronRight size={16} color="#d59a16" />
     </button>
-  </div>
-)}
+
+          </div>
+          )}
+        </>
+      )}
+    </section>
+  );
 }
